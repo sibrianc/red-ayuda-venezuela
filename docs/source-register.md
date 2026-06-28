@@ -33,7 +33,7 @@ fuente cambió ni permiso para publicar automáticamente.
 | S-007 | [HOT / OpenStreetMap](https://docs.hotosm.org/diagrams/) | Vías, edificios, hospitales, estaciones y base cartográfica | API/export; diario o por campaña | ODbL y atribución; P0 | **En evaluación.** Directorio físico, no prueba personal, horario ni disponibilidad actual. |
 | S-008 | [IODA](https://ioda.inetintel.cc.gatech.edu/about), Georgia Tech | Señales macroscópicas de interrupción de Internet | API de investigación; proponer 15 min | P0 agregado; revisar términos/cuotas | **En evaluación.** Etiquetar “anomalía de conectividad”; nunca inferir víctimas. |
 | S-009 | [Cloudflare Radar Outage Center](https://developers.cloudflare.com/radar/investigate/outages/) | Interrupciones por territorio/ASN, alcance y causa publicada | API con token; proponer 15 min | P0; revisar cuenta, términos, cuota y costo | **Propuesta.** No solicitar token hasta aprobación específica. |
-| S-010 | [Logistics Cluster — Venezuela](https://logcluster.org/en/where-we-work/ven), WFP/IASC | Coordinación, acceso, logística, brechas, documentos y operación del terremoto 2026 | Publicaciones y documentos; consultar 60 min | P0/R1; licencia por documento y revisión humana | **Prioridad alta, en evaluación.** Existe operación activa; no equivale a inventario vivo de suministros. |
+| S-010 | [Logistics Cluster — Venezuela](https://logcluster.org/en/where-we-work/ven), WFP/IASC | Coordinación, acceso, logística, brechas, documentos y operación del terremoto 2026 | Publicaciones y documentos; consultar 60 min | P0/R1; licencia por documento y revisión humana | **Prioridad alta, en evaluación.** Existe operación activa; no equivale a inventario vivo. Borrador de contacto preparado, no enviado. |
 | S-011 | [WHO HeRAMS](https://www.who.int/initiatives/herams) | Operatividad y disponibilidad de servicios/recursos de salud | Reportes/API según implementación nacional | P0/R1; acceso y permiso dependen del proyecto | **Propuesta.** Confirmar si existe implementación/dataset autorizado para Venezuela. |
 | S-012 | INSARAG ICMS / Virtual OSOCC | Equipos USAR, despliegues, sitios y coordinación | Sistema restringido por rol | R1/R2; acuerdo y acceso formal | **Propuesta restringida.** Prohibido raspar o eludir autenticación. |
 | S-013 | [ICRC Family Links](https://familylinks.icrc.org/es/normas-de-privacidad) | Canal especializado para restablecer contacto familiar | Referencia/enlace únicamente | R2; consentimiento y reglas estrictas | **Solo referencia.** Prohibida la ingestión, copia o publicación de personas. |
@@ -75,3 +75,6 @@ suspendida o sin permiso/revisión. Los conectores y snapshots pertenecen a E4.
 
 E1 no debe declararse cerrada hasta completar los dos últimos puntos. La aprobación
 del trabajo de esta fase no equivale por sí sola a autorización de una fuente.
+
+El borrador de solicitud a la primera fuente socia candidata vive en
+`docs/outreach/logistics-cluster-draft.md`. No se ha enviado.

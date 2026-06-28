@@ -114,6 +114,9 @@ obtener permiso verificable de una organización socia.
   `phase/e0-governance`.
 - Decisiones pendientes del propietario: ratificar USGS o GDACS para staging privado
   P0 y autorizar el proceso para obtener permiso verificable de una organización socia.
+- Siguiente artefacto listo: `docs/outreach/logistics-cluster-draft.md`, dirigido a los
+  contactos públicos de coordinación y gestión de información de la operación. Está
+  incompleto en los datos del remitente y **no fue enviado**.
 
 ## 4. Resultados de la revisión profunda (2026-06-27/28)
 

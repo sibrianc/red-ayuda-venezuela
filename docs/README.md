@@ -20,6 +20,8 @@ La política operativa de clasificación, fuentes, roles y aprobaciones vive en
 El inventario investigado de fuentes y sus límites vive en `docs/source-register.md`.
 El modelo de hechos, recursos, directorio, señales de comunicación y envío seguro a
 terceros vive en `docs/data-routing.md`. Ninguno de estos documentos activa una fuente.
+Los borradores de comunicación con terceros viven en `docs/outreach/` y siempre deben
+indicar si fueron enviados; crear un borrador no autoriza el contacto.
 
 La copia `Documento Madre del Proyecto-2.docx` fue confirmada como vigente. El informe exploratorio y la copia anterior no forman parte de la documentación canónica.
 
