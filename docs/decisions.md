@@ -1,5 +1,14 @@
 # Registro de decisiones
 
+## 2026-06-28 — Repositorio, revisión y handoff
+
+- Repositorio publicado **privado** en GitHub como `sibrianc/red-ayuda-venezuela`, rama `main` (datos humanitarios sensibles).
+- `git push` usa el token del CLI `gh` como credential helper: no requiere código 2FA.
+- Revisión profunda de infra/código/lógica/flujo: sin hallazgos críticos. Único bug corregido: CSP bloqueaba los íconos de Leaflet (`b487bd7`).
+- No se agregó rate limiting (no requerido por el MVP según el Security Checklist).
+- Deploy en Render (Fase 14) queda pendiente de aprobación explícita del costo.
+- Se añade `docs/seguimiento.md` como documento de handoff vivo.
+
 ## 2026-06-27 — Documento rector
 
 `Documento Madre del Proyecto-2.docx` se reconoce como Documento Madre vigente, aunque su contenido coincida con la copia anterior.
