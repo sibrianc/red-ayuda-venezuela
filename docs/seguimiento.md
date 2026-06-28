@@ -119,6 +119,10 @@ organización socia es opcional y ya no bloquea la salida de E1.
 - Siguiente artefacto listo: `docs/outreach/logistics-cluster-draft.md`, dirigido a los
   contactos públicos de coordinación y gestión de información de la operación. Está
   incompleto en los datos del remitente y **no fue enviado**.
+- Dominio/correo: RDAP devolvió `404 Object not found` para `redayudave.org`; no hay
+  NS/A/MX. Se abrió el alta oficial de Cloudflare y se creó
+  `docs/domain-email-setup.md`. El propietario debe introducir en Safari su correo,
+  contraseña, 2FA, datos de registrante y pago. Ningún secreto se guarda en el repo.
 
 ## 4. Resultados de la revisión profunda (2026-06-27/28)
 

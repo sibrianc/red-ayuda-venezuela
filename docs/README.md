@@ -22,6 +22,8 @@ El modelo de hechos, recursos, directorio, señales de comunicación y envío se
 terceros vive en `docs/data-routing.md`. Ninguno de estos documentos activa una fuente.
 Los borradores de comunicación con terceros viven en `docs/outreach/` y siempre deben
 indicar si fueron enviados; crear un borrador no autoriza el contacto.
+El runbook reproducible para dominio, correo oficial y solicitud a ReliefWeb vive en
+`docs/domain-email-setup.md`; nunca debe contener credenciales ni datos de pago.
 
 La copia `Documento Madre del Proyecto-2.docx` fue confirmada como vigente. El informe exploratorio y la copia anterior no forman parte de la documentación canónica.
 
