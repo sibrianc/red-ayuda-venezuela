@@ -1,5 +1,18 @@
 # Registro de decisiones
 
+## 2026-06-28 — E1, registro y límites de fuentes
+
+- Se separan señales automáticas, hechos operativos y casos de personas; una señal de
+  daño o conectividad nunca se convierte en conteo de víctimas.
+- El registro técnico almacena permiso, clasificación, frecuencia, retención,
+  responsable y referencia de secreto, pero nunca credenciales ni payloads.
+- Family Links queda como canal de referencia, no como fuente de ingestión.
+- El enrutamiento a sistemas oficiales o de socios empieza por referencia o copia
+  asistida. Un envío por API exige acuerdo, consentimiento específico, minimización,
+  idempotencia, acuse y auditoría.
+- Ninguna fuente queda activa en E1. La puerta de salida requiere ratificar una fuente
+  oficial para staging y obtener permiso verificable de una fuente socia.
+
 ## 2026-06-28 — Iteración E0.1 de calidad visual antes de E1
 
 - Por decisión del propietario se adelanta una base de calidad visual y UX antes de

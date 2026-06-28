@@ -23,13 +23,16 @@ documento).
 ## 2. Dónde vive el código
 
 - **Repositorio (privado):** https://github.com/sibrianc/red-ayuda-venezuela
-- **Rama de trabajo:** `main`
+- **Rama de trabajo:** `phase/e1-source-register`
+- **Base de E1:** `47414ee` (`phase/e0-governance`). E1 es una rama apilada; mientras
+  E0 no esté fusionada, su pull request debe usar `phase/e0-governance` como base.
 - **Cuenta GitHub:** `sibrianc`
 - **Commits hasta hoy:**
   - `964cd34` — implementación inicial del MVP privacy-first (14 fases).
   - `b487bd7` — fix: permitir íconos de Leaflet en el CSP (`img-src` incluía solo
     `self`, `data:` y `tile.openstreetmap.org`; faltaba `unpkg.com`, por lo que los
     pines del mapa salían rotos). Incluye test de regresión.
+  - `47414ee` — E0/E0.1: gobernanza, formularios guiados y línea visual/mapa operativo.
 
 ## 3. Estado actual: ¿en qué fase estamos?
 
@@ -79,6 +82,32 @@ E1: formularios guiados de tres pasos, ubicación asistida sin coordenadas manua
 precisión pública reducida, sistema visual institucional y mapa operativo con filtros,
 panel accesible y concentración aproximada. No se añadieron dependencias, costos ni
 servicios externos. E2 y E9 conservarán su alcance de evolución posterior.
+
+**Fase en curso:** E1 — Registro y acuerdos de fuentes, rama
+`phase/e1-source-register`. Se investigaron fuentes oficiales y humanitarias y se
+crearon `docs/source-register.md`, `docs/data-routing.md`, el modelo interno
+`DataSource`, su migración y controles que rechazan fuentes no autorizadas. No se ha
+contactado a terceros, usado credenciales, importado datos ni activado cron. La fase
+queda pendiente de dos decisiones reales: ratificar una fuente oficial para staging y
+obtener permiso verificable de una organización socia.
+
+### Checkpoint técnico E1
+
+- Archivos nuevos: `app/ingestion/registry.py`, `docs/source-register.md`,
+  `docs/data-routing.md`, migración `8d6f3b2c1a90` y
+  `tests/test_source_registry.py`.
+- Modelo nuevo: `DataSource`, exclusivamente interno. Registra permiso, clasificación,
+  frecuencia, retención, responsable, revisión y el nombre de una variable de entorno;
+  no guarda tokens, contraseñas ni payloads.
+- Controles: una fuente solo entra a staging con estado `authorized_staging` o
+  `active`, permiso documentado y fechas de autorización/revisión. Producción exige
+  `active`.
+- Validación local: 30/30 pruebas, `compileall`, `git diff --check`, migración
+  upgrade → downgrade → upgrade y `flask db check` sin deriva.
+- Estado externo: cero conectores, cero cron, cero descargas/importaciones, cero
+  contactos con organizaciones y cero cambios en producción.
+- Decisiones pendientes del propietario: ratificar USGS o GDACS para staging privado
+  P0 y autorizar el proceso para obtener permiso verificable de una organización socia.
 
 ## 4. Resultados de la revisión profunda (2026-06-27/28)
 
@@ -146,19 +175,22 @@ python -m compileall -q app
 
 ## 6. Cómo subir cambios a GitHub (sin código 2FA)
 
-> El problema original era que `git push` por HTTPS pedía un "código de la app" (2FA)
-> que el dueño no recibe. **Solución ya aplicada:** el CLI `gh` está autenticado con un
-> token y git usa ese token como credential helper. **No vuelve a pedir código.**
+> El problema original era que HTTPS/`gh` pedía autenticación que el dueño no recibía.
+> **Solución vigente:** el remoto usa SSH y este repositorio tiene `core.sshCommand`
+> apuntando a `~/.ssh/id_ed25519_redayudave` con `IdentitiesOnly=yes`. La llave pública
+> ya está agregada a la cuenta `sibrianc` y `ssh -T` fue verificado. No modificar esta
+> configuración ni volver a iniciar device login salvo que el dueño lo solicite.
 
 ```bash
 git add -A
 git commit -m "mensaje"
-git push
+git push -u origin "$(git branch --show-current)"
 ```
 
-Si el token caduca algún día: `gh auth login` (autenticación por navegador, tampoco usa
-el código 2FA por SMS/app). Crear repos nuevos: `gh repo create <nombre> --private
---source=. --remote=origin --push`.
+El remoto esperado es `git@github.com:sibrianc/red-ayuda-venezuela.git`. En este
+checkpoint, la sesión de `gh` no es confiable y la GitHub App no puede leer el repo
+privado; para abrir un PR se usa temporalmente la página Compare de GitHub en el
+navegador. No confundir esa limitación con el push: `git push` por SSH sí funciona.
 
 ## 7. Reglas obligatorias que el próximo AI DEBE respetar
 
@@ -182,17 +214,17 @@ Del Prompt Pack (`docs/project/06`). No violar sin aprobación explícita del du
 
 ## 8. Próximos pasos sugeridos (en orden)
 
-1. **(Opcional) Verificación visual del flujo completo** en navegador: enviar reporte →
-   queda pendiente/privado → login admin → revisar/aprobar/publicar → aparece en listado
-   y mapa → reportar abuso → revisar abuso → exportar CSV → logout. Seguir la "prueba de
-   humo" de `docs/operations.md`.
-2. **Fase 14 — Deploy en Render.** Requiere **aprobación explícita del costo** (el
-   `render.yaml` usa plan de pago `starter` + Postgres `basic-256mb`). Pasos en
-   `README.md` (sección Despliegue) y `docs/operations.md` (antes de cada deploy). Crear
-   backup/snapshot antes de migraciones; correr `flask db upgrade`; crear admin por
-   consola segura; correr la prueba de humo; conectar `redayudave.org` solo tras validar
-   staging.
-3. Mantener tests verdes y revisar exposición de datos en cada fase.
+1. Obtener las dos decisiones pendientes de E1: fuente oficial para staging y proceso
+   de autorización de una fuente socia. No interpretar una aprobación general del
+   proyecto como permiso de contacto, autenticación o ingestión.
+2. Registrar las autorizaciones reales, repetir validaciones, publicar la rama y abrir
+   un PR apilado contra `phase/e0-governance`. No implementar conectores todavía: son E4.
+3. Tras aprobación de E1, iniciar E2 en una rama nueva y priorizar la experiencia
+   pública profesional: arquitectura de información, dashboard, directorio y sistema
+   visual. Mostrar el sitio local al propietario al final de cada iteración.
+4. Conservar la prueba de humo completa y el deploy en Render para la puerta de
+   lanzamiento correspondiente. Costo, staging, DNS y producción siguen requiriendo
+   aprobación explícita.
 
 ## 9. Decisiones tomadas en esta sesión
 

@@ -17,6 +17,10 @@ terceros o despliegues.
 La política operativa de clasificación, fuentes, roles y aprobaciones vive en
 `docs/data-governance.md` y también está subordinada a esta jerarquía.
 
+El inventario investigado de fuentes y sus límites vive en `docs/source-register.md`.
+El modelo de hechos, recursos, directorio, señales de comunicación y envío seguro a
+terceros vive en `docs/data-routing.md`. Ninguno de estos documentos activa una fuente.
+
 La copia `Documento Madre del Proyecto-2.docx` fue confirmada como vigente. El informe exploratorio y la copia anterior no forman parte de la documentación canónica.
 
 ## Reglas de cambio

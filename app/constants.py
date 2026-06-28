@@ -54,6 +54,41 @@ class SourceChannel(StrEnum):
     OTHER = "other"
 
 
+class DataSourceKind(StrEnum):
+    AUTHORITATIVE = "authoritative"
+    HUMANITARIAN = "humanitarian"
+    PARTNER = "partner"
+    RESEARCH = "research"
+    COMMUNITY = "community"
+    REFERRAL = "referral"
+
+
+class DataSourceAccess(StrEnum):
+    API = "api"
+    FEED = "feed"
+    PUBLIC_DOCUMENT = "public_document"
+    PARTNER_EXPORT = "partner_export"
+    MANUAL_IMPORT = "manual_import"
+    REFERRAL_ONLY = "referral_only"
+
+
+class DataSourceStatus(StrEnum):
+    PROPOSED = "proposed"
+    EVALUATING = "evaluating"
+    STAGING = "authorized_staging"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    RETIRED = "retired"
+
+
+class DataClassification(StrEnum):
+    PUBLIC_AGGREGATE = "P0"
+    PUBLIC_SANITIZED = "P1"
+    RESTRICTED_OPERATIONAL = "R1"
+    SENSITIVE_PERSONAL = "R2"
+    SYSTEM_SECRET = "S1"
+
+
 class AbuseStatus(StrEnum):
     PENDING = "pending"
     REVIEWED = "reviewed"

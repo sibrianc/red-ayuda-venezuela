@@ -2,12 +2,27 @@ from datetime import date, datetime, timezone
 from uuid import uuid4
 
 from flask_login import UserMixin
-from sqlalchemy import Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.constants import (
     AbuseStatus,
+    DataClassification,
+    DataSourceAccess,
+    DataSourceKind,
+    DataSourceStatus,
     Priority,
     ReportStatus,
     ReportType,
@@ -83,6 +98,51 @@ class User(UserMixin, TimestampMixin, db.Model):
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
+
+
+class DataSource(TimestampMixin, db.Model):
+    """Registro interno de una fuente; no almacena payloads ni credenciales."""
+
+    __tablename__ = "data_sources"
+    __table_args__ = (
+        CheckConstraint(
+            "frequency_minutes IS NULL OR frequency_minutes >= 1",
+            name="ck_data_sources_frequency_positive",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(80), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    owner_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    homepage_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    documentation_url: Mapped[str | None] = mapped_column(String(500))
+    source_kind: Mapped[DataSourceKind] = enum_column(
+        DataSourceKind, DataSourceKind.HUMANITARIAN
+    )
+    access_method: Mapped[DataSourceAccess] = enum_column(
+        DataSourceAccess, DataSourceAccess.PUBLIC_DOCUMENT
+    )
+    authorization_status: Mapped[DataSourceStatus] = enum_column(
+        DataSourceStatus, DataSourceStatus.PROPOSED
+    )
+    license_or_permission: Mapped[str | None] = mapped_column(Text)
+    purpose: Mapped[str] = mapped_column(Text, nullable=False)
+    categories: Mapped[str] = mapped_column(Text, nullable=False)
+    contains_personal_data: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    maximum_data_class: Mapped[DataClassification] = enum_column(
+        DataClassification, DataClassification.PUBLIC_AGGREGATE
+    )
+    frequency_minutes: Mapped[int | None] = mapped_column(Integer)
+    rate_limit_notes: Mapped[str | None] = mapped_column(String(500))
+    retention_policy: Mapped[str] = mapped_column(Text, nullable=False)
+    attribution: Mapped[str | None] = mapped_column(Text)
+    schema_version: Mapped[str | None] = mapped_column(String(80))
+    secret_env_var: Mapped[str | None] = mapped_column(String(120))
+    internal_owner: Mapped[str] = mapped_column(String(160), nullable=False)
+    authorization_notes: Mapped[str | None] = mapped_column(Text)
+    last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    authorized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class MissingPersonReport(ReportMixin, db.Model):

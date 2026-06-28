@@ -4,6 +4,11 @@
 
 - Aplicar `docs/data-governance.md` y registrar propietario, licencia, propósito,
   clasificación, frecuencia, retención y responsable interno.
+- Confirmar en `docs/source-register.md` y en `DataSource` que el estado sea
+  `authorized_staging` o `active`, con permiso, fecha de autorización y revisión
+  vigentes. El código debe rechazar cualquier otro estado.
+- Guardar solo el nombre de la variable de entorno de una credencial; nunca su valor
+  en base de datos, Git, documentación, logs o capturas.
 - No contactar organizaciones, autenticar fuentes, importar datos ni crear servicios
   con costo sin la aprobación específica correspondiente.
 - Probar primero en staging con datos privados, límites de tamaño, timeout,
