@@ -107,7 +107,7 @@ def register_security_headers(app: Flask) -> None:
             "default-src 'self'; "
             "style-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
             "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
-            "img-src 'self' data: https://tile.openstreetmap.org; "
+            "img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com; "
             "connect-src 'self'; font-src 'self' https://cdn.jsdelivr.net; "
             "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
         )
