@@ -27,6 +27,22 @@ def run() -> None:
         page.screenshot(path=OUTPUT / "desktop-home.png", full_page=True)
         results["checks"]["home_h1"] = page.locator("h1").count() == 1
         results["checks"]["skip_link"] = page.locator(".skip-link").count() == 1
+        results["checks"]["home_public_dashboard"] = page.locator(".signal-card").count() == 4
+        results["checks"]["home_source_readiness"] = page.locator(".source-readiness").count() == 1
+
+        with page.expect_navigation(wait_until="domcontentloaded"):
+            page.get_by_role("button", name="Modo ligero").click()
+        results["checks"]["low_bandwidth_persists"] = (
+            page.locator("html").get_attribute("data-bandwidth") == "low"
+        )
+        page.goto(f"{BASE_URL}/mapa", wait_until="domcontentloaded")
+        results["checks"]["low_bandwidth_skips_tiles"] = (
+            page.locator(".low-bandwidth-map-notice").count() == 1
+            and page.locator(".leaflet-tile").count() == 0
+        )
+        page.screenshot(path=OUTPUT / "desktop-map-low-bandwidth.png", full_page=True)
+        with page.expect_navigation(wait_until="domcontentloaded"):
+            page.get_by_role("button", name="Salir del modo ligero").click()
 
         page.goto(f"{BASE_URL}/reportes/ayuda", wait_until="domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-help-form.png", full_page=True)

@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from sqlalchemy import or_
 
-from app.constants import ReportStatus, ReportType
+from app.constants import Priority, ReportStatus, ReportType
 from app.extensions import db
 from app.models import REPORT_MODELS
 
@@ -11,6 +12,18 @@ from app.models import REPORT_MODELS
 class ReportItem:
     report_type: ReportType
     report: object
+
+
+@dataclass(frozen=True)
+class PublicSummary:
+    total: int
+    needs: int
+    resources: int
+    affected_zones: int
+    people_without_contact: int
+    attention_priority: int
+    represented_zones: int
+    updated_at: datetime | None
 
 
 def parse_report_type(value: str) -> ReportType:
@@ -86,6 +99,33 @@ def public_items(filters: dict | None = None) -> list[ReportItem]:
             query = query.filter(or_(*[column.ilike(term) for column in columns]))
         items.extend(ReportItem(report_type, report) for report in query.all())
     return sorted(items, key=lambda item: item.report.updated_at, reverse=True)
+
+
+def public_summary(items: list[ReportItem] | None = None) -> PublicSummary:
+    items = public_items() if items is None else items
+    counts = {report_type: 0 for report_type in ReportType}
+    zones: set[str] = set()
+    attention_priority = 0
+    updated_at = None
+    for item in items:
+        counts[item.report_type] += 1
+        zone = item.report.location_text.strip().casefold()
+        if zone:
+            zones.add(zone)
+        if item.report.priority in {Priority.CRITICAL, Priority.HIGH}:
+            attention_priority += 1
+        if updated_at is None or item.report.updated_at > updated_at:
+            updated_at = item.report.updated_at
+    return PublicSummary(
+        total=len(items),
+        needs=counts[ReportType.HELP_REQUEST],
+        resources=counts[ReportType.RESOURCE_OFFER],
+        affected_zones=counts[ReportType.LOCATION_REPORT],
+        people_without_contact=counts[ReportType.MISSING_PERSON],
+        attention_priority=attention_priority,
+        represented_zones=len(zones),
+        updated_at=updated_at,
+    )
 
 
 def all_items(status: str | None = None) -> list[ReportItem]:

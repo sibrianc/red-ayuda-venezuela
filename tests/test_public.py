@@ -8,10 +8,66 @@ from app.models import HelpRequest, LocationReport, MissingPersonReport, Resourc
 def test_home_loads_with_security_headers(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert "Conectamos reportes" in response.text
+    assert "Panorama humanitario público" in response.text
+    assert "data-bandwidth-toggle" in response.text
+    assert "js/preferences.js" in response.text
     assert response.headers["X-Frame-Options"] == "DENY"
     assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
     assert "default-src 'self'" in response.headers["Content-Security-Policy"]
+
+
+def test_home_summary_only_counts_approved_public_reports(app, client):
+    with app.app_context():
+        approved_need = HelpRequest(
+            title="Agua pública",
+            request_type="water",
+            people_affected=4,
+            location_text="Zona segura A",
+            description_public="Necesidad pública revisada.",
+            description_private="Privado aprobado que nunca debe aparecer",
+            reporter_name_private="Nombre reservado",
+            reporter_contact_private="contacto-reservado",
+            status=ReportStatus.APPROVED,
+            is_public=True,
+        )
+        approved_resource = ResourceOffer(
+            title="Recurso público",
+            resource_type="water",
+            location_text="Zona segura B",
+            description_public="Recurso público revisado.",
+            reporter_name_private="Nombre reservado",
+            reporter_contact_private="contacto-reservado-2",
+            status=ReportStatus.APPROVED,
+            is_public=True,
+        )
+        pending = HelpRequest(
+            title="Pendiente que no se cuenta",
+            request_type="medical",
+            people_affected=99,
+            location_text="Zona privada",
+            description_public="Texto pendiente oculto.",
+            description_private="Secreto pendiente",
+            reporter_name_private="Nombre pendiente",
+            reporter_contact_private="contacto-pendiente",
+        )
+        db.session.add_all([approved_need, approved_resource, pending])
+        db.session.commit()
+
+    html = client.get("/").text
+    assert 'data-summary-total>2<' in html
+    assert "Agua pública" in html
+    assert "Recurso público" in html
+    assert "Pendiente que no se cuenta" not in html
+    assert "Privado aprobado que nunca debe aparecer" not in html
+    assert "contacto-reservado" not in html
+
+
+def test_map_supports_text_only_low_bandwidth_fallback(client):
+    page = client.get("/mapa").text
+    script = client.get("/static/js/map.js").text
+    assert "data-bandwidth-toggle" in page
+    assert "lowBandwidth" in script
+    assert "El modo ligero evita descargar teselas" in script
 
 
 @pytest.mark.parametrize(

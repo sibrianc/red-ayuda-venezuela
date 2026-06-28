@@ -4,7 +4,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   const element = document.getElementById("report-map");
   const status = document.getElementById("map-status");
   const resultList = document.querySelector("[data-map-results]");
-  if (!element || typeof L === "undefined") return;
+  if (!element) return;
+  const lowBandwidth = document.documentElement.dataset.bandwidth === "low";
+  const mapAvailable = !lowBandwidth && typeof L !== "undefined";
 
   const typeMeta = {
     help_request: { label: "Necesidad", color: "#d95c4f", className: "need" },
@@ -13,19 +15,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     missing_person: { label: "Persona sin contacto", color: "#5e6ad2", className: "missing" },
   };
 
-  const map = L.map(element, {
-    scrollWheelZoom: false,
-    zoomControl: false,
-    preferCanvas: true,
-  }).setView([8.0, -66.0], 6);
-  L.control.zoom({ position: "bottomright" }).addTo(map);
-  L.tileLayer(element.dataset.tileUrl, {
-    maxZoom: 18,
-    attribution: "&copy; OpenStreetMap contributors",
-  }).addTo(map);
-
-  const pointLayer = L.layerGroup().addTo(map);
-  const densityLayer = L.layerGroup();
+  let map = null;
+  let pointLayer = null;
+  let densityLayer = null;
+  if (mapAvailable) {
+    map = L.map(element, {
+      scrollWheelZoom: false,
+      zoomControl: false,
+      preferCanvas: true,
+    }).setView([8.0, -66.0], 6);
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+    L.tileLayer(element.dataset.tileUrl, {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
+    pointLayer = L.layerGroup().addTo(map);
+    densityLayer = L.layerGroup();
+  } else {
+    const notice = document.createElement("div");
+    notice.className = "low-bandwidth-map-notice";
+    const text = document.createElement("p");
+    const heading = document.createElement("strong");
+    heading.textContent = lowBandwidth ? "Mapa visual pausado" : "Mapa visual no disponible";
+    text.append(
+      heading,
+      lowBandwidth
+        ? "El modo ligero evita descargar teselas. Usa el listado accesible junto al mapa."
+        : "Usa el listado accesible de información revisada."
+    );
+    notice.append(text);
+    element.replaceChildren(notice);
+  }
   let reports = [];
   let activeFilter = "all";
   let activeMode = "points";
@@ -50,6 +70,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   };
 
   const renderPoints = (visibleReports) => {
+    if (!pointLayer) return;
     pointLayer.clearLayers();
     visibleReports.forEach((report) => {
       const meta = typeMeta[report.type] || typeMeta.help_request;
@@ -79,6 +100,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   };
 
   const renderDensity = (visibleReports) => {
+    if (!densityLayer) return;
     densityLayer.clearLayers();
     const groups = densityGroups(visibleReports);
     const maximum = Math.max(...groups.map((group) => group.reports.length), 1);
@@ -153,14 +175,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     renderPoints(visibleReports);
     renderDensity(visibleReports);
     renderList(visibleReports);
-    if (activeMode === "density") {
+    if (!map || !pointLayer || !densityLayer) {
+      if (status) {
+        status.textContent = `${visibleReports.length} ${visibleReports.length === 1 ? "reporte visible" : "reportes visibles"} en el listado ligero.`;
+      }
+    } else if (activeMode === "density") {
       map.removeLayer(pointLayer);
       densityLayer.addTo(map);
     } else {
       map.removeLayer(densityLayer);
       pointLayer.addTo(map);
     }
-    if (status) status.textContent = `${visibleReports.length} ${visibleReports.length === 1 ? "reporte visible" : "reportes visibles"} con ubicación aproximada.`;
+    if (status && map) status.textContent = `${visibleReports.length} ${visibleReports.length === 1 ? "reporte visible" : "reportes visibles"} con ubicación aproximada.`;
   };
 
   document.querySelectorAll("[data-map-filter]").forEach((button) => {
@@ -194,7 +220,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     reports = payload.reports.filter((report) => report.location?.latitude != null && report.location?.longitude != null);
     updateMetrics();
     render();
-    if (reports.length) {
+    if (reports.length && map) {
       map.fitBounds(reports.map((report) => [report.location.latitude, report.location.longitude]), {
         padding: [48, 48],
         maxZoom: 12,
