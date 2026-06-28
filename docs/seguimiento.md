@@ -23,9 +23,9 @@ documento).
 ## 2. Dónde vive el código
 
 - **Repositorio (privado):** https://github.com/sibrianc/red-ayuda-venezuela
-- **Rama de trabajo:** `phase/e1-source-register`
-- **Base de E1:** `47414ee` (`phase/e0-governance`). E1 es una rama apilada; mientras
-  E0 no esté fusionada, su pull request debe usar `phase/e0-governance` como base.
+- **Rama de trabajo:** `phase/e2-public-experience`
+- **Base de E2:** `4c263b4` (`phase/e1-source-register`). Las ramas están apiladas; E2
+  debe revisarse contra E1 mientras las fases anteriores no estén fusionadas.
 - **Cuenta GitHub:** `sibrianc`
 - **Commits hasta hoy:**
   - `964cd34` — implementación inicial del MVP privacy-first (14 fases).
@@ -68,10 +68,12 @@ nueva secuencia E0–E12 para convertir el MVP en una plataforma operativa de ma
 alcance: sistema visual institucional, formularios simplificados, MapLibre/H3,
 PostGIS, ingestión horaria de fuentes autorizadas, limpieza y deduplicación,
 procedencia, recursos, asignaciones y dashboards. También exige una carga inicial
-amplia para que el mapa nazca útil. Ninguna de estas fases está implementada todavía;
-cada una requiere rama, pruebas, revisión de privacidad y su puerta de salida. Los
-costos, contactos con fuentes, cambios de infraestructura y despliegue siguen
-requiriendo aprobación explícita.
+amplia para que el mapa nazca útil. La **ingesta masiva (parte de E3/E4) ya comenzó a
+implementarse** en código: ver "Checkpoint E3.1" más abajo (conector USGS real, modelos
+canónicos, limpieza, deduplicación y filtros, todo local y sin costo). El resto de las
+fases sigue pendiente; cada una requiere rama, pruebas, revisión de privacidad y su puerta
+de salida. Los costos, contactos con fuentes, cambios de infraestructura y despliegue
+siguen requiriendo aprobación explícita.
 
 **Última fase aprobada:** E0 — Ratificación y gobernanza, rama `phase/e0-governance`.
 Se incorporó la propuesta `docs/data-governance.md` con clasificación de datos,
@@ -97,6 +99,92 @@ organización socia es opcional y ya no bloquea la salida de E1.
 El propietario aprobó E1 y autorizó iniciar E2. También decidió continuar sin gastos:
 dominio, correo, Cloudflare, ReliefWeb autenticado, Render y cualquier compra quedan
 diferidos hasta contar con un demo/staging y revisar presupuesto.
+
+**Fase en curso:** E2 — Sistema visual y UX pública, rama
+`phase/e2-public-experience`.
+
+### Checkpoint E2.1 — tablero público y modo ligero
+
+- El inicio ahora prioriza situación, métricas aprobadas, información reciente,
+  preparación de fuentes y accesos a personas, necesidades, recursos y zonas.
+- `public_summary()` agrega únicamente reportes aprobados y públicos. La portada no
+  consulta ni renderiza campos privados.
+- `app/static/js/preferences.js` conserva una preferencia local de ancho de banda.
+  En modo ligero `map.js` no crea Leaflet ni descarga teselas, pero mantiene el JSON y
+  el listado accesible.
+- Archivos principales: `app/public/routes.py`, `app/services/reporting.py`,
+  `app/templates/public/home.html`, `app/templates/base.html`,
+  `app/static/css/main.css`, `app/static/js/preferences.js`, `app/static/js/map.js` y
+  `scripts/browser_audit.py`.
+- Validación: 34/34 pruebas, `compileall`, validación sintáctica de JavaScript,
+  `git diff --check` y 19/19 comprobaciones visuales/E2E. Sin errores de consola,
+  filtraciones privadas ni overflow a 375 px.
+- Capturas locales: `/private/tmp/rav_browser_audit/desktop-home.png`,
+  `mobile-home.png` y `desktop-map-low-bandwidth.png`.
+- Costo e infraestructura: cero cambios externos, cero dependencias y cero gasto.
+- Puerta pendiente: revisión visual del propietario antes de definir E2.2.
+
+### Checkpoint E3.1 — motor de ingesta masiva (USGS), local y sin costo
+
+Primer motor de **recopilación real** de datos públicos, en respuesta a la prioridad del
+propietario: recopilar, limpiar y filtrar **de forma masiva**, no manejar reportes
+manuales sueltos. Antes de esto, "USGS/GDACS autorizadas" eran solo fichas de metadatos;
+ningún código descargaba ni procesaba datos.
+
+- **Archivos nuevos:** `app/ingestion/connectors.py` (conector USGS GeoJSON con librería
+  estándar; *fetch* separado del *parseo*), `app/ingestion/pipeline.py` (limpieza,
+  normalización, deduplicación idempotente y filtros), `tests/test_ingestion.py` (9
+  pruebas) y migración `a1b2c3d4e5f6`.
+- **Modelos nuevos** (`app/models.py`): `SourceRecord` (copia cruda inmutable +
+  procedencia) e `IngestedEvent` (hecho normalizado, limpio, deduplicado; objeto canónico
+  `Event`). Índices y restricciones `UNIQUE(source_slug, external_id)` para idempotencia.
+- **Pipeline determinista:** valida y descarta basura, normaliza (orden lon/lat, epoch ms
+  → UTC, tipos), deduplica por `(source_slug, external_id)` + `content_hash`, y filtra por
+  magnitud y por recuadro de Venezuela. Re-correr **no crea duplicados** (solo actualiza lo
+  que cambió).
+- **Privacidad/no autopublicar:** `IngestedEvent` es capa **interna**; NO se expone en
+  ninguna vista pública/JSON/mapa todavía. Publicar agregados será un paso aparte con su
+  puerta y atribución (U.S. Geological Survey).
+- **Validación:** 43/43 pruebas, `compileall`, migración upgrade → downgrade → upgrade y
+  `flask db check` sin deriva. Demostración con 2.000 eventos sintéticos: 2.000 nuevos en
+  la primera corrida, 0 duplicados al repetir, 601 marcados en región y bandas de magnitud
+  correctas. Sin red en pruebas, sin dependencias, sin costo, sin contacto con terceros.
+- **Actualización E3.2 — segunda fuente (GDACS):** se agregó el conector GDACS (UN/EC,
+  multi-amenaza: sismos, inundaciones, ciclones, volcanes, incendios, sequías), con esquema
+  verificado contra el endpoint en vivo. `IngestedEvent` ganó campos genéricos
+  (`hazard_code`, `severity_value`, `severity_text`, `country`); migración `b2c3d4e5f6a7`.
+  Esto prueba que el motor es agnóstico a la fuente: el mismo pipeline limpia/deduplica/
+  filtra cualquier conector. 47/47 pruebas. Demo unificada de 2.000 eventos USGS+GDACS,
+  idempotente. Comando `flask ingest-gdacs`.
+- **Pendiente del frente de datos:** índice de ReliefWeb por enlaces públicos (difer­ido
+  hasta tener correo del dominio para el `appname`); luego la puerta de publicación de
+  agregados y la capa de mapa pública para fuentes autoritativas (con atribución).
+
+#### Cómo correr la ingesta en local
+
+```bash
+# Con el entorno y la base ya creados (ver sección 5), aplica la migración nueva:
+flask db upgrade
+
+# Descarga, limpia, deduplica y guarda sismos públicos de USGS:
+flask ingest-usgs                      # feed por defecto: month_2.5 (miles de eventos)
+flask ingest-usgs --feed month_4.5     # menos volumen, mayor magnitud
+flask ingest-usgs --region-only        # solo dentro del recuadro de Venezuela
+flask ingest-usgs --min-magnitude 4    # filtra por magnitud mínima
+
+# Descarga la alerta oficial de GDACS del terremoto (por defecto solo EQ + Venezuela):
+flask ingest-gdacs                     # ampliar con --all-hazards / --all-world
+
+# Descarga el directorio de servicios de Venezuela desde OpenStreetMap:
+flask ingest-directory                 # hospitales, refugios, bomberos, agua, etc.
+
+# Ver el volumen acumulado en la base (eventos + directorio):
+flask ingest-stats
+```
+
+> Nota macOS: si ves un error de certificado SSL al descargar, ejecuta el
+> `Install Certificates.command` que viene con tu instalación de Python. Es un ajuste
+> local de certificados, no un cambio del proyecto.
 
 ### Checkpoint técnico E1
 

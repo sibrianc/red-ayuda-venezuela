@@ -13,6 +13,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -143,6 +144,113 @@ class DataSource(TimestampMixin, db.Model):
     authorization_notes: Mapped[str | None] = mapped_column(Text)
     last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     authorized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SourceRecord(TimestampMixin, db.Model):
+    """Copia inmutable y trazable de un ítem de una fuente externa.
+
+    Es la capa de procedencia: guarda el payload original sin normalizar para
+    auditoría. No es el producto público. La idempotencia se apoya en
+    (source_slug, external_id) y en content_hash para detectar cambios.
+    """
+
+    __tablename__ = "source_records"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_source_records_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    detail_url: Mapped[str | None] = mapped_column(String(500))
+    schema_version: Mapped[str | None] = mapped_column(String(80))
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    raw_payload: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class IngestedEvent(TimestampMixin, db.Model):
+    """Evento autoritativo normalizado, limpio y deduplicado (objeto canónico Event).
+
+    Realiza el objeto `Event` del modelo de datos para fuentes públicas como USGS.
+    Almacena el hecho ya saneado y filtrable. La exposición pública es un paso
+    aparte con su propia puerta; por defecto NO se publica automáticamente.
+    """
+
+    __tablename__ = "ingested_events"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_ingested_events_origin"),
+        CheckConstraint(
+            "latitude IS NULL OR (latitude >= -90 AND latitude <= 90)",
+            name="ck_ingested_events_latitude_range",
+        ),
+        CheckConstraint(
+            "longitude IS NULL OR (longitude >= -180 AND longitude <= 180)",
+            name="ck_ingested_events_longitude_range",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False, default="earthquake", index=True)
+    hazard_code: Mapped[str | None] = mapped_column(String(8), index=True)
+    title: Mapped[str | None] = mapped_column(String(240))
+    magnitude: Mapped[float | None] = mapped_column(Float, index=True)
+    severity_value: Mapped[float | None] = mapped_column(Float)
+    severity_text: Mapped[str | None] = mapped_column(String(240))
+    country: Mapped[str | None] = mapped_column(String(120), index=True)
+    place: Mapped[str | None] = mapped_column(String(240))
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    depth_km: Mapped[float | None] = mapped_column(Float)
+    occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    alert_level: Mapped[str | None] = mapped_column(String(20), index=True)
+    tsunami: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    felt_reports: Mapped[int | None] = mapped_column(Integer)
+    significance: Mapped[int | None] = mapped_column(Integer, index=True)
+    in_region: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    detail_url: Mapped[str | None] = mapped_column(String(500))
+    attribution: Mapped[str | None] = mapped_column(String(240))
+
+
+class DirectoryEntry(TimestampMixin, db.Model):
+    """Servicio u organización del directorio público (objeto canónico DirectoryEntry).
+
+    Hospitales, refugios, clínicas, estaciones de bomberos, puntos de agua, etc.
+    Son instalaciones PÚBLICAS: nombre, dirección y contacto son información pública
+    (a diferencia de los reportes de personas). Inspirado en OCHA 5W y EDXL-HAVE.
+    """
+
+    __tablename__ = "directory_entries"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_directory_entries_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    category: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(240), nullable=False)
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    address_public: Mapped[str | None] = mapped_column(String(300))
+    phone_public: Mapped[str | None] = mapped_column(String(120))
+    operator: Mapped[str | None] = mapped_column(String(200))
+    emergency: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    capacity_text: Mapped[str | None] = mapped_column(String(120))
+    service_status: Mapped[str] = mapped_column(String(20), default="unknown", nullable=False, index=True)
+    in_region: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    source_url: Mapped[str | None] = mapped_column(String(500))
+    attribution: Mapped[str | None] = mapped_column(String(240))
 
 
 class MissingPersonReport(ReportMixin, db.Model):

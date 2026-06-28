@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import click
@@ -70,6 +70,132 @@ def register_cli(app: Flask) -> None:
         db.session.add(user)
         db.session.commit()
         click.echo("Administrador creado.")
+
+    @app.cli.command("ingest-usgs")
+    @click.option("--feed", default="month_2.5", show_default=True,
+                  help="Feed USGS: hour_all, day_all, week_all, month_2.5, month_4.5, month_all.")
+    @click.option("--min-magnitude", type=float, default=None,
+                  help="Filtra eventos por magnitud mínima.")
+    @click.option("--since-days", type=int, default=None,
+                  help="Solo eventos de los últimos N días (p. ej. desde el sismo principal).")
+    @click.option("--all-world", is_flag=True, default=False,
+                  help="No limitar a Venezuela (por defecto SOLO Venezuela).")
+    def ingest_usgs(feed: str, min_magnitude: float | None, since_days: int | None,
+                    all_world: bool):
+        """Descarga terremotos de USGS (por defecto solo Venezuela) y los procesa."""
+        from app.ingestion.connectors import fetch_usgs, parse_usgs_geojson
+        from app.ingestion.pipeline import event_overview, ingest_events
+
+        click.echo(f"Descargando feed USGS '{feed}'...")
+        try:
+            payload = fetch_usgs(feed)
+        except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+            raise click.ClickException(
+                f"No se pudo descargar el feed ({type(exc).__name__}: {exc}). "
+                "Si ves un error de certificado en macOS, ejecuta "
+                "'Install Certificates.command' de tu instalación de Python."
+            ) from exc
+
+        since = datetime.now(timezone.utc) - timedelta(days=since_days) if since_days else None
+        scope = "todo el mundo" if all_world else "solo Venezuela"
+        click.echo(f"Enfoque: terremotos, {scope}"
+                   + (f", últimos {since_days} días" if since_days else ""))
+        events = parse_usgs_geojson(payload)
+        stats = ingest_events(
+            events,
+            min_magnitude=min_magnitude,
+            region_only=not all_world,
+            event_types={"earthquake"},
+            since=since,
+        )
+        click.echo("Resultado de la ingesta:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+        if stats.errors:
+            click.echo(f"  errores: {len(stats.errors)}")
+
+        overview = event_overview()
+        click.echo("Total acumulado en base:")
+        click.echo(f"  eventos: {overview['total']} (en región Venezuela: {overview['en_region']})")
+        click.echo(f"  por magnitud: {overview['por_magnitud']}")
+        click.echo(f"  evento más reciente: {overview['evento_mas_reciente']}")
+
+    @app.cli.command("ingest-gdacs")
+    @click.option("--feed", default="map", show_default=True,
+                  help="Feed GDACS: map (eventos actuales) o search.")
+    @click.option("--all-hazards", is_flag=True, default=False,
+                  help="Incluir todas las amenazas (por defecto SOLO terremotos).")
+    @click.option("--all-world", is_flag=True, default=False,
+                  help="No limitar a Venezuela (por defecto SOLO Venezuela).")
+    def ingest_gdacs(feed: str, all_hazards: bool, all_world: bool):
+        """Descarga la alerta oficial de GDACS del terremoto (por defecto solo EQ + Venezuela)."""
+        from app.ingestion.connectors import fetch_gdacs, parse_gdacs_geojson
+        from app.ingestion.pipeline import event_overview, ingest_events
+
+        click.echo(f"Descargando feed GDACS '{feed}'...")
+        try:
+            payload = fetch_gdacs(feed)
+        except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+            raise click.ClickException(
+                f"No se pudo descargar el feed ({type(exc).__name__}: {exc}). "
+                "Si ves un error de certificado en macOS, ejecuta "
+                "'Install Certificates.command' de tu instalación de Python."
+            ) from exc
+
+        event_types = None if all_hazards else {"earthquake"}
+        hazard_scope = "todas las amenazas" if all_hazards else "solo terremotos"
+        region_scope = "todo el mundo" if all_world else "solo Venezuela"
+        click.echo(f"Enfoque: {hazard_scope}, {region_scope}")
+        events = parse_gdacs_geojson(payload)
+        stats = ingest_events(events, region_only=not all_world, event_types=event_types)
+        click.echo("Resultado de la ingesta:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+
+        overview = event_overview()
+        click.echo("Total acumulado en base:")
+        click.echo(f"  eventos: {overview['total']} (en región Venezuela: {overview['en_region']})")
+        click.echo(f"  por tipo: {overview['por_tipo']}")
+        click.echo(f"  evento más reciente: {overview['evento_mas_reciente']}")
+
+    @app.cli.command("ingest-directory")
+    def ingest_directory_cmd():
+        """Descarga el directorio de servicios de Venezuela desde OpenStreetMap."""
+        from app.ingestion.connectors import fetch_overpass, parse_overpass
+        from app.ingestion.pipeline import directory_overview, ingest_directory
+
+        click.echo("Descargando servicios de OpenStreetMap (Overpass)...")
+        try:
+            payload = fetch_overpass()
+        except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+            raise click.ClickException(
+                f"No se pudo descargar de Overpass ({type(exc).__name__}: {exc}). "
+                "Si ves un error de certificado en macOS, ejecuta "
+                "'Install Certificates.command' de tu instalación de Python."
+            ) from exc
+
+        entries = parse_overpass(payload)
+        stats = ingest_directory(entries, region_only=True)
+        click.echo("Resultado de la ingesta del directorio:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+        overview = directory_overview()
+        click.echo(f"Total en directorio: {overview['total']}")
+        click.echo(f"por categoría: {overview['por_categoria']}")
+
+    @app.cli.command("ingest-stats")
+    def ingest_stats():
+        """Muestra el volumen agregado de eventos y directorio ya ingeridos."""
+        from app.ingestion.pipeline import directory_overview, event_overview
+
+        overview = event_overview()
+        click.echo(f"eventos: {overview['total']} (en región Venezuela: {overview['en_region']})")
+        click.echo(f"por tipo: {overview['por_tipo']}")
+        click.echo(f"por magnitud (sismos): {overview['por_magnitud']}")
+        click.echo(f"evento más reciente: {overview['evento_mas_reciente']}")
+        directory = directory_overview()
+        click.echo(f"directorio: {directory['total']} servicios")
+        click.echo(f"por categoría: {directory['por_categoria']}")
 
 
 def register_template_helpers(app: Flask) -> None:
