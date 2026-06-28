@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Reporte recibido · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container narrow section-space text-center confirmation" data-clear-draft-key="{{ draft_key }}">
+  <div class="confirmation-mark" aria-hidden="true">✓</div>
+  <p class="eyebrow">Reporte recibido</p>
+  <h1>Gracias. Ahora comienza la revisión.</h1>
+  <p>Tu referencia es <strong>{{ public_id }}</strong>. El reporte permanece privado hasta que una persona autorizada lo revise.</p>
+  <a class="btn btn-primary" href="{{ url_for('public.home') }}">Volver al inicio</a>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/offline_forms.js') }}" defer></script>{% endblock %}

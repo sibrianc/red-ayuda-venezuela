@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space admin-page">
+  <div class="admin-heading"><div><p class="eyebrow">Cola de revisión</p><h1>Panel administrativo</h1></div><a class="btn btn-outline-danger" href="{{ url_for('admin.abuse_queue') }}">Abuso pendiente: {{ abuse_count }}</a></div>
+  <nav class="status-tabs" aria-label="Filtrar por estado">
+    <a class="{% if status == 'pending' %}active{% endif %}" href="{{ url_for('admin.dashboard', status='pending') }}">Pendientes <span>{{ counts.pending }}</span></a>
+    <a class="{% if status == 'needs_verification' %}active{% endif %}" href="{{ url_for('admin.dashboard', status='needs_verification') }}">Verificación <span>{{ counts.needs_verification }}</span></a>
+    <a class="{% if status == 'approved' %}active{% endif %}" href="{{ url_for('admin.dashboard', status='approved') }}">Aprobados <span>{{ counts.approved }}</span></a>
+    <a class="{% if not status %}active{% endif %}" href="{{ url_for('admin.dashboard', status='all') }}">Todos</a>
+  </nav>
+  <div class="table-responsive">
+    <table class="table align-middle admin-table"><thead><tr><th>Tipo</th><th>Reporte</th><th>Zona</th><th>Prioridad</th><th>Estado</th><th>Actualizado</th></tr></thead><tbody>
+      {% for item in items %}<tr><td>{{ report_type_labels[item.report_type] }}</td><td><a href="{{ url_for('admin.review_report', report_type=item.report_type.value, report_id=item.report.id) }}">{% if item.report_type.value == 'missing_person' %}{{ item.report.first_name }} {{ item.report.last_name }}{% else %}{{ item.report.title }}{% endif %}</a></td><td>{{ item.report.location_text }}</td><td><span class="priority priority-{{ item.report.priority.value }}">{{ priority_labels[item.report.priority] }}</span></td><td>{{ status_labels[item.report.status] }}</td><td>{{ item.report.updated_at|venezuela_time }}</td></tr>
+      {% else %}<tr><td colspan="6">No hay reportes en esta cola.</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  {% if current_user.role.value == 'admin' %}<div class="export-panel"><strong>Exportación protegida</strong><p>Los archivos internos contienen información sensible. No deben compartirse públicamente.</p>{% for value, label in report_type_labels.items() %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.export_csv', report_type=value.value, scope='internal') }}">{{ label }}</a>{% endfor %}</div>{% endif %}
+</section>
+{% endblock %}

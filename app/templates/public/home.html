@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">Información clara. Revisión humana. Privacidad primero.</p>
+      <h1>Conectamos reportes con ayuda durante la emergencia.</h1>
+      <p class="lead">Registra personas sin contacto, necesidades, recursos disponibles o daños por zona. Cada reporte se revisa antes de publicarse.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('reports.help_request') }}">Solicitar ayuda</a>
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('reports.index') }}">Buscar reportes</a>
+      </div>
+    </div>
+    <aside class="trust-panel" aria-label="Cómo protegemos tu información">
+      <h2>Antes de enviar</h2>
+      <ul>
+        <li>No publiques teléfonos ni direcciones exactas en la descripción pública.</li>
+        <li>Los datos de contacto solo los verá el equipo autorizado.</li>
+        <li>Los reportes no se publican automáticamente.</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<section class="container section-space" aria-labelledby="acciones">
+  <div class="section-heading">
+    <p class="eyebrow">Acciones principales</p>
+    <h2 id="acciones">¿Qué necesitas hacer?</h2>
+  </div>
+  <div class="action-grid">
+    <a class="action-card" href="{{ url_for('reports.missing_person') }}"><span aria-hidden="true">01</span><h3>Persona sin contacto</h3><p>Registra información para revisión sin exponer datos de contacto.</p></a>
+    <a class="action-card" href="{{ url_for('reports.help_request') }}"><span aria-hidden="true">02</span><h3>Solicitar ayuda</h3><p>Reporta necesidades de agua, salud, refugio, alimentos o rescate.</p></a>
+    <a class="action-card" href="{{ url_for('reports.resource_offer') }}"><span aria-hidden="true">03</span><h3>Ofrecer recursos</h3><p>Indica recursos disponibles; el contacto permanecerá privado.</p></a>
+    <a class="action-card" href="{{ url_for('reports.location_report') }}"><span aria-hidden="true">04</span><h3>Reportar una zona</h3><p>Comparte daños y necesidades usando una ubicación aproximada.</p></a>
+  </div>
+</section>
+
+<section class="process-band">
+  <div class="container">
+    <p class="eyebrow">Proceso seguro</p>
+    <h2>Del reporte a la información pública</h2>
+    <ol class="process-list">
+      <li><strong>Envías</strong><span>El reporte queda privado y pendiente.</span></li>
+      <li><strong>Revisamos</strong><span>Una persona verifica y protege los datos.</span></li>
+      <li><strong>Publicamos</strong><span>Solo se muestra información aprobada y segura.</span></li>
+    </ol>
+  </div>
+</section>
+{% endblock %}

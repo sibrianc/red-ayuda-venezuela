@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<article class="container narrow section-space report-detail">
+  <a class="back-link" href="{{ url_for('reports.index') }}">← Volver a reportes</a>
+  <div class="report-meta"><span>{{ report_type_labels[report_type] }}</span><span class="priority priority-{{ report.priority.value }}">{{ priority_labels[report.priority] }}</span></div>
+  <h1>{{ title }}</h1>
+  <p class="lead">{{ report.description_public }}</p>
+  <dl class="detail-grid">
+    <div><dt>Zona general</dt><dd>{{ report.location_text }}</dd></div>
+    <div><dt>Estado</dt><dd>{{ status_labels[report.status] }}</dd></div>
+    <div><dt>Verificación</dt><dd>{{ verification_labels[report.verification_status] }}</dd></div>
+    <div><dt>Última actualización</dt><dd>{{ report.updated_at|venezuela_time }}</dd></div>
+    {% if report_type.value == 'missing_person' %}<div><dt>Edad aproximada</dt><dd>{{ report.age or 'No indicada' }}</dd></div><div><dt>Último contacto</dt><dd>{{ report.last_contact_date or 'No indicado' }}</dd></div>{% endif %}
+    {% if report_type.value == 'help_request' %}<div><dt>Necesidad principal</dt><dd>{{ report.request_type }}</dd></div><div><dt>Personas afectadas</dt><dd>{{ report.people_affected }}</dd></div>{% endif %}
+    {% if report_type.value == 'resource_offer' %}<div><dt>Recurso</dt><dd>{{ report.resource_type }}</dd></div><div><dt>Disponibilidad</dt><dd>{{ report.availability or 'Por confirmar' }}</dd></div>{% endif %}
+    {% if report_type.value == 'location_report' %}<div><dt>Nivel aparente de daño</dt><dd>{{ report.damage_level }}</dd></div>{% endif %}
+  </dl>
+  <div class="privacy-callout">No se muestran teléfonos, direcciones exactas, información médica ni datos del reportante.</div>
+  <a class="btn btn-sm btn-outline-danger" href="{{ url_for('reports.report_abuse', report_type=report_type.value, public_id=report.public_id) }}">Reportar un problema</a>
+</article>
+{% endblock %}

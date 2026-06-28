@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Mapa · {{ config.APP_NAME }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}<section class="container section-space"><p class="eyebrow">Ubicaciones aproximadas</p><h1>Mapa de reportes aprobados</h1><p class="text-secondary">El mapa no muestra direcciones exactas ni datos de contacto. También puedes usar el <a href="{{ url_for('reports.index') }}">listado accesible</a>.</p><div id="report-map" data-map-endpoint="{{ url_for('map.data') }}" data-tile-url="{{ config.MAP_TILE_URL }}" role="region" aria-label="Mapa de reportes" tabindex="0"></div><div id="map-status" class="mt-2" role="status" aria-live="polite"></div></section>{% endblock %}
+{% block scripts %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script><script src="{{ url_for('static', filename='js/map.js') }}" defer></script>{% endblock %}

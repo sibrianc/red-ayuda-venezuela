@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container narrow section-space">
+  <a class="back-link" href="{{ url_for('public.home') }}">← Volver al inicio</a>
+  <p class="eyebrow">Envío privado para revisión</p>
+  <h1>{{ title }}</h1>
+  <div class="privacy-callout" role="note">
+    <strong>Protege a las personas.</strong> Usa una zona general en el texto público. Los campos marcados como privados solo son visibles para personal autorizado.
+  </div>
+  <div class="draft-tools" data-draft-controls data-draft-key="rav-draft-{{ report_type.value }}">
+    <p>En una conexión inestable puedes guardar un borrador no sensible en este dispositivo.</p>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-enable-draft>Activar guardado local</button>
+    <button type="button" class="btn btn-sm btn-link" data-clear-draft>Borrar borrador</button>
+    <span class="draft-status" role="status" aria-live="polite"></span>
+  </div>
+  <form method="post" novalidate data-draft-form data-draft-key="rav-draft-{{ report_type.value }}">
+    {{ form.hidden_tag() }}
+    {% set private_fields = ['exact_address_private', 'description_private', 'reporter_name_private', 'reporter_contact_private', 'relationship_to_person_private', 'medical_information_private'] %}
+    {% for field in form if field.name not in ['csrf_token', 'submit', 'website'] %}
+      {% if field.type == 'BooleanField' %}
+        <div class="form-check form-switch mb-3">
+          {{ field(class="form-check-input") }}
+          {{ field.label(class="form-check-label") }}
+          {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+        </div>
+      {% else %}
+        <div class="mb-3">
+          {{ field.label(class="form-label") }}
+          {% if field.name in private_fields %}<span class="private-badge">Privado</span>{% endif %}
+          {{ field(class="form-control" + (" is-invalid" if field.errors else ""), data_sensitive="true" if field.name in private_fields else "false") }}
+          {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <div class="honeypot" aria-hidden="true">{{ form.website(tabindex="-1", autocomplete="off") }}</div>
+    {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/offline_forms.js') }}" defer></script>{% endblock %}

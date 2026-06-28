@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Revisar {{ title }} · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space admin-page">
+  <a class="back-link" href="{{ url_for('admin.dashboard') }}">← Volver a la cola</a>
+  <div class="admin-heading"><div><p class="eyebrow">Revisión interna · {{ report_type_labels[report_type] }}</p><h1>{{ title }}</h1></div><span class="priority priority-{{ report.priority.value }}">{{ priority_labels[report.priority] }}</span></div>
+  <div class="admin-grid">
+    <div>
+      <section class="admin-card"><h2>Información recibida</h2><dl class="detail-grid"><div><dt>Zona general</dt><dd>{{ report.location_text }}</dd></div><div><dt>Dirección exacta privada</dt><dd>{{ report.exact_address_private or 'No indicada' }}</dd></div><div><dt>Contacto privado</dt><dd>{{ report.reporter_contact_private }}</dd></div><div><dt>Reportante</dt><dd>{{ report.reporter_name_private }}</dd></div></dl><h3>Descripción privada</h3><p>{{ report.description_private or 'Sin detalles privados.' }}</p>{% if report.medical_information_private is defined %}<h3>Información médica privada</h3><p>{{ report.medical_information_private or 'No indicada.' }}</p>{% endif %}</section>
+      <section class="admin-card"><h2>Señales automáticas</h2><p><strong>Prioridad sugerida:</strong> {{ priority_labels[suggested_priority] }}</p><ul>{% for reason in priority_reasons %}<li>{{ reason }}</li>{% endfor %}</ul>{% if missing_information %}<p><strong>Información faltante:</strong> {{ missing_information|join(', ') }}</p>{% endif %}<p class="text-secondary">Estas señales no cambian la decisión final del revisor.</p></section>
+      {% if duplicates.count() %}<section class="admin-card"><h2>Posibles duplicados</h2>{% for candidate in duplicates %}<p>Reporte interno #{{ candidate.possible_duplicate_id }} · {{ (candidate.score * 100)|round }}% · {{ candidate.reason }}</p>{% endfor %}</section>{% endif %}
+      {% if resource_matches %}<section class="admin-card"><h2>Recursos posiblemente compatibles</h2>{% for match in resource_matches %}<p><strong>{{ match.resource.title }}</strong> · {{ (match.score * 100)|round }}% · {{ match.reason }}</p>{% endfor %}</section>{% endif %}
+    </div>
+    <aside>
+      <form method="post" class="admin-card review-form" novalidate>{{ form.hidden_tag() }}<h2>Decisión humana</h2>
+        <div class="mb-3">{{ form.status.label(class="form-label") }}{{ form.status(class="form-select") }}</div>
+        <div class="mb-3">{{ form.verification_status.label(class="form-label") }}{{ form.verification_status(class="form-select") }}</div>
+        <div class="mb-3">{{ form.priority.label(class="form-label") }}{{ form.priority(class="form-select") }}</div>
+        <div class="mb-3">{{ form.description_public.label(class="form-label") }}{{ form.description_public(class="form-control", rows="8") }}{% for error in form.description_public.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+        <div class="form-check mb-3">{{ form.is_public(class="form-check-input") }}{{ form.is_public.label(class="form-check-label") }}<div class="form-text">Solo se aplicará si el estado es Aprobado.</div></div>
+        <div class="mb-3">{{ form.reason.label(class="form-label") }}{{ form.reason(class="form-control") }}</div>
+        <div class="mb-3">{{ form.note.label(class="form-label") }}{{ form.note(class="form-control") }}</div>
+        {{ form.submit(class="btn btn-primary w-100") }}
+      </form>
+      <section class="admin-card"><h2>Notas internas</h2>{% for note in notes %}<article class="internal-note"><p>{{ note.note }}</p><small>{{ note.author.name }} · {{ note.created_at|venezuela_time }}</small></article>{% else %}<p>No hay notas.</p>{% endfor %}</section>
+      <section class="admin-card"><h2>Historial</h2>{% for event in history %}<p>{{ status_labels[event.old_status] }} → {{ status_labels[event.new_status] }}<br><small>{{ event.created_at|venezuela_time }}{% if event.reason %} · {{ event.reason }}{% endif %}</small></p>{% else %}<p>Sin cambios registrados.</p>{% endfor %}</section>
+    </aside>
+  </div>
+</section>
+{% endblock %}

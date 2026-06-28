@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Reportes revisados · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space">
+  <p class="eyebrow">Información pública revisada</p>
+  <h1>Reportes aprobados</h1>
+  <p class="text-secondary">La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.</p>
+  <form class="filter-panel" method="get" role="search">
+    <div><label for="q">Buscar</label><input class="form-control" id="q" name="q" value="{{ filters.q }}"></div>
+    <div><label for="zone">Zona</label><input class="form-control" id="zone" name="zone" value="{{ filters.zone }}"></div>
+    <div><label for="type">Tipo</label><select class="form-select" id="type" name="type"><option value="">Todos</option>{% for value, label in report_type_labels.items() %}<option value="{{ value.value }}" {% if filters.type == value.value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label for="priority">Prioridad</label><select class="form-select" id="priority" name="priority"><option value="">Todas</option>{% for value, label in priority_labels.items() %}<option value="{{ value.value }}" {% if filters.priority == value.value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary" type="submit">Filtrar</button>
+  </form>
+  <div class="report-list">
+    {% for item in items %}
+      <article class="report-card">
+        <div class="report-meta"><span>{{ report_type_labels[item.report_type] }}</span><span class="priority priority-{{ item.report.priority.value }}">{{ priority_labels[item.report.priority] }}</span></div>
+        <h2><a href="{{ url_for('reports.detail', report_type=item.report_type.value, public_id=item.report.public_id) }}">{% if item.report_type.value == 'missing_person' %}{{ item.report.first_name }} {{ item.report.last_name }}{% else %}{{ item.report.title }}{% endif %}</a></h2>
+        <p>{{ item.report.description_public|truncate(240) }}</p>
+        <p class="report-location">{{ item.report.location_text }} · Actualizado {{ item.report.updated_at|venezuela_time }}</p>
+      </article>
+    {% else %}
+      <div class="empty-state"><h2>No hay resultados</h2><p>Prueba con otros filtros. La ausencia de reportes no significa ausencia de daño.</p></div>
+    {% endfor %}
+  </div>
+  {% if total_pages > 1 %}<nav aria-label="Paginación"><div class="pagination-simple">{% if page > 1 %}<a href="{{ url_for('reports.index', page=page-1, **filters) }}">← Anterior</a>{% endif %}<span>Página {{ page }} de {{ total_pages }}</span>{% if page < total_pages %}<a href="{{ url_for('reports.index', page=page+1, **filters) }}">Siguiente →</a>{% endif %}</div></nav>{% endif %}
+</section>
+{% endblock %}

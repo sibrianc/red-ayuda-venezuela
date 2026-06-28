@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Reportar un problema · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container narrow section-space">
+  <p class="eyebrow">Revisión comunitaria</p><h1>Reportar un problema</h1>
+  <p>El contenido no se eliminará automáticamente. Una persona autorizada revisará el aviso.</p>
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    {% for field in form if field.name not in ['csrf_token','submit','website'] %}<div class="mb-3">{{ field.label(class="form-label") }}{{ field(class="form-control") }}{% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>{% endfor %}
+    <div class="honeypot">{{ form.website(tabindex="-1") }}</div>{{ form.submit(class="btn btn-danger") }}
+  </form>
+</section>
+{% endblock %}
