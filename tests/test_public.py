@@ -15,6 +15,31 @@ def test_home_loads_with_security_headers(client):
 
 
 @pytest.mark.parametrize(
+    "endpoint",
+    ["/reportes/persona", "/reportes/ayuda", "/reportes/recurso", "/reportes/zona"],
+)
+def test_public_forms_use_guided_flow_and_hide_manual_coordinates(client, endpoint):
+    response = client.get(endpoint)
+    assert response.status_code == 200
+    html = response.text
+    assert "data-report-wizard" in html
+    assert html.count("data-wizard-panel=") == 3
+    assert "data-use-location" in html
+    assert 'name="latitude"' in html and 'type="hidden"' in html
+    assert 'name="longitude"' in html
+    assert "Latitud aproximada (opcional)" not in html
+    assert "Longitud aproximada (opcional)" not in html
+
+
+def test_map_page_has_operational_filters_and_density_view(client):
+    html = client.get("/mapa").text
+    assert 'data-map-filter="help_request"' in html
+    assert 'data-map-filter="resource_offer"' in html
+    assert 'data-map-mode="density"' in html
+    assert "Concentración" in html
+
+
+@pytest.mark.parametrize(
     ("endpoint", "extra", "model"),
     [
         (
@@ -95,8 +120,8 @@ def test_approved_report_exposes_only_public_projection(app, client):
             people_affected=4,
             location_text="Zona general segura",
             exact_address_private="Dirección secreta 77",
-            latitude=10.6,
-            longitude=-66.9,
+            latitude=10.612345,
+            longitude=-66.934567,
             description_public="Descripción pública revisada y segura.",
             description_private="Nota interna muy secreta",
             reporter_name_private="Nombre secreto",
@@ -116,6 +141,9 @@ def test_approved_report_exposes_only_public_projection(app, client):
     serialized = str(payload)
     assert "telefono-secreto-123" not in serialized
     assert "Dirección secreta 77" not in serialized
+    assert payload["location"]["latitude"] == 10.61
+    assert payload["location"]["longitude"] == -66.93
+    assert payload["location"]["precision"] == "approximate"
     assert set(payload) == {
         "public_id",
         "type",

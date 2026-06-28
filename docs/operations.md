@@ -1,5 +1,29 @@
 # Operación, seguridad y lanzamiento
 
+## Antes de incorporar una fuente externa
+
+- Aplicar `docs/data-governance.md` y registrar propietario, licencia, propósito,
+  clasificación, frecuencia, retención y responsable interno.
+- No contactar organizaciones, autenticar fuentes, importar datos ni crear servicios
+  con costo sin la aprobación específica correspondiente.
+- Probar primero en staging con datos privados, límites de tamaño, timeout,
+  idempotencia, cuarentena y métricas de ejecución.
+- Preservar origen, timestamp, hash/versión y transformaciones aplicadas.
+- Mantener todo registro externo privado hasta completar limpieza y revisión humana.
+- Publicar únicamente una proyección P0/P1 aprobada; nunca el payload original.
+
+## Revisión horaria de ingestión
+
+- Confirmar que solo se ejecutó una instancia por fuente y que los reintentos no
+  produjeron duplicación acumulativa.
+- Revisar fuentes fallidas, cambios de esquema, cuotas, payloads en cuarentena y datos
+  obsoletos o contradictorios.
+- Verificar que la fuente conserva permiso vigente y que la hora de actualización es
+  visible para operaciones.
+- Suspender el conector ante pérdida de autorización, filtración, contenido hostil o
+  degradación material de calidad.
+- La ejecución horaria puede crear candidatos privados; nunca publica casos por sí sola.
+
 ## Antes de cada deploy
 
 - Ejecutar todas las pruebas y revisar la migración pendiente.
@@ -26,6 +50,9 @@
 - No registrar información sensible en logs ni herramientas de soporte.
 - Ante una filtración, ocultar el reporte, preservar auditoría, rotar accesos y documentar el incidente.
 - Ante una migración fallida, detener escrituras, restaurar backup si es necesario y usar el downgrade revisado.
+- Ante una fuente comprometida o incorrecta, suspenderla, conservar evidencia,
+  identificar registros derivados, retirar proyecciones afectadas y documentar la
+  corrección sin borrar silenciosamente el historial.
 
 ## Cierre de emergencia
 

@@ -1,5 +1,89 @@
 {% extends "base.html" %}
-{% block title %}Mapa · {{ config.APP_NAME }}{% endblock %}
+{% block title %}Mapa operativo · {{ config.APP_NAME }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
-{% block content %}<section class="container section-space"><p class="eyebrow">Ubicaciones aproximadas</p><h1>Mapa de reportes aprobados</h1><p class="text-secondary">El mapa no muestra direcciones exactas ni datos de contacto. También puedes usar el <a href="{{ url_for('reports.index') }}">listado accesible</a>.</p><div id="report-map" data-map-endpoint="{{ url_for('map.data') }}" data-tile-url="{{ config.MAP_TILE_URL }}" role="region" aria-label="Mapa de reportes" tabindex="0"></div><div id="map-status" class="mt-2" role="status" aria-live="polite"></div></section>{% endblock %}
-{% block scripts %}<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script><script src="{{ url_for('static', filename='js/map.js') }}" defer></script>{% endblock %}
+
+{% block content %}
+<section class="map-page">
+  <div class="container map-heading">
+    <div>
+      <p class="eyebrow">Panorama humanitario</p>
+      <h1>Mapa operativo de reportes revisados</h1>
+      <p>Explora necesidades, recursos y zonas afectadas sin exponer direcciones exactas ni información de contacto.</p>
+    </div>
+    <div class="map-privacy-note" role="note">
+      <span aria-hidden="true"></span>
+      <p><strong>Privacidad geográfica</strong> Todas las ubicaciones públicas han sido reducidas a un área aproximada.</p>
+    </div>
+  </div>
+
+  <div class="container map-metrics" aria-label="Resumen del mapa">
+    <div><span>Reportes visibles</span><strong data-map-total>—</strong></div>
+    <div><span>Atención prioritaria</span><strong data-map-priority>—</strong></div>
+    <div><span>Zonas representadas</span><strong data-map-zones>—</strong></div>
+    <div><span>Última actualización</span><strong data-map-updated>—</strong></div>
+  </div>
+
+  <div class="container map-workspace">
+    <div class="map-toolbar" aria-label="Controles del mapa">
+      <div class="map-control-group">
+        <span class="map-control-label">Mostrar</span>
+        <div class="map-filter-buttons" role="group" aria-label="Filtrar reportes por tipo">
+          <button type="button" class="map-chip is-active" data-map-filter="all" aria-pressed="true">Todo</button>
+          <button type="button" class="map-chip" data-map-filter="help_request" aria-pressed="false">Necesidades</button>
+          <button type="button" class="map-chip" data-map-filter="resource_offer" aria-pressed="false">Recursos</button>
+          <button type="button" class="map-chip" data-map-filter="location_report" aria-pressed="false">Zonas afectadas</button>
+          <button type="button" class="map-chip" data-map-filter="missing_person" aria-pressed="false">Sin contacto</button>
+        </div>
+      </div>
+      <div class="map-control-group map-view-control">
+        <span class="map-control-label">Vista</span>
+        <div class="map-segmented" role="group" aria-label="Cambiar representación del mapa">
+          <button type="button" class="is-active" data-map-mode="points" aria-pressed="true">Reportes</button>
+          <button type="button" data-map-mode="density" aria-pressed="false">Concentración</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-layout">
+      <div class="map-canvas-panel">
+        <div
+          id="report-map"
+          data-map-endpoint="{{ url_for('map.data') }}"
+          data-tile-url="{{ config.MAP_TILE_URL }}"
+          role="region"
+          aria-label="Mapa de reportes humanitarios aprobados"
+          tabindex="0"
+        ></div>
+        <div class="map-legend" aria-label="Leyenda del mapa">
+          <span><i class="legend-dot need"></i>Necesidad</span>
+          <span><i class="legend-dot resource"></i>Recurso</span>
+          <span><i class="legend-dot affected"></i>Zona afectada</span>
+          <span><i class="legend-dot missing"></i>Sin contacto</span>
+        </div>
+      </div>
+
+      <aside class="map-results" aria-labelledby="map-results-title">
+        <div class="map-results-heading">
+          <div>
+            <p class="eyebrow">Vista accesible</p>
+            <h2 id="map-results-title">Reportes en el mapa</h2>
+          </div>
+          <a href="{{ url_for('reports.index') }}">Ver listado completo</a>
+        </div>
+        <p id="map-status" class="map-status" role="status" aria-live="polite">Cargando información revisada…</p>
+        <div class="map-result-list" data-map-results></div>
+      </aside>
+    </div>
+
+    <div class="map-method-note">
+      <strong>Cómo leer la concentración</strong>
+      <p>Los círculos agrupan reportes aproximados por sector. Una concentración alta indica más señales revisadas, no confirma por sí sola el número de víctimas ni sustituye una evaluación en terreno.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+{% endblock %}

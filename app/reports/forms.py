@@ -14,10 +14,11 @@ from wtforms.validators import DataRequired, Length, NumberRange, Optional
 
 class BaseReportForm(FlaskForm):
     location_text = StringField(
-        "Zona general (sin dirección exacta)", validators=[DataRequired(), Length(max=160)]
+        "¿En qué zona ocurre?", validators=[DataRequired(), Length(max=160)]
     )
     exact_address_private = StringField(
-        "Dirección exacta (privada y opcional)", validators=[Optional(), Length(max=240)]
+        "Referencia o dirección para el equipo (privada y opcional)",
+        validators=[Optional(), Length(max=240)],
     )
     latitude = DecimalField(
         "Latitud aproximada (opcional)", validators=[Optional(), NumberRange(min=-90, max=90)]
@@ -26,23 +27,25 @@ class BaseReportForm(FlaskForm):
         "Longitud aproximada (opcional)", validators=[Optional(), NumberRange(min=-180, max=180)]
     )
     description_public = TextAreaField(
-        "Descripción que podría publicarse", validators=[DataRequired(), Length(min=10, max=2000)]
+        "Cuéntanos qué ocurre y qué se necesita",
+        validators=[DataRequired(), Length(min=10, max=2000)],
     )
     description_private = TextAreaField(
-        "Detalles privados para revisión", validators=[Optional(), Length(max=3000)]
+        "Información adicional solo para el equipo", validators=[Optional(), Length(max=3000)]
     )
     reporter_name_private = StringField(
-        "Tu nombre (privado)", validators=[DataRequired(), Length(max=120)]
+        "Tu nombre", validators=[DataRequired(), Length(max=120)]
     )
     reporter_contact_private = StringField(
-        "Tu teléfono o correo (privado)", validators=[DataRequired(), Length(max=160)]
+        "Teléfono o correo donde podamos contactarte",
+        validators=[DataRequired(), Length(max=160)],
     )
     privacy_consent = BooleanField(
         "Entiendo que el reporte será revisado y que no debo incluir datos sensibles en la descripción pública.",
         validators=[DataRequired()],
     )
     website = StringField("Dejar vacío", validators=[Optional(), Length(max=0)])
-    submit = SubmitField("Enviar para revisión")
+    submit = SubmitField("Enviar reporte de forma segura")
 
 
 class MissingPersonForm(BaseReportForm):

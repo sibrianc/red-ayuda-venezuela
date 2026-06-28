@@ -1,41 +1,213 @@
 {% extends "base.html" %}
 {% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
+
+{% macro field_input(field, private=false, hint='') %}
+  <div class="form-field{% if field.errors %} has-error{% endif %}">
+    {{ field.label(class="form-label") }}
+    {% if private %}<span class="private-badge">Privado</span>{% endif %}
+    {% if hint %}<p class="field-hint" id="{{ field.id }}-hint">{{ hint }}</p>{% endif %}
+    {% if field.type == 'SelectField' %}
+      {{ field(class="form-select" + (" is-invalid" if field.errors else ""), aria_describedby=field.id ~ '-hint' if hint else false, data_sensitive="true" if private else "false") }}
+    {% elif field.type == 'TextAreaField' %}
+      {{ field(class="form-control" + (" is-invalid" if field.errors else ""), rows="4", aria_describedby=field.id ~ '-hint' if hint else false, data_sensitive="true" if private else "false") }}
+    {% else %}
+      {{ field(class="form-control" + (" is-invalid" if field.errors else ""), aria_describedby=field.id ~ '-hint' if hint else false, data_sensitive="true" if private else "false") }}
+    {% endif %}
+    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro choice(field, private=false) %}
+  <div class="choice-field{% if field.errors %} has-error{% endif %}">
+    {{ field(class="form-check-input") }}
+    <span>{{ field.label(class="form-check-label") }}{% if private %}<span class="private-badge">Privado</span>{% endif %}</span>
+    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+  </div>
+{% endmacro %}
+
 {% block content %}
-<section class="container narrow section-space">
-  <a class="back-link" href="{{ url_for('public.home') }}">← Volver al inicio</a>
-  <p class="eyebrow">Envío privado para revisión</p>
-  <h1>{{ title }}</h1>
-  <div class="privacy-callout" role="note">
-    <strong>Protege a las personas.</strong> Usa una zona general en el texto público. Los campos marcados como privados solo son visibles para personal autorizado.
-  </div>
-  <div class="draft-tools" data-draft-controls data-draft-key="rav-draft-{{ report_type.value }}">
-    <p>En una conexión inestable puedes guardar un borrador no sensible en este dispositivo.</p>
-    <button type="button" class="btn btn-sm btn-outline-secondary" data-enable-draft>Activar guardado local</button>
-    <button type="button" class="btn btn-sm btn-link" data-clear-draft>Borrar borrador</button>
-    <span class="draft-status" role="status" aria-live="polite"></span>
-  </div>
-  <form method="post" novalidate data-draft-form data-draft-key="rav-draft-{{ report_type.value }}">
-    {{ form.hidden_tag() }}
-    {% set private_fields = ['exact_address_private', 'description_private', 'reporter_name_private', 'reporter_contact_private', 'relationship_to_person_private', 'medical_information_private'] %}
-    {% for field in form if field.name not in ['csrf_token', 'submit', 'website'] %}
-      {% if field.type == 'BooleanField' %}
-        <div class="form-check form-switch mb-3">
-          {{ field(class="form-check-input") }}
-          {{ field.label(class="form-check-label") }}
-          {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+<section class="report-intake">
+  <div class="container report-intake-grid">
+    <aside class="intake-context" aria-labelledby="intake-context-title">
+      <a class="back-link" href="{{ url_for('public.home') }}">Volver al inicio</a>
+      <p class="eyebrow">Reporte protegido</p>
+      <h1 id="intake-context-title">{{ title }}</h1>
+      <p class="intake-lead">Te guiaremos paso a paso. Solo pedimos la información necesaria para que una persona pueda revisar el caso.</p>
+
+      <div class="privacy-seal" role="note">
+        <span class="privacy-seal-mark" aria-hidden="true"></span>
+        <div>
+          <strong>Privado hasta ser revisado</strong>
+          <p>Tu contacto, dirección y detalles sensibles nunca aparecen en el sitio público.</p>
         </div>
-      {% else %}
-        <div class="mb-3">
-          {{ field.label(class="form-label") }}
-          {% if field.name in private_fields %}<span class="private-badge">Privado</span>{% endif %}
-          {{ field(class="form-control" + (" is-invalid" if field.errors else ""), data_sensitive="true" if field.name in private_fields else "false") }}
-          {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="draft-tools" data-draft-controls data-draft-key="rav-draft-{{ report_type.value }}">
+        <p><strong>¿Conexión inestable?</strong> Puedes guardar en este dispositivo únicamente los campos no sensibles.</p>
+        <div class="draft-actions">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-enable-draft>Guardar borrador</button>
+          <button type="button" class="btn btn-sm btn-link" data-clear-draft>Borrar</button>
+        </div>
+        <span class="draft-status" role="status" aria-live="polite"></span>
+      </div>
+    </aside>
+
+    <div class="intake-card">
+      {% if form.errors %}
+        <div class="form-error-summary" role="alert">
+          <strong>Revisa la información marcada.</strong>
+          <p>Conservamos lo que escribiste para que puedas corregirlo.</p>
         </div>
       {% endif %}
-    {% endfor %}
-    <div class="honeypot" aria-hidden="true">{{ form.website(tabindex="-1", autocomplete="off") }}</div>
-    {{ form.submit(class="btn btn-primary btn-lg w-100") }}
-  </form>
+
+      <ol class="wizard-progress" aria-label="Progreso del reporte">
+        <li data-wizard-indicator="1"><span>1</span><strong>Situación</strong></li>
+        <li data-wizard-indicator="2"><span>2</span><strong>Ubicación</strong></li>
+        <li data-wizard-indicator="3"><span>3</span><strong>Contacto</strong></li>
+      </ol>
+      <p class="wizard-live-status visually-hidden" data-wizard-status role="status" aria-live="polite"></p>
+
+      <form method="post" novalidate class="report-wizard" data-report-wizard data-draft-form data-draft-key="rav-draft-{{ report_type.value }}">
+        {{ form.hidden_tag() }}
+
+        <fieldset class="wizard-panel" data-wizard-panel="1">
+          <legend><span>Paso 1 de 3</span>Cuéntanos la situación</legend>
+          <p class="panel-intro">Empieza por lo esencial. Podrás añadir detalles antes de enviar.</p>
+
+          {% if report_type.value == 'missing_person' %}
+            <div class="form-grid two-columns">
+              {{ field_input(form.first_name) }}
+              {{ field_input(form.last_name) }}
+              {{ field_input(form.age, hint='Si no la sabes, puedes dejarla vacía.') }}
+              {{ field_input(form.gender) }}
+            </div>
+            {{ field_input(form.last_contact_date, hint='Una fecha aproximada también ayuda.') }}
+            {{ choice(form.involves_minor) }}
+          {% elif report_type.value == 'help_request' %}
+            {{ field_input(form.title, hint='Ejemplo: Agua para 20 familias en Caraballeda.') }}
+            <div class="form-grid two-columns">
+              {{ field_input(form.request_type) }}
+              {{ field_input(form.people_affected, hint='Una estimación es suficiente.') }}
+            </div>
+            {{ choice(form.vulnerable_people_present) }}
+            <div class="need-selector" role="group" aria-labelledby="need-selector-title">
+              <p id="need-selector-title">También se necesita</p>
+              <div class="choice-grid">
+                {{ choice(form.medical_need) }}
+                {{ choice(form.water_need) }}
+                {{ choice(form.food_need) }}
+                {{ choice(form.shelter_need) }}
+                {{ choice(form.transport_need) }}
+              </div>
+            </div>
+          {% elif report_type.value == 'resource_offer' %}
+            {{ field_input(form.title, hint='Ejemplo: Excavadora con operador disponible.') }}
+            <div class="form-grid two-columns">
+              {{ field_input(form.resource_type) }}
+              {{ field_input(form.capacity, hint='Indica unidad: litros, raciones, plazas o equipos.') }}
+            </div>
+            {{ field_input(form.availability, hint='Ejemplo: Disponible hoy de 8:00 a 18:00.') }}
+          {% else %}
+            {{ field_input(form.title, hint='Ejemplo: Edificios dañados en el sector central.') }}
+            {{ field_input(form.damage_level) }}
+            <div class="need-selector" role="group" aria-labelledby="zone-needs-title">
+              <p id="zone-needs-title">Necesidades observadas</p>
+              <div class="choice-grid">
+                {{ choice(form.needs_water) }}
+                {{ choice(form.needs_food) }}
+                {{ choice(form.needs_medical) }}
+                {{ choice(form.needs_shelter) }}
+                {{ choice(form.needs_transport) }}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="wizard-actions wizard-actions-end">
+            <button type="button" class="btn btn-primary btn-lg" data-wizard-next>Continuar a ubicación</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="wizard-panel" data-wizard-panel="2">
+          <legend><span>Paso 2 de 3</span>¿Dónde ocurre?</legend>
+          <p class="panel-intro">Escribe una zona reconocible. No necesitas conocer coordenadas.</p>
+
+          {{ field_input(form.location_text, hint='Sector, comunidad, parroquia o punto de referencia general.') }}
+
+          <div class="location-assistant" data-location-assistant>
+            <div>
+              <strong>Ubicación asistida</strong>
+              <p>Si estás en el lugar, tu dispositivo puede añadir la ubicación. Solo el equipo autorizado recibe la precisión original.</p>
+            </div>
+            <button type="button" class="btn btn-outline-primary" data-use-location>Usar mi ubicación</button>
+            <p class="location-status" data-location-status role="status" aria-live="polite">No se ha añadido ubicación del dispositivo.</p>
+          </div>
+
+          {{ form.latitude(type="hidden", data_location_latitude="true", data_sensitive="true") }}
+          {{ form.longitude(type="hidden", data_location_longitude="true", data_sensitive="true") }}
+
+          <details class="optional-panel">
+            <summary>Añadir una referencia privada para el equipo</summary>
+            <div class="optional-panel-body">
+              {{ field_input(form.exact_address_private, private=true, hint='No se mostrará en el mapa ni en reportes públicos.') }}
+            </div>
+          </details>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-outline-secondary btn-lg" data-wizard-back>Volver</button>
+            <button type="button" class="btn btn-primary btn-lg" data-wizard-next>Continuar a contacto</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="wizard-panel" data-wizard-panel="3">
+          <legend><span>Paso 3 de 3</span>Detalles y contacto</legend>
+          <p class="panel-intro">Una persona revisará el reporte antes de que cualquier parte pueda publicarse.</p>
+
+          {{ field_input(form.description_public, hint='No incluyas teléfonos, nombres completos ni direcciones exactas.') }}
+
+          <details class="optional-panel">
+            <summary>Añadir información privada para la revisión</summary>
+            <div class="optional-panel-body">
+              {{ field_input(form.description_private, private=true) }}
+              {% if report_type.value == 'missing_person' %}
+                {{ field_input(form.relationship_to_person_private, private=true) }}
+                {{ field_input(form.medical_information_private, private=true) }}
+              {% elif report_type.value == 'help_request' %}
+                {{ field_input(form.medical_information_private, private=true) }}
+              {% endif %}
+            </div>
+          </details>
+
+          <div class="contact-panel">
+            <div class="contact-panel-heading">
+              <p class="eyebrow">Contacto privado</p>
+              <h2>¿Cómo podemos confirmar el reporte?</h2>
+              <p>Estos datos solo son visibles para personal autorizado.</p>
+            </div>
+            <div class="form-grid two-columns">
+              {{ field_input(form.reporter_name_private, private=true) }}
+              {{ field_input(form.reporter_contact_private, private=true, hint='Teléfono, WhatsApp o correo.') }}
+            </div>
+          </div>
+
+          {{ choice(form.privacy_consent) }}
+          <div class="submission-note">
+            <strong>Al enviar</strong>
+            <span>El reporte quedará pendiente y privado hasta que una persona lo revise.</span>
+          </div>
+
+          <div class="honeypot" aria-hidden="true">{{ form.website(tabindex="-1", autocomplete="off") }}</div>
+          <div class="wizard-actions">
+            <button type="button" class="btn btn-outline-secondary btn-lg" data-wizard-back>Volver</button>
+            {{ form.submit(class="btn btn-primary btn-lg") }}
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </div>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/offline_forms.js') }}" defer></script>{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/offline_forms.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/report_wizard.js') }}" defer></script>
+{% endblock %}

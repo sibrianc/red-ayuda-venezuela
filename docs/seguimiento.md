@@ -12,7 +12,10 @@ forma segura reportes humanitarios durante una emergencia por terremoto. Es
 automáticamente**; **no se usa AI en producción**. No es un servicio oficial de
 emergencia.
 
-La documentación rectora vive en `docs/project/` (6 `.docx`). Jerarquía en caso de
+La documentación rectora vive en `docs/project/` (6 `.docx`) y el plan de expansión
+E0–E12 vive en `docs/project/07 - Plan de Expansion Operativa, Datos y
+Plataforma.docx`. Este séptimo documento amplía el MVP, pero está subordinado a los
+seis documentos rectores. Jerarquía en caso de
 ambigüedad: ver `docs/README.md`. Reglas y límites obligatorios en `docs/project/06 -
 AI Coding Instructions - Prompt Pack.docx` (resumidas en la sección 7 de este
 documento).
@@ -52,6 +55,30 @@ El plan (Prompt Pack) define **14 fases**. **Las 14 están implementadas en cód
 **Conclusión:** a nivel de código no falta prácticamente nada. Lo pendiente es el
 **deploy real (Fase 14)** y, opcionalmente, una verificación visual del flujo completo
 en navegador.
+
+### Expansión aprobada conceptualmente (todavía no implementada)
+
+El documento `07 - Plan de Expansion Operativa, Datos y Plataforma.docx` define una
+nueva secuencia E0–E12 para convertir el MVP en una plataforma operativa de mayor
+alcance: sistema visual institucional, formularios simplificados, MapLibre/H3,
+PostGIS, ingestión horaria de fuentes autorizadas, limpieza y deduplicación,
+procedencia, recursos, asignaciones y dashboards. También exige una carga inicial
+amplia para que el mapa nazca útil. Ninguna de estas fases está implementada todavía;
+cada una requiere rama, pruebas, revisión de privacidad y su puerta de salida. Los
+costos, contactos con fuentes, cambios de infraestructura y despliegue siguen
+requiriendo aprobación explícita.
+
+**Última fase aprobada:** E0 — Ratificación y gobernanza, rama `phase/e0-governance`.
+Se incorporó la propuesta `docs/data-governance.md` con clasificación de datos,
+roles, ciclo de autorización de fuentes y puertas de publicación. El propietario
+revisó y ratificó la fase antes de iniciar E1.
+
+Validación E0.1: 24/24 pruebas de aplicación y 15/15 comprobaciones del flujo visual
+local pasan. Por decisión del propietario se adelantó una iteración visual antes de
+E1: formularios guiados de tres pasos, ubicación asistida sin coordenadas manuales,
+precisión pública reducida, sistema visual institucional y mapa operativo con filtros,
+panel accesible y concentración aproximada. No se añadieron dependencias, costos ni
+servicios externos. E2 y E9 conservarán su alcance de evolución posterior.
 
 ## 4. Resultados de la revisión profunda (2026-06-27/28)
 
@@ -174,5 +201,3 @@ Del Prompt Pack (`docs/project/06`). No violar sin aprobación explícita del du
 - Fix de CSP para íconos de Leaflet (`b487bd7`).
 - No se agregó rate limiting (no requerido por el MVP según el Security Checklist).
 - No se realizó deploy (pendiente de aprobación de costo).
-</content>
-</invoke>

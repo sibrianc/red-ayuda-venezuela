@@ -42,6 +42,10 @@ def report_title(report_type: ReportType, report) -> str:
 
 
 def public_report_dict(report_type: ReportType, report) -> dict:
+    # La base conserva coordenadas más precisas para operación autorizada. La
+    # proyección pública siempre reduce la precisión (~1 km) antes de serializar.
+    public_latitude = round(report.latitude, 2) if report.latitude is not None else None
+    public_longitude = round(report.longitude, 2) if report.longitude is not None else None
     return {
         "public_id": report.public_id,
         "type": report_type.value,
@@ -52,9 +56,9 @@ def public_report_dict(report_type: ReportType, report) -> dict:
         "verification": report.verification_status.value,
         "location": {
             "label": report.location_text,
-            "latitude": report.latitude,
-            "longitude": report.longitude,
-            "precision": report.location_precision,
+            "latitude": public_latitude,
+            "longitude": public_longitude,
+            "precision": "approximate",
         },
         "updated_at": report.updated_at.isoformat(),
     }

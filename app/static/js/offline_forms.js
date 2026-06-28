@@ -8,6 +8,8 @@
     "relationship_to_person_private",
     "medical_information_private",
     "contact",
+    "latitude",
+    "longitude",
   ]);
   const maxAgeMs = 24 * 60 * 60 * 1000;
 

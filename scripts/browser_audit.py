@@ -33,18 +33,26 @@ def run() -> None:
         page.get_by_label("Título breve").fill(report_title)
         page.get_by_label("Necesidad principal").select_option("water")
         page.get_by_label("Personas afectadas").fill("3")
-        page.get_by_label("Zona general (sin dirección exacta)").fill("Zona de prueba La Guaira")
-        page.get_by_label("Dirección exacta (privada y opcional)").fill("Dirección privada E2E")
-        page.get_by_label("Descripción que podría publicarse").fill(
+        page.get_by_role("button", name="Continuar a ubicación").click()
+        page.get_by_label("¿En qué zona ocurre?").fill("Zona de prueba La Guaira")
+        page.get_by_text("Añadir una referencia privada para el equipo", exact=True).click()
+        page.get_by_label("Referencia o dirección para el equipo (privada y opcional)").fill(
+            "Dirección privada E2E"
+        )
+        page.screenshot(path=OUTPUT / "desktop-help-location.png", full_page=True)
+        page.get_by_role("button", name="Continuar a contacto").click()
+        page.get_by_label("Cuéntanos qué ocurre y qué se necesita").fill(
             "Descripción pública de prueba para revisión visual del flujo."
         )
-        page.get_by_label("Detalles privados para revisión").fill("DETALLE-PRIVADO-E2E")
-        page.get_by_label("Tu nombre (privado)").fill("Usuario de prueba")
-        page.get_by_label("Tu teléfono o correo (privado)").fill(PRIVATE_MARKER)
+        page.get_by_text("Añadir información privada para la revisión", exact=True).click()
+        page.get_by_label("Información adicional solo para el equipo").fill("DETALLE-PRIVADO-E2E")
+        page.get_by_label("Tu nombre").fill("Usuario de prueba")
+        page.get_by_label("Teléfono o correo donde podamos contactarte").fill(PRIVATE_MARKER)
         page.get_by_label(
             "Entiendo que el reporte será revisado y que no debo incluir datos sensibles en la descripción pública."
         ).check()
-        page.get_by_role("button", name="Enviar para revisión").click()
+        page.screenshot(path=OUTPUT / "desktop-help-contact.png", full_page=True)
+        page.get_by_role("button", name="Enviar reporte de forma segura").click()
         page.wait_for_load_state("domcontentloaded")
         results["checks"]["confirmation"] = page.get_by_text("Ahora comienza la revisión.").count() == 1
 
@@ -80,6 +88,13 @@ def run() -> None:
         page.goto(f"{BASE_URL}/mapa", wait_until="domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-map.png", full_page=True)
         results["checks"]["map_region"] = page.locator("#report-map").count() == 1
+        results["checks"]["map_filters"] = page.locator("[data-map-filter]").count() == 5
+        results["checks"]["map_density_mode"] = page.locator('[data-map-mode="density"]').count() == 1
+        page.get_by_role("button", name="Concentración").click()
+        results["checks"]["map_density_activates"] = (
+            page.get_by_role("button", name="Concentración").get_attribute("aria-pressed") == "true"
+        )
+        page.screenshot(path=OUTPUT / "desktop-map-density.png", full_page=True)
 
         mobile = browser.new_context(viewport={"width": 375, "height": 812}, locale="es-VE")
         mobile_page = mobile.new_page()
@@ -87,8 +102,10 @@ def run() -> None:
             mobile_page.goto(f"{BASE_URL}{path}", wait_until="domcontentloaded")
             overflow = mobile_page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
             results["checks"][f"mobile_{name}_no_overflow"] = not overflow
+            if name == "form":
+                results["checks"]["mobile_form_guided"] = mobile_page.locator("[data-wizard-panel]").count() == 3
+                results["checks"]["mobile_form_labels"] = mobile_page.locator("label").count() > 0
             mobile_page.screenshot(path=OUTPUT / f"mobile-{name}.png", full_page=True)
-        results["checks"]["mobile_form_labels"] = mobile_page.locator("label").count() > 0
         mobile.close()
         context.close()
         browser.close()
