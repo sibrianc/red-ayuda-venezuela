@@ -1,7 +1,8 @@
 # Borrador de contacto — Grupo de Trabajo de Logística de Venezuela
 
-> Estado: **borrador interno, no enviado**. Preparado el 2026-06-28 para revisión del
-> propietario. Enviar o participar en una reunión requiere aprobación explícita.
+> Estado: **borrador opcional, no enviado**. El propietario es un desarrollador
+> independiente y E1 no depende de una alianza. Enviar o participar en una reunión
+> requiere aprobación explícita y completar la identidad del remitente.
 
 ## Destinatarios públicos verificados
 

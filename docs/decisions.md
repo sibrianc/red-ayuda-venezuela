@@ -1,5 +1,18 @@
 # Registro de decisiones
 
+## 2026-06-28 — E1 adopta una estrategia pública primero
+
+- El propietario aclara que actúa como desarrollador independiente y que la plataforma
+  debe indexar información pública dispersa; no se condicionará el inicio a fuentes
+  privadas ni a una alianza institucional.
+- USGS y GDACS quedan autorizadas para staging P0, sin conectores activos, publicación
+  automática ni inferencias sobre víctimas.
+- Los acuerdos con organizaciones siguen siendo valiosos, pero dejan de ser la puerta
+  de salida de E1. Cada API autenticada o conjunto privado requerirá permiso propio.
+- “Privado” describe la cuarentena y revisión de datos personales o no verificados, no
+  el sitio final. Los agregados aprobados, filtros, directorio, gráficos y mapa serán
+  públicos.
+
 ## 2026-06-28 — E1, registro y límites de fuentes
 
 - Se separan señales automáticas, hechos operativos y casos de personas; una señal de

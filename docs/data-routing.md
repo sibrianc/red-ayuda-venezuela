@@ -16,6 +16,18 @@ sale, a qué lugar y período corresponde y cuándo fue revisada:
   contacto público autorizado.
 - **Mapa:** capas agregadas y sanitizadas; no la base privada.
 
+### Qué verá el público
+
+- índice consultable de fuentes con enlace, propietario y última actualización;
+- hechos agregados aprobados con territorio, período, unidad y nivel de certeza;
+- mapa, concentración aproximada, filtros, tablas y gráficos;
+- directorio de servicios y recursos con contactos expresamente públicos;
+- alertas de acceso y comunicación con sus límites claramente visibles.
+
+La cuarentena privada contiene payloads originales, observaciones sin verificar,
+direcciones exactas, contactos personales, notas internas y evidencia sensible. Es una
+capa de seguridad previa a la publicación, no el producto final.
+
 ## 2. Objetos canónicos propuestos para E3
 
 | Objeto | Propósito | Ejemplos | Privacidad inicial |
@@ -99,11 +111,13 @@ En todos los niveles:
 5. impedir duplicados y permitir corregir o retirar cuando el acuerdo lo contemple;
 6. no usar scraping, automatización del navegador ni credenciales de una persona.
 
-## 6. Decisiones abiertas antes de E2/E3
+## 6. Decisiones y trabajo posterior
 
-- Ratificar USGS o GDACS como primera fuente oficial de staging.
-- Identificar una organización socia real y autorizar contacto para acordar un
-  intercambio limitado.
+- USGS y GDACS quedan ratificadas para staging P0 sin publicación automática.
+- ReliefWeb requiere solicitar un `appname` preaprobado cuando exista correo del
+  propietario; hasta entonces pueden usarse enlaces públicos, no la API de producción.
+- Un acuerdo con organización socia es opcional para ampliar datos de campo, no una
+  condición para indexar fuentes públicas permitidas.
 - Definir responsable interno de datos y de seguridad/privacidad.
 - Decidir qué contactos del directorio pueden ser públicos con consentimiento.
 - Acordar umbrales y lenguaje de las alertas de conectividad.

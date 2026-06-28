@@ -13,6 +13,7 @@ from app.ingestion.registry import (
     require_active_authorization,
     require_staging_authorization,
 )
+from app.ingestion.catalog import build_public_staging_sources
 from app.models import DataSource
 
 
@@ -75,3 +76,20 @@ def test_registry_has_no_field_for_secret_values():
     assert "token" not in fields
     assert "password" not in fields
     assert "secret_env_var" in fields
+
+
+def test_public_staging_catalog_has_official_and_humanitarian_sources():
+    sources = build_public_staging_sources()
+    assert {source.source_kind for source in sources} == {
+        DataSourceKind.AUTHORITATIVE,
+        DataSourceKind.HUMANITARIAN,
+    }
+
+
+def test_public_staging_catalog_is_p0_and_passes_authorization_gate():
+    for source in build_public_staging_sources():
+        assert source.authorization_status == DataSourceStatus.STAGING
+        assert source.maximum_data_class == DataClassification.PUBLIC_AGGREGATE
+        assert source.contains_personal_data is False
+        assert source.secret_env_var is None
+        require_staging_authorization(source)

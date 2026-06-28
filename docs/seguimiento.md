@@ -85,18 +85,19 @@ precisión pública reducida, sistema visual institucional y mapa operativo con 
 panel accesible y concentración aproximada. No se añadieron dependencias, costos ni
 servicios externos. E2 y E9 conservarán su alcance de evolución posterior.
 
-**Fase en curso:** E1 — Registro y acuerdos de fuentes, rama
+**Fase en revisión:** E1 — Registro y acuerdos de fuentes, rama
 `phase/e1-source-register`. Se investigaron fuentes oficiales y humanitarias y se
 crearon `docs/source-register.md`, `docs/data-routing.md`, el modelo interno
 `DataSource`, su migración y controles que rechazan fuentes no autorizadas. No se ha
 contactado a terceros, usado credenciales, importado datos ni activado cron. La fase
-queda pendiente de dos decisiones reales: ratificar una fuente oficial para staging y
-obtener permiso verificable de una organización socia.
+El propietario aclaró que trabaja como desarrollador independiente y prioriza fuentes
+públicas dispersas. USGS y GDACS quedan ratificadas para staging P0. Un acuerdo con una
+organización socia es opcional y ya no bloquea la salida de E1.
 
 ### Checkpoint técnico E1
 
-- Archivos nuevos: `app/ingestion/registry.py`, `docs/source-register.md`,
-  `docs/data-routing.md`, migración `8d6f3b2c1a90` y
+- Archivos nuevos: `app/ingestion/registry.py`, `app/ingestion/catalog.py`,
+  `docs/source-register.md`, `docs/data-routing.md`, migración `8d6f3b2c1a90` y
   `tests/test_source_registry.py`.
 - Modelo nuevo: `DataSource`, exclusivamente interno. Registra permiso, clasificación,
   frecuencia, retención, responsable, revisión y el nombre de una variable de entorno;
@@ -104,7 +105,7 @@ obtener permiso verificable de una organización socia.
 - Controles: una fuente solo entra a staging con estado `authorized_staging` o
   `active`, permiso documentado y fechas de autorización/revisión. Producción exige
   `active`.
-- Validación local: 30/30 pruebas, `compileall`, `git diff --check`, migración
+- Validación local: 32/32 pruebas, `compileall`, `git diff --check`, migración
   upgrade → downgrade → upgrade y `flask db check` sin deriva.
 - Estado externo: cero conectores, cero cron, cero descargas/importaciones, cero
   contactos con organizaciones y cero cambios en producción.
@@ -112,8 +113,9 @@ obtener permiso verificable de una organización socia.
   App devolvió 404 para el repositorio privado y `gh` conserva un token inválido; la
   comparación apilada se abrió en Safari para crear manualmente el PR E1 contra
   `phase/e0-governance`.
-- Decisiones pendientes del propietario: ratificar USGS o GDACS para staging privado
-  P0 y autorizar el proceso para obtener permiso verificable de una organización socia.
+- Decisión vigente: USGS y GDACS autorizadas para staging P0; no existen conectores ni
+  publicación automática. La siguiente acción es revisión final de E1 por el
+  propietario y luego E2.
 - Siguiente artefacto listo: `docs/outreach/logistics-cluster-draft.md`, dirigido a los
   contactos públicos de coordinación y gestión de información de la operación. Está
   incompleto en los datos del remitente y **no fue enviado**.
@@ -225,11 +227,10 @@ Del Prompt Pack (`docs/project/06`). No violar sin aprobación explícita del du
 
 ## 8. Próximos pasos sugeridos (en orden)
 
-1. Obtener las dos decisiones pendientes de E1: fuente oficial para staging y proceso
-   de autorización de una fuente socia. No interpretar una aprobación general del
-   proyecto como permiso de contacto, autenticación o ingestión.
-2. Registrar las autorizaciones reales, repetir validaciones, publicar la rama y abrir
-   un PR apilado contra `phase/e0-governance`. No implementar conectores todavía: son E4.
+1. Revisar y aprobar E1 con USGS y GDACS como catálogo público de staging. No
+   implementar conectores todavía: pertenecen a E4.
+2. Mantener el PR apilado contra `phase/e0-governance` y fusionarlo según el orden de
+   fases.
 3. Tras aprobación de E1, iniciar E2 en una rama nueva y priorizar la experiencia
    pública profesional: arquitectura de información, dashboard, directorio y sistema
    visual. Mostrar el sitio local al propietario al final de cada iteración.
