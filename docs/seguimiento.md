@@ -33,6 +33,8 @@ documento).
     `self`, `data:` y `tile.openstreetmap.org`; faltaba `unpkg.com`, por lo que los
     pines del mapa salían rotos). Incluye test de regresión.
   - `47414ee` — E0/E0.1: gobernanza, formularios guiados y línea visual/mapa operativo.
+  - `d591d34` — checkpoint E1: registro de fuentes, controles de autorización,
+    migración, enrutamiento seguro y documentación operativa.
 
 ## 3. Estado actual: ¿en qué fase estamos?
 
@@ -106,6 +108,10 @@ obtener permiso verificable de una organización socia.
   upgrade → downgrade → upgrade y `flask db check` sin deriva.
 - Estado externo: cero conectores, cero cron, cero descargas/importaciones, cero
   contactos con organizaciones y cero cambios en producción.
+- Publicación: commit `d591d34` enviado a `origin/phase/e1-source-register`. La GitHub
+  App devolvió 404 para el repositorio privado y `gh` conserva un token inválido; la
+  comparación apilada se abrió en Safari para crear manualmente el PR E1 contra
+  `phase/e0-governance`.
 - Decisiones pendientes del propietario: ratificar USGS o GDACS para staging privado
   P0 y autorizar el proceso para obtener permiso verificable de una organización socia.
 
@@ -191,6 +197,8 @@ El remoto esperado es `git@github.com:sibrianc/red-ayuda-venezuela.git`. En este
 checkpoint, la sesión de `gh` no es confiable y la GitHub App no puede leer el repo
 privado; para abrir un PR se usa temporalmente la página Compare de GitHub en el
 navegador. No confundir esa limitación con el push: `git push` por SSH sí funciona.
+URL de comparación E1:
+`https://github.com/sibrianc/red-ayuda-venezuela/compare/phase/e0-governance...phase/e1-source-register?expand=1`.
 
 ## 7. Reglas obligatorias que el próximo AI DEBE respetar
 
