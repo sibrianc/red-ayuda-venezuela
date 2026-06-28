@@ -85,7 +85,7 @@ precisión pública reducida, sistema visual institucional y mapa operativo con 
 panel accesible y concentración aproximada. No se añadieron dependencias, costos ni
 servicios externos. E2 y E9 conservarán su alcance de evolución posterior.
 
-**Fase en revisión:** E1 — Registro y acuerdos de fuentes, rama
+**Última fase aprobada:** E1 — Registro y acuerdos de fuentes, rama
 `phase/e1-source-register`. Se investigaron fuentes oficiales y humanitarias y se
 crearon `docs/source-register.md`, `docs/data-routing.md`, el modelo interno
 `DataSource`, su migración y controles que rechazan fuentes no autorizadas. No se ha
@@ -93,6 +93,10 @@ contactado a terceros, usado credenciales, importado datos ni activado cron. La 
 El propietario aclaró que trabaja como desarrollador independiente y prioriza fuentes
 públicas dispersas. USGS y GDACS quedan ratificadas para staging P0. Un acuerdo con una
 organización socia es opcional y ya no bloquea la salida de E1.
+
+El propietario aprobó E1 y autorizó iniciar E2. También decidió continuar sin gastos:
+dominio, correo, Cloudflare, ReliefWeb autenticado, Render y cualquier compra quedan
+diferidos hasta contar con un demo/staging y revisar presupuesto.
 
 ### Checkpoint técnico E1
 
@@ -123,6 +127,9 @@ organización socia es opcional y ya no bloquea la salida de E1.
   NS/A/MX. Se abrió el alta oficial de Cloudflare y se creó
   `docs/domain-email-setup.md`. El propietario debe introducir en Safari su correo,
   contraseña, 2FA, datos de registrante y pago. Ningún secreto se guarda en el repo.
+  **Actualización:** el proceso quedó diferido antes de confirmar una compra; no se
+  registró gasto ni configuración DNS/correo. Si el propietario alcanzó a crear una
+  cuenta gratuita, queda sin uso hasta nueva aprobación.
 
 ## 4. Resultados de la revisión profunda (2026-06-27/28)
 
@@ -231,13 +238,11 @@ Del Prompt Pack (`docs/project/06`). No violar sin aprobación explícita del du
 
 ## 8. Próximos pasos sugeridos (en orden)
 
-1. Revisar y aprobar E1 con USGS y GDACS como catálogo público de staging. No
-   implementar conectores todavía: pertenecen a E4.
-2. Mantener el PR apilado contra `phase/e0-governance` y fusionarlo según el orden de
+1. Iniciar E2 en una rama nueva y priorizar la experiencia pública profesional:
+   arquitectura de información, dashboard, directorio y sistema visual.
+2. Mantener los PR apilados y fusionarlos según el orden de
    fases.
-3. Tras aprobación de E1, iniciar E2 en una rama nueva y priorizar la experiencia
-   pública profesional: arquitectura de información, dashboard, directorio y sistema
-   visual. Mostrar el sitio local al propietario al final de cada iteración.
+3. Mostrar el sitio local al propietario al final de cada iteración de E2.
 4. Conservar la prueba de humo completa y el deploy en Render para la puerta de
    lanzamiento correspondiente. Costo, staging, DNS y producción siguen requiriendo
    aprobación explícita.

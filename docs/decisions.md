@@ -1,5 +1,16 @@
 # Registro de decisiones
 
+## 2026-06-28 — Desarrollo sin costo y cierre de E1
+
+- El propietario decide continuar sin comprar dominio, correo, hosting, cron ni otros
+  servicios. Cloudflare, `redayudave.org` y el `appname` de ReliefWeb quedan diferidos.
+- El trabajo seguirá localmente con SQLite, Flask y servicios públicos gratuitos que
+  no exijan credenciales o contratación.
+- Los gastos se evaluarán después de disponer de un demo/staging revisable, con
+  presupuesto separado y aprobación explícita antes de cualquier compra.
+- E1 queda aprobada con USGS y GDACS autorizadas solo para staging P0 y sin conectores
+  activos. Se autoriza iniciar E2.
+
 ## 2026-06-28 — E1 adopta una estrategia pública primero
 
 - El propietario aclara que actúa como desarrollador independiente y que la plataforma

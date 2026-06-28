@@ -1,6 +1,6 @@
 # Dominio, correo oficial y ReliefWeb — runbook
 
-> Estado: **en preparación, requiere intervención del propietario**. Última revisión:
+> Estado: **diferido por presupuesto; no comprar ni configurar**. Última revisión:
 > 2026-06-28. No contiene ni debe contener contraseñas, tarjetas, OTP, códigos de
 > recuperación o el correo personal de destino.
 
@@ -83,7 +83,14 @@ que `datos@redayudave.org` recibe correo.
 Solo se documentan proveedor, dominio, direcciones públicas por función, estado de
 verificación y referencias a variables de entorno cuando correspondan.
 
-## 7. Checklist de finalización
+## 7. Decisión de presupuesto
+
+El 2026-06-28 el propietario decidió continuar con desarrollo y demostración local sin
+gastos. La cuenta de Cloudflare, compra del dominio, correo oficial y solicitud de
+ReliefWeb quedan en pausa hasta revisar un presupuesto posterior al demo/staging. No se
+debe reabrir una compra ni pedir datos de pago sin una nueva aprobación explícita.
+
+## 8. Checklist de finalización futura
 
 - [ ] Cuenta Cloudflare creada y correo de cuenta verificado.
 - [ ] Precio mostrado y compra aprobada por el propietario.
