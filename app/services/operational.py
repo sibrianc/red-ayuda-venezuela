@@ -9,13 +9,14 @@ import urllib.parse
 
 from sqlalchemy import func, or_
 
-from app.constants import ReportStatus
+from app.constants import SPECIES_LABELS, ReportStatus
 from app.ingestion.normalize import normalize_name
 from app.models import (
     CommunicationSignal,
     DirectoryEntry,
     IngestedEvent,
     Incident,
+    LostPetReport,
     MissingPersonReport,
     PersonRecord,
     SituationMetric,
@@ -575,3 +576,53 @@ def public_directory_balanced(q: str | None = None, per_category: int = 350) -> 
             if index < len(bucket):
                 rows.append(bucket[index])
     return rows
+
+
+def _lost_pet_dict(p) -> dict:
+    maps_url = None
+    if p.latitude is not None and p.longitude is not None:
+        maps_url = f"https://www.google.com/maps?q={round(p.latitude, 2)},{round(p.longitude, 2)}"
+    return {
+        "public_id": p.public_id,
+        "title": p.title,
+        "species": p.species,
+        "species_label": SPECIES_LABELS.get(p.species, "Mascota"),
+        "breed": p.breed,
+        "color": p.color,
+        "summary": p.description_public,
+        "zone": p.location_text,
+        "last_seen_date": p.last_seen_date.isoformat() if p.last_seen_date else None,
+        "photo_url": p.photo_url,
+        "maps_url": maps_url,
+    }
+
+
+def _lost_pets_query(q: str | None = None):
+    query = LostPetReport.query.filter_by(status=ReportStatus.APPROVED, is_public=True)
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                LostPetReport.title.ilike(term),
+                LostPetReport.location_text.ilike(term),
+                LostPetReport.breed.ilike(term),
+                LostPetReport.color.ilike(term),
+            )
+        )
+    return query
+
+
+def public_lost_pets(q: str | None = None, limit: int = 60, offset: int = 0) -> list[dict]:
+    """Mascotas desaparecidas publicadas (proyección pública; sin datos del dueño)."""
+    rows = (
+        _lost_pets_query(q)
+        .order_by(LostPetReport.updated_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return [_lost_pet_dict(p) for p in rows]
+
+
+def count_lost_pets(q: str | None = None) -> int:
+    return _lost_pets_query(q).count()

@@ -1,3 +1,5 @@
+import re
+
 from flask_wtf import FlaskForm
 from wtforms import (
     BooleanField,
@@ -9,7 +11,7 @@ from wtforms import (
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, Optional
+from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp
 
 
 class BaseReportForm(FlaskForm):
@@ -152,6 +154,39 @@ class LocationReportForm(BaseReportForm):
     needs_medical = BooleanField("Necesita atención médica")
     needs_shelter = BooleanField("Necesita refugio")
     needs_transport = BooleanField("Necesita transporte")
+
+
+class LostPetForm(BaseReportForm):
+    title = StringField(
+        "Nombre o identificación de la mascota", validators=[DataRequired(), Length(max=160)]
+    )
+    species = SelectField(
+        "Tipo de animal",
+        choices=[("dog", "Perro"), ("cat", "Gato"), ("bird", "Ave"), ("other", "Otra")],
+        validators=[DataRequired()],
+    )
+    breed = StringField("Raza (opcional)", validators=[Optional(), Length(max=80)])
+    color = StringField("Color y señas (opcional)", validators=[Optional(), Length(max=80)])
+    last_seen_date = DateField("Fecha aproximada en que se perdió", validators=[Optional()])
+    photo_url = StringField(
+        "Enlace a una foto (opcional)",
+        validators=[
+            Optional(),
+            Length(max=500),
+            Regexp(
+                r"^https://\S+\.(?:jpe?g|png|webp|gif)(?:\?\S*)?$",
+                flags=re.IGNORECASE,
+                message="Pega un enlace https directo a una imagen (.jpg, .png, .webp o .gif).",
+            ),
+        ],
+    )
+    location_text = StringField(
+        "¿Dónde se le vio por última vez?", validators=[DataRequired(), Length(max=160)]
+    )
+    description_public = TextAreaField(
+        "Descripción de la mascota (tamaño, señas, collar, comportamiento)",
+        validators=[DataRequired(), Length(min=10, max=2000)],
+    )
 
 
 class CommunicationSignalForm(FlaskForm):

@@ -9,11 +9,13 @@ from app.services.operational import (
     OFFICIAL_REGISTRIES,
     coordination_overview,
     count_directory,
+    count_lost_pets,
     count_person_records,
     directory_category_counts,
     public_comms_zones,
     public_directory,
     public_incidents,
+    public_lost_pets,
     public_missing_persons,
     public_person_records,
     public_situation,
@@ -69,6 +71,8 @@ def directory():
          "count": count_directory(), "url": url_for("public.directory_services"), "accent": "#1f9d63"},
         {"label": "Zonas sin comunicación", "desc": "Alertas de posibles víctimas incomunicadas.",
          "count": len(public_comms_zones()), "url": url_for("public.directory_zones"), "accent": "#8a5cf0"},
+        {"label": "Mascotas desaparecidas", "desc": "Mascotas perdidas reportadas por la comunidad.",
+         "count": count_lost_pets(), "url": url_for("public.directory_pets"), "accent": "#e0a02a"},
     ]
     return render_template(
         "public/directory.html",
@@ -149,6 +153,20 @@ def directory_zones():
     q = request.args.get("q", "").strip()
     comms = public_comms_zones(q or None)
     return render_template("public/directory_zones.html", comms=comms, comms_total=len(comms), q=q)
+
+
+@bp.get("/directorio/mascotas")
+def directory_pets():
+    q = request.args.get("q", "").strip()
+    page = _page_arg()
+    total = count_lost_pets(q or None)
+    pages = _page_count(total, PEOPLE_PAGE)
+    page = min(page, pages)
+    pets = public_lost_pets(q or None, limit=PEOPLE_PAGE, offset=(page - 1) * PEOPLE_PAGE)
+    return render_template(
+        "public/directory_pets.html",
+        pets=pets, total=total, page=page, pages=pages, q=q,
+    )
 
 
 @bp.get("/coordinacion")

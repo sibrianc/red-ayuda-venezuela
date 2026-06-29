@@ -13,6 +13,7 @@ class ReportType(StrEnum):
     HELP_REQUEST = "help_request"
     RESOURCE_OFFER = "resource_offer"
     LOCATION_REPORT = "location_report"
+    LOST_PET = "lost_pet"
 
 
 class ReportStatus(StrEnum):
@@ -101,6 +102,14 @@ REPORT_TYPE_LABELS = {
     ReportType.HELP_REQUEST: "Solicitud de ayuda",
     ReportType.RESOURCE_OFFER: "Oferta de recurso",
     ReportType.LOCATION_REPORT: "Zona afectada",
+    ReportType.LOST_PET: "Mascota desaparecida",
+}
+
+SPECIES_LABELS = {
+    "dog": "Perro",
+    "cat": "Gato",
+    "bird": "Ave",
+    "other": "Otra",
 }
 
 STATUS_LABELS = {

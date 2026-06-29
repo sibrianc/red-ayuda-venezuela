@@ -440,6 +440,17 @@ class LocationReport(ReportMixin, db.Model):
     needs_transport: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
+class LostPetReport(ReportMixin, db.Model):
+    __tablename__ = "lost_pet_reports"
+
+    title: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
+    species: Mapped[str] = mapped_column(String(40), default="other", nullable=False, index=True)
+    breed: Mapped[str | None] = mapped_column(String(80))
+    color: Mapped[str | None] = mapped_column(String(80))
+    last_seen_date: Mapped[date | None] = mapped_column(Date)
+    photo_url: Mapped[str | None] = mapped_column(String(500))
+
+
 class AdminNote(db.Model):
     __tablename__ = "admin_notes"
 
@@ -499,4 +510,5 @@ REPORT_MODELS = {
     ReportType.HELP_REQUEST: HelpRequest,
     ReportType.RESOURCE_OFFER: ResourceOffer,
     ReportType.LOCATION_REPORT: LocationReport,
+    ReportType.LOST_PET: LostPetReport,
 }

@@ -59,7 +59,7 @@ def public_report_dict(report_type: ReportType, report) -> dict:
     # proyección pública siempre reduce la precisión (~1 km) antes de serializar.
     public_latitude = round(report.latitude, 2) if report.latitude is not None else None
     public_longitude = round(report.longitude, 2) if report.longitude is not None else None
-    return {
+    data = {
         "public_id": report.public_id,
         "type": report_type.value,
         "title": report_title(report_type, report),
@@ -75,6 +75,15 @@ def public_report_dict(report_type: ReportType, report) -> dict:
         },
         "updated_at": report.updated_at.isoformat(),
     }
+    if report_type is ReportType.LOST_PET:
+        data["pet"] = {
+            "species": report.species,
+            "breed": report.breed,
+            "color": report.color,
+            "last_seen_date": report.last_seen_date.isoformat() if report.last_seen_date else None,
+            "photo_url": report.photo_url,
+        }
+    return data
 
 
 def public_items(filters: dict | None = None) -> list[ReportItem]:

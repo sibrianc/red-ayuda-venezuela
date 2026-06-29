@@ -38,6 +38,8 @@ _PUBLIC_TEXT_FIELDS = (
     "capacity",
     "availability",
     "public_note",
+    "breed",
+    "color",
 )
 
 

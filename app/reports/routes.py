@@ -9,6 +9,7 @@ from app.models import (
     CommunicationSignal,
     HelpRequest,
     LocationReport,
+    LostPetReport,
     MissingPersonReport,
     ResourceOffer,
 )
@@ -18,6 +19,7 @@ from app.reports.forms import (
     CommunicationSignalForm,
     HelpRequestForm,
     LocationReportForm,
+    LostPetForm,
     MissingPersonForm,
     ResourceOfferForm,
 )
@@ -37,6 +39,7 @@ FORM_CONFIG = {
     ReportType.HELP_REQUEST: (HelpRequestForm, HelpRequest, "Solicitud de ayuda"),
     ReportType.RESOURCE_OFFER: (ResourceOfferForm, ResourceOffer, "Oferta de recurso"),
     ReportType.LOCATION_REPORT: (LocationReportForm, LocationReport, "Reporte de zona afectada"),
+    ReportType.LOST_PET: (LostPetForm, LostPetReport, "Mascota desaparecida"),
 }
 
 
@@ -197,6 +200,28 @@ def location_report():
         form=form,
         title="Reportar una zona afectada",
         report_type=ReportType.LOCATION_REPORT,
+    )
+
+
+@bp.route("/mascota", methods=["GET", "POST"])
+def lost_pet():
+    form = LostPetForm()
+    if form.validate_on_submit():
+        report = LostPetReport(
+            **common_values(form),
+            title=form.title.data.strip(),
+            species=form.species.data,
+            breed=(form.breed.data or "").strip() or None,
+            color=(form.color.data or "").strip() or None,
+            last_seen_date=form.last_seen_date.data,
+            photo_url=(form.photo_url.data or "").strip() or None,
+        )
+        return save_report(ReportType.LOST_PET, report)
+    return render_template(
+        "reports/form.html",
+        form=form,
+        title="Reportar mascota desaparecida",
+        report_type=ReportType.LOST_PET,
     )
 
 

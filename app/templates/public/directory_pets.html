@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Mascotas desaparecidas · Directorio · {{ config.APP_NAME }}{% endblock %}
+{% from "public/_dir_macros.html" import chrome, pager with context %}
+{% block content %}
+{% set args = {} %}{% if q %}{% set _ = args.update({'q': q}) %}{% endif %}
+<div class="rv-page directory-page">
+  {{ chrome('mascotas', 'Mascotas', 'Mascotas desaparecidas',
+            'Mascotas perdidas reportadas por la comunidad tras el sismo. Los datos del dueño se mantienen privados.',
+            q, url_for('public.directory_pets')) }}
+
+  <div class="container">
+    <section class="dir-section" id="mascotas">
+      <div class="dir-section-head">
+        <div>
+          <h2>Mascotas desaparecidas{% if total %} <span class="dir-count">{{ "{:,}".format(total).replace(",", ".") }}</span>{% endif %}</h2>
+          <p class="dir-section-intro">Si encontraste o perdiste una mascota, repórtala. La publicación es automática tras una limpieza básica.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('reports.lost_pet') }}">Reportar mascota</a>
+      </div>
+      {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ "{:,}".format(total).replace(",", ".") }} mascotas.</p>{% endif %}
+      {% if pets %}
+      <div class="dir-person-grid">
+        {% for p in pets %}
+        <article class="dir-person-card dir-pet-card">
+          {% if p.photo_url %}<img class="dir-pet-photo" src="{{ p.photo_url }}" alt="Foto de {{ p.title }}" loading="lazy" referrerpolicy="no-referrer" decoding="async">{% endif %}
+          <div class="dir-person-source">{{ p.species_label }}{% if p.breed %} · {{ p.breed }}{% endif %}</div>
+          <h3>{{ p.title }}</h3>
+          {% if p.color %}<p class="dir-person-meta">{{ p.color }}</p>{% endif %}
+          <p class="dir-person-loc"><span>Visto en</span> {% if p.maps_url %}<a class="dir-loc-link" href="{{ p.maps_url }}" target="_blank" rel="noopener noreferrer">{{ p.zone }}</a>{% else %}{{ p.zone }}{% endif %}</p>
+          {% if p.last_seen_date %}<p class="dir-person-loc"><span>Desde</span> {{ p.last_seen_date }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          <div class="dir-record-provenance"><span>Fuente: reporte recibido por esta plataforma</span></div>
+        </article>
+        {% endfor %}
+      </div>
+      {{ pager(page, pages, 'public.directory_pets', args) }}
+      {% else %}
+      <div class="dir-empty"><p>No hay mascotas reportadas{% if q %} para «{{ q }}»{% endif %}. Si perdiste o encontraste una, repórtala con el botón de arriba.</p></div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

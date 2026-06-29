@@ -107,6 +107,17 @@
               {{ field_input(form.capacity, hint='Indica unidad: litros, raciones, plazas o equipos.') }}
             </div>
             {{ field_input(form.availability, hint='Ejemplo: Disponible hoy de 8:00 a 18:00.') }}
+          {% elif report_type.value == 'lost_pet' %}
+            {{ field_input(form.title, hint='Nombre o cómo identificarla.') }}
+            <div class="form-grid two-columns">
+              {{ field_input(form.species) }}
+              {{ field_input(form.breed) }}
+            </div>
+            <div class="form-grid two-columns">
+              {{ field_input(form.color) }}
+              {{ field_input(form.last_seen_date) }}
+            </div>
+            {{ field_input(form.photo_url, hint='Enlace https directo a una imagen (.jpg, .png, .webp). Opcional.') }}
           {% else %}
             {{ field_input(form.title, hint='Ejemplo: Edificios dañados en el sector central.') }}
             {{ field_input(form.damage_level) }}
