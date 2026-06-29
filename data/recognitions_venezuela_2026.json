@@ -1,0 +1,148 @@
+{
+  "_about": "Reconocimientos REALES de la respuesta a los sismos de Venezuela (24 jun 2026, M7.2 + M7.5). Solo unidades/organizaciones para humanos (sin datos personales) y perros rescatistas con nombre. Cada registro conserva su fuente. No inventar: añadir solo con fuente verificable.",
+  "recognitions": [
+    {
+      "id": "us-vatf1",
+      "kind": "responder_unit",
+      "name": "Virginia Task Force 1 (Fairfax County, USA-1)",
+      "org": "Estados Unidos",
+      "role": "Búsqueda y rescate urbano (USAR)",
+      "description": "Equipo USAR del condado de Fairfax desplegado con el DART de EE. UU.: 79 rescatistas y 6 perros de búsqueda.",
+      "source_name": "WAVY / Virginia Task Force 1",
+      "source_url": "https://www.wavy.com/news/va-task-force-1-conducts-rescue-missions-in-venezuela-following-earthquakes/",
+      "source_date": "2026-06-27"
+    },
+    {
+      "id": "us-latf2",
+      "kind": "responder_unit",
+      "name": "Los Angeles County Fire Department (USA-2)",
+      "org": "Estados Unidos",
+      "role": "Búsqueda y rescate urbano (USAR)",
+      "description": "Equipo USAR del condado de Los Ángeles: 74 rescatistas y 6 perros de búsqueda.",
+      "source_name": "Departamento de Estado de EE. UU.",
+      "source_url": "https://www.state.gov/responding-to-venezuela-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "us-fltf1",
+      "kind": "responder_unit",
+      "name": "Miami-Dade Fire Rescue (FLTF-1)",
+      "org": "Estados Unidos",
+      "role": "Búsqueda y rescate urbano (USAR)",
+      "description": "Equipo USAR de Miami-Dade: 80 rescatistas y 6 perros de búsqueda.",
+      "source_name": "Departamento de Estado de EE. UU.",
+      "source_url": "https://www.state.gov/responding-to-venezuela-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "es-usar",
+      "kind": "responder_unit",
+      "name": "Equipos de búsqueda y rescate de España",
+      "org": "España",
+      "role": "Búsqueda y rescate urbano (USAR)",
+      "description": "Dos equipos USAR patrocinados por el gobierno, enviados por vía aérea.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "ch-rescue",
+      "kind": "responder_unit",
+      "name": "Cadena de salvamento de Suiza",
+      "org": "Suiza",
+      "role": "Búsqueda y rescate con perros",
+      "description": "80 efectivos con perros de rescate y 18 toneladas de equipo.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "fr-rescue",
+      "kind": "responder_unit",
+      "name": "Equipo de rescate de Francia",
+      "org": "Francia",
+      "role": "Búsqueda y desescombro",
+      "description": "85 rescatistas especializados en operaciones de búsqueda y desescombro.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "tr-rescue",
+      "kind": "responder_unit",
+      "name": "Contingente de rescate de Türkiye",
+      "org": "Türkiye",
+      "role": "Búsqueda y rescate, médicos y ayuda humanitaria",
+      "description": "67 expertos en rescate, personal médico y trabajadores humanitarios que partieron de Estambul.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "mx-rescue",
+      "kind": "responder_unit",
+      "name": "Equipo militar de rescate de México",
+      "org": "México",
+      "role": "Rescate y atención médica",
+      "description": "Equipo militar con rescatistas y personal médico, con provisión de apoyo adicional.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "co-rescue",
+      "kind": "responder_unit",
+      "name": "Rescatistas de Colombia",
+      "org": "Colombia",
+      "role": "Búsqueda y rescate",
+      "description": "Más de 60 rescatistas y 12 toneladas de asistencia humanitaria.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "br-rescue",
+      "kind": "responder_unit",
+      "name": "Bomberos de Brasil",
+      "org": "Brasil",
+      "role": "Rescate y evaluación de riesgo",
+      "description": "36 bomberos y 8 especialistas en evaluación de riesgo y telecomunicaciones en el vuelo inicial.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "sv-rescue",
+      "kind": "responder_unit",
+      "name": "Rescatistas de El Salvador",
+      "org": "El Salvador",
+      "role": "Rescate y atención prehospitalaria",
+      "description": "300 rescatistas y paramédicos con 50 toneladas de equipo, medicinas e insumos.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "in-medical",
+      "kind": "responder_unit",
+      "name": "Equipo médico y de rescate de India",
+      "org": "India",
+      "role": "Atención médica y rescate",
+      "description": "Equipo de 41 personas con expertos en rescate y socorro, llegado en dos aeronaves.",
+      "source_name": "Al Jazeera",
+      "source_url": "https://www.aljazeera.com/news/2026/6/26/which-countries-have-pledged-aid-to-venezuela-after-powerful-earthquakes",
+      "source_date": "2026-06-26"
+    },
+    {
+      "id": "dog-tsunami",
+      "kind": "rescue_dog",
+      "name": "Tsunami",
+      "org": "Unidad canina K-SAR ECID (Venezuela)",
+      "role": "Perro de búsqueda y rescate",
+      "description": "Border collie de 8 años, rescatado de las calles de La Floresta (Caracas). Ayudó a localizar al menos 13 sobrevivientes bajo los escombros tras los sismos de junio de 2026; fue su última misión antes de retirarse.",
+      "source_name": "HOLA!",
+      "source_url": "https://www.hola.com/us/lifestyle/20260629910022/rescue-dog-saved-13-lives-venezuela-earthquake/",
+      "source_date": "2026-06-29"
+    }
+  ]
+}
