@@ -67,11 +67,17 @@ Revisión defensiva del código y la configuración. Resumen para auditores y op
    en cada `<img>`). Se añadió `object-src 'none'` y `frame-src 'none'`.
 2. **Cookie de idioma** ahora `HttpOnly` + `Secure` (en prod) + `SameSite=Lax`.
 
+### Límite de tasa (rate limiting): implementado
+
+Flask-Limiter por IP: **login 10/min** (anti-fuerza bruta, responde 429), **formularios
+de reporte 30/hora**, **reporte de abuso 20/hora**; junto a honeypot, heurísticas
+anti-spam y deduplicación. Storage en memoria por defecto (apto para un proceso/local);
+en producción multi-worker usar **Redis** con `RATELIMIT_STORAGE_URI`.
+
 ### Riesgo residual / recomendaciones antes de exponer al público
 
-- **Sin límite de tasa (rate limiting).** Los formularios públicos se protegen con
-  honeypot, heurísticas anti-spam y deduplicación, pero conviene añadir límites por IP
-  (p. ej. Flask-Limiter) antes de un despliegue público amplio.
+- **Rate limiting en multi-worker.** Si se despliega con varios procesos, configurar
+  `RATELIMIT_STORAGE_URI` apuntando a Redis (el storage en memoria no se comparte).
 - **Fotos por enlace https.** Un enlace podría apuntar a una imagen externa de seguimiento
   o inapropiada; mitigado por validación de extensión, `no-referrer` y el flujo de abuso.
   Para máximo endurecimiento: alojar/proxyar imágenes propias con verificación de tipo.

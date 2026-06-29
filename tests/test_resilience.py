@@ -32,3 +32,13 @@ def test_csp_allows_https_images_for_map_and_photos(client):
     img_src = csp.split("img-src", 1)[1].split(";", 1)[0]
     assert "https:" in img_src
     assert "object-src 'none'" in csp  # sin plugins/objetos
+
+
+def test_login_is_rate_limited(client):
+    # Anti-fuerza bruta: el login admite 10/min por IP; el intento 11 recibe 429.
+    statuses = [
+        client.post("/cuenta/login", data={"email": "x@example.org", "password": "bad"}).status_code
+        for _ in range(12)
+    ]
+    assert 429 in statuses
+    assert statuses[-1] == 429

@@ -3,7 +3,7 @@ import math
 from flask import abort, flash, redirect, render_template, request, url_for
 
 from app.constants import Priority, ReportStatus, ReportType, SourceChannel
-from app.extensions import db
+from app.extensions import db, limiter
 from app.i18n import translate as _
 from app.models import (
     AbuseReport,
@@ -86,6 +86,7 @@ def save_report(report_type: ReportType, report):
 
 
 @bp.route("/sin-comunicacion", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def communication_signal():
     form = CommunicationSignalForm()
     if form.validate_on_submit():
@@ -111,6 +112,7 @@ def communication_signal():
 
 
 @bp.route("/persona", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def missing_person():
     form = MissingPersonForm()
     if form.validate_on_submit():
@@ -135,6 +137,7 @@ def missing_person():
 
 
 @bp.route("/ayuda", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def help_request():
     form = HelpRequestForm()
     if form.validate_on_submit():
@@ -161,6 +164,7 @@ def help_request():
 
 
 @bp.route("/recurso", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def resource_offer():
     form = ResourceOfferForm()
     if form.validate_on_submit():
@@ -182,6 +186,7 @@ def resource_offer():
 
 
 @bp.route("/zona", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def location_report():
     form = LocationReportForm()
     if form.validate_on_submit():
@@ -205,6 +210,7 @@ def location_report():
 
 
 @bp.route("/mascota", methods=["GET", "POST"])
+@limiter.limit("30 per hour", methods=["POST"])
 def lost_pet():
     form = LostPetForm()
     if form.validate_on_submit():
@@ -276,6 +282,7 @@ def detail(report_type: str, public_id: str):
 
 
 @bp.route("/<report_type>/<public_id>/abuso", methods=["GET", "POST"])
+@limiter.limit("20 per hour", methods=["POST"])
 def report_abuse(report_type: str, public_id: str):
     try:
         parsed_type = parse_report_type(report_type)

@@ -7,7 +7,7 @@ from flask import Flask, request
 
 from app.config import CONFIGS, ProductionConfig
 from app.constants import PRIORITY_LABELS, REPORT_TYPE_LABELS, STATUS_LABELS, VERIFICATION_LABELS
-from app.extensions import csrf, db, login_manager, migrate
+from app.extensions import csrf, db, limiter, login_manager, migrate
 from app.models import User
 
 
@@ -25,6 +25,7 @@ def create_app(config_name: str | None = None) -> Flask:
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     from app.admin import bp as admin_bp
     from app.auth import bp as auth_bp

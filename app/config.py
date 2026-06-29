@@ -24,6 +24,10 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024
+    # Rate limiting (Flask-Limiter). Memoria por defecto; Redis en producción multi-worker.
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+    RATELIMIT_HEADERS_ENABLED = True
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
     WTF_CSRF_TIME_LIMIT = 3600
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
