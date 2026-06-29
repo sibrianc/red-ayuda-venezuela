@@ -651,7 +651,7 @@ def register_security_headers(app: Flask) -> None:
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault(
-            "Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()"
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=(self), payment=()"
         )
         response.headers.setdefault(
             "Content-Security-Policy",

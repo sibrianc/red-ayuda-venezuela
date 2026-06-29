@@ -43,15 +43,9 @@
   <aside class="mapc-left">
     <div class="mapc-panel">
       <div class="mapc-panel-h">CAPAS</div>
-      <div class="mapc-layers">
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="heat" aria-pressed="true"><span class="mapc-led"></span>Mapa de calor</button>
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="rings" aria-pressed="true"><span class="mapc-led"></span>Anillos radar</button>
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="zona" aria-pressed="true"><span class="mapc-led" style="--led:#ff3b3b"></span>Zonas afectadas</button>
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="auxilio" aria-pressed="true"><span class="mapc-led" style="--led:#ffb02e"></span>Auxilio</button>
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="recurso" aria-pressed="true"><span class="mapc-led" style="--led:#3ddc84"></span>Recursos</button>
-        <button type="button" class="mapc-chip is-on" data-cmd-layer="persona" aria-pressed="true"><span class="mapc-led" style="--led:#c77dff"></span>Personas</button>
-      </div>
+      <div class="mapc-layers rk-scroll" id="cmd-layers" role="group" aria-label="Mostrar u ocultar capas"></div>
     </div>
+    <button type="button" class="mapc-btn mapc-btn-gps" data-cmd-gps aria-pressed="false">Mi ubicación (GPS)</button>
     <div class="mapc-zoombar">
       <button type="button" class="mapc-btn" data-cmd-zoom-out aria-label="Alejar">−</button>
       <button type="button" class="mapc-btn" data-cmd-zoom-in aria-label="Acercar">+</button>
@@ -77,12 +71,7 @@
     <div class="mapc-panel-h">INTENSIDAD DE DAÑO</div>
     <div class="mapc-heatbar"></div>
     <div class="mapc-heatscale"><span>BAJA</span><span>CRÍTICA</span></div>
-    <div class="mapc-legend-types">
-      <span><i style="--c:#ff3b3b">Z</i>Zona</span>
-      <span><i style="--c:#ffb02e">A</i>Auxilio</span>
-      <span><i style="--c:#3ddc84">R</i>Recurso</span>
-      <span><i style="--c:#c77dff">P</i>Persona</span>
-    </div>
+    <p class="mapc-legend-note">Tipos y colores en el panel CAPAS (mismo icono que en el mapa).</p>
     <div class="mapc-scale"><span class="mapc-scale-bar" id="cmd-scale-bar"></span><span id="cmd-scale-text">—</span></div>
   </div>
 

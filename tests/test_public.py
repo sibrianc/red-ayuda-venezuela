@@ -90,12 +90,11 @@ def test_public_forms_use_guided_flow_and_hide_manual_coordinates(client, endpoi
 
 def test_map_page_is_command_center(client):
     html = client.get("/mapa").text
-    # Centro de Operaciones: capas, radio configurable y panel de inteligencia.
+    # Centro de Operaciones: mapa, panel de capas, radio, GPS y panel de inteligencia.
     assert 'id="cmd-map"' in html
-    assert 'data-cmd-layer="heat"' in html
-    assert 'data-cmd-layer="zona"' in html
-    assert 'data-cmd-layer="recurso"' in html
+    assert 'id="cmd-layers"' in html
     assert 'id="cmd-radius"' in html
+    assert "data-cmd-gps" in html
     assert "CENTRO DE OPERACIONES" in html
     assert "RADIO DE BÚSQUEDA" in html
     assert "INTEL · EN RADIO" in html
