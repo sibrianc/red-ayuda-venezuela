@@ -253,6 +253,43 @@ class DirectoryEntry(TimestampMixin, db.Model):
     attribution: Mapped[str | None] = mapped_column(String(240))
 
 
+class PersonRecord(TimestampMixin, db.Model):
+    """Persona publicada para búsqueda/reunificación (registro tipo Person Finder/PFIF).
+
+    Agrega información YA publicada (PFIF, listas oficiales) para que familias y
+    rescatistas localicen personas: nombre, edad y última ubicación. Es pública por
+    su propósito (encontrar a la persona), con atribución de la fuente. Los MENORES
+    se marcan y se excluyen de las vistas públicas por protección.
+    """
+
+    __tablename__ = "person_records"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_person_records_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(240), nullable=False)
+    given_name: Mapped[str | None] = mapped_column(String(120))
+    family_name: Mapped[str | None] = mapped_column(String(120))
+    age: Mapped[int | None] = mapped_column(Integer)
+    sex: Mapped[str | None] = mapped_column(String(20))
+    last_known_location: Mapped[str | None] = mapped_column(String(300))
+    home_location: Mapped[str | None] = mapped_column(String(300))
+    person_status: Mapped[str] = mapped_column(String(20), default="missing", nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    source_name: Mapped[str | None] = mapped_column(String(200))
+    source_url: Mapped[str | None] = mapped_column(String(500))
+    source_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_minor: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    attribution: Mapped[str | None] = mapped_column(String(240))
+
+
 class SituationMetric(TimestampMixin, db.Model):
     """Cifra agregada de situación (objeto canónico OperationalFact).
 

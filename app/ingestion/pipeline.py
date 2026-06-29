@@ -20,7 +20,8 @@ from app.ingestion.connectors import (
     ParsedEvent,
     in_venezuela_region,
 )
-from app.models import DirectoryEntry, IngestedEvent, SourceRecord
+from app.ingestion.pfif import ParsedPerson
+from app.models import DirectoryEntry, IngestedEvent, PersonRecord, SourceRecord
 
 
 @dataclass
@@ -280,6 +281,57 @@ def ingest_directory(
         _apply_directory_fields(existing, entry, is_region)
         if is_region:
             stats.in_region += 1
+
+    if commit:
+        db.session.commit()
+    return stats
+
+
+def _apply_person_fields(target: PersonRecord, person: ParsedPerson) -> None:
+    target.content_hash = person.content_hash
+    target.full_name = person.full_name
+    target.given_name = person.given_name
+    target.family_name = person.family_name
+    target.age = person.age
+    target.sex = person.sex
+    target.last_known_location = person.last_known_location
+    target.home_location = person.home_location
+    target.person_status = person.person_status
+    target.description = person.description
+    target.source_name = person.source_name
+    target.source_url = person.source_url
+    target.source_date = person.source_date
+    target.is_minor = person.is_minor
+    target.attribution = person.attribution
+
+
+def ingest_persons(people: list[ParsedPerson], *, commit: bool = True) -> IngestStats:
+    """Limpia, deduplica y persiste personas PFIF (idempotente por origen)."""
+    stats = IngestStats(received=len(people))
+
+    deduped: dict[tuple[str, str], ParsedPerson] = {}
+    for person in people:
+        if not person.external_id:
+            stats.invalid += 1
+            continue
+        deduped[(person.source_slug, person.external_id)] = person
+
+    for (source_slug, external_id), person in deduped.items():
+        existing = (
+            db.session.query(PersonRecord)
+            .filter_by(source_slug=source_slug, external_id=external_id)
+            .one_or_none()
+        )
+        if existing is not None and existing.content_hash == person.content_hash:
+            stats.unchanged += 1
+            continue
+        if existing is None:
+            existing = PersonRecord(source_slug=source_slug, external_id=external_id)
+            db.session.add(existing)
+            stats.new += 1
+        else:
+            stats.updated += 1
+        _apply_person_fields(existing, person)
 
     if commit:
         db.session.commit()

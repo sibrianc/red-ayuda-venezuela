@@ -301,6 +301,35 @@ def register_cli(app: Flask) -> None:
         click.echo(f"Cargadas {len(figures)} cifras oficiales citadas (al {date(2026,6,27)}).")
         click.echo("Fuentes: ONU News y OCHA. Cifras en verificación y en aumento.")
 
+    @app.cli.command("import-pfif")
+    @click.argument("source")
+    @click.option("--source-slug", default="pfif", show_default=True)
+    @click.option("--attribution", default=None, help="Atribución de la fuente publicada.")
+    def import_pfif_cmd(source: str, source_slug: str, attribution: str | None):
+        """Importa personas desde un documento PFIF (URL o archivo) para reunificación."""
+        from app.ingestion.pfif import fetch_pfif, parse_pfif
+        from app.ingestion.pipeline import ingest_persons
+
+        if source.startswith(("http://", "https://")):
+            click.echo(f"Descargando PFIF de {source}...")
+            try:
+                xml_text = fetch_pfif(source)
+            except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+                raise click.ClickException(
+                    f"No se pudo descargar ({type(exc).__name__}: {exc})."
+                ) from exc
+        else:
+            with open(source, encoding="utf-8") as handle:
+                xml_text = handle.read()
+
+        people = parse_pfif(xml_text, source_slug=source_slug, attribution=attribution)
+        stats = ingest_persons(people)
+        click.echo("Resultado del import PFIF:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+        minors = sum(1 for person in people if person.is_minor)
+        click.echo(f"Personas con edad de menor (excluidas del público por protección): {minors}")
+
     @app.cli.command("ingest-stats")
     def ingest_stats():
         """Muestra el volumen agregado de eventos y directorio ya ingeridos."""

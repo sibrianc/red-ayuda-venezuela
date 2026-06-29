@@ -242,6 +242,49 @@ Resumen honesto: a nivel de **código y experiencia** estamos muy avanzados; par
 **desplegar y que sea útil de verdad** falta sobre todo **conectar datos reales** y
 **aprobar el hosting/costo**. Todo lo demás (motor, mapa, directorio, privacidad) ya está.
 
+### EN CURSO (WIP) — Importador PFIF y registro de personas (sin terminar)
+
+> Estado al pausar (créditos bajos). Esta es la fase #2 del orden recomendado:
+> importar personas desaparecidas/fallecidas **ya publicadas** (PFIF, listas oficiales)
+> para reunificación familiar. **Lo siguiente que toca: terminar el directorio y probar.**
+
+**Ya hecho y committeado en commits previos / por commitear como WIP:**
+- Modelo `PersonRecord` (`app/models.py`): personas publicadas con nombre, edad, última
+  ubicación, `person_status` (missing/found/deceased), fuente, e `is_minor` (los menores
+  se excluyen del público). Migración `f6a7b8c9d0e1`.
+- Parser/conector PFIF (`app/ingestion/pfif.py`): agnóstico al namespace (soporta PFIF
+  1.1–1.4: `full_name`, `given_name/family_name`, `first_name/last_name`); estado desde
+  las notas (`believed_dead`→deceased, etc.); `fetch_pfif` + `parse_pfif`; detecta menores
+  por edad < 18.
+- Ingesta `ingest_persons` (`app/ingestion/pipeline.py`), idempotente por
+  `(source_slug, external_id)`.
+- Proyección `public_person_records(status, q)` (`app/services/operational.py`), **excluye
+  menores**.
+- Comando `flask import-pfif <URL|archivo> [--source-slug] [--attribution]`.
+- 62/62 pruebas siguen verdes; `compileall` OK. (Estos archivos pueden estar SIN commitear
+  si la sesión se cortó: revisar `git status`.)
+
+**FALTA (para cerrar la fase #2):**
+1. **Directorio**: integrar `public_person_records(status="missing")` en la sección de
+   Personas (junto a los reportes propios) y **agregar la sección "Fallecidos"**
+   (`status="deceased"`) en `app/templates/public/directory.html` y la ruta
+   `app/public/routes.py` (pasar `deceased=...` y un buscador `q` que también filtre
+   personas PFIF). CSS si hace falta.
+2. **Pruebas**: parseo PFIF (un fixture XML 1.4 con una persona adulta + un menor + una
+   nota `believed_dead`), exclusión de menores, mapeo de estado, dedup de `ingest_persons`.
+   Crear `tests/test_pfif.py`.
+3. **QA**: `pytest`, `compileall`, ciclo de migración `f6a7b8c9d0e1` upgrade/downgrade.
+4. **Relanzar** server (puerto 5015) y **commitear** la fase. Actualizar este checkpoint.
+5. **Dato real**: no hay feed PFIF público confirmado del evento; el importador queda listo
+   y se llena cuando se conecte un feed (Google Person Finder si activa uno) o una lista
+   oficial. NO sembrar personas falsas (regla del propietario: solo datos verificados).
+
+**Cómo continuar en una nueva sesión:** revisar `git status` y `git log` en la rama
+`phase/e4-elite-experience`; leer este WIP; terminar el punto 1, luego 2–4. El servidor de
+revisión corre con `flask run --port 5015 --no-reload` usando
+`DATABASE_URL=sqlite:///instance/demo_review.sqlite3` (tras `flask db upgrade` + `flask
+seed-sample` + `flask load-official-figures`).
+
 ### Checkpoint técnico E1
 
 - Archivos nuevos: `app/ingestion/registry.py`, `app/ingestion/catalog.py`,

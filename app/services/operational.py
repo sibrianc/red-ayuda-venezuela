@@ -15,6 +15,7 @@ from app.models import (
     IngestedEvent,
     Incident,
     MissingPersonReport,
+    PersonRecord,
     SituationMetric,
 )
 
@@ -161,6 +162,39 @@ def public_missing_persons(q: str | None = None, limit: int = 300) -> list[dict]
             "last_contact_date": person.last_contact_date.isoformat() if person.last_contact_date else None,
             "summary": person.description_public,
             "status": person.status.value,
+        }
+        for person in query.all()
+    ]
+
+
+def public_person_records(status: str | None = None, q: str | None = None, limit: int = 500) -> list[dict]:
+    """Personas publicadas (PFIF / listas oficiales) por estado. Excluye menores."""
+    query = PersonRecord.query.filter(PersonRecord.is_minor.is_(False))
+    if status:
+        query = query.filter(PersonRecord.person_status == status)
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                PersonRecord.full_name.ilike(term),
+                PersonRecord.last_known_location.ilike(term),
+                PersonRecord.home_location.ilike(term),
+            )
+        )
+    query = query.order_by(PersonRecord.source_date.desc().nullslast(), PersonRecord.id.desc()).limit(limit)
+    return [
+        {
+            "public_id": person.public_id,
+            "full_name": person.full_name,
+            "age": person.age,
+            "sex": person.sex,
+            "last_seen": person.last_known_location or person.home_location,
+            "person_status": person.person_status,
+            "summary": person.description,
+            "source_name": person.source_name,
+            "source_url": person.source_url,
+            "source_date": person.source_date.isoformat() if person.source_date else None,
+            "attribution": person.attribution,
         }
         for person in query.all()
     ]
