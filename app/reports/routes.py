@@ -4,6 +4,7 @@ from flask import abort, flash, redirect, render_template, request, url_for
 
 from app.constants import Priority, ReportStatus, ReportType, SourceChannel
 from app.extensions import db
+from app.i18n import translate as _
 from app.models import (
     AbuseReport,
     CommunicationSignal,
@@ -63,7 +64,7 @@ def common_values(form):
 def save_report(report_type: ReportType, report):
     db.session.add(report)
     db.session.flush()
-    suggested_priority, _ = suggest_priority(report_type, report)
+    suggested_priority, _reasons = suggest_priority(report_type, report)
     report.priority = suggested_priority
     for candidate in find_duplicate_candidates(report_type, report):
         db.session.add(candidate)
@@ -100,12 +101,12 @@ def communication_signal():
         db.session.add(signal)
         db.session.commit()
         flash(
-            "Gracias. Tu reporte de zona sin comunicación fue recibido como alerta sin verificar.",
+            _("Gracias. Tu reporte de zona sin comunicación fue recibido como alerta sin verificar."),
             "success",
         )
         return redirect(url_for("public.directory_zones"))
     return render_template(
-        "reports/communication.html", form=form, title="Reportar zona sin comunicación"
+        "reports/communication.html", form=form, title=_("Reportar zona sin comunicación")
     )
 
 
@@ -128,7 +129,7 @@ def missing_person():
     return render_template(
         "reports/form.html",
         form=form,
-        title="Reportar persona sin contacto",
+        title=_("Reportar persona sin contacto"),
         report_type=ReportType.MISSING_PERSON,
     )
 
@@ -154,7 +155,7 @@ def help_request():
     return render_template(
         "reports/form.html",
         form=form,
-        title="Solicitar ayuda",
+        title=_("Solicitar ayuda"),
         report_type=ReportType.HELP_REQUEST,
     )
 
@@ -175,7 +176,7 @@ def resource_offer():
     return render_template(
         "reports/form.html",
         form=form,
-        title="Ofrecer ayuda o recursos",
+        title=_("Ofrecer ayuda o recursos"),
         report_type=ReportType.RESOURCE_OFFER,
     )
 
@@ -198,7 +199,7 @@ def location_report():
     return render_template(
         "reports/form.html",
         form=form,
-        title="Reportar una zona afectada",
+        title=_("Reportar una zona afectada"),
         report_type=ReportType.LOCATION_REPORT,
     )
 
@@ -220,7 +221,7 @@ def lost_pet():
     return render_template(
         "reports/form.html",
         form=form,
-        title="Reportar mascota desaparecida",
+        title=_("Reportar mascota desaparecida"),
         report_type=ReportType.LOST_PET,
     )
 

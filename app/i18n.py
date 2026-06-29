@@ -9,6 +9,7 @@ si no, el idioma por defecto. No requiere compilar catálogos ni dependencias ex
 from urllib.parse import urlencode
 
 from flask import g, request
+from markupsafe import escape
 
 DEFAULT_LOCALE = "es"
 LANGUAGES = {"es": "Español", "en": "English"}
@@ -156,6 +157,180 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "Reportar mascota": "Report a pet",
         "Un solo lugar que conecta a familias, rescatistas y a quienes ofrecen recursos. Las familias reportan y buscan; los equipos ven dónde se necesita ayuda; los recursos se enlazan con las necesidades.":
             "A single place connecting families, rescuers and those offering resources. Families report and search; teams see where help is needed; resources are matched with needs.",
+        # --- formularios: etiquetas de campo ---
+        "¿En qué zona ocurre?": "In what area is it happening?",
+        "Referencia o dirección para el equipo (privada y opcional)": "Reference or address for the team (private and optional)",
+        "Latitud aproximada (opcional)": "Approximate latitude (optional)",
+        "Longitud aproximada (opcional)": "Approximate longitude (optional)",
+        "Cuéntanos qué ocurre y qué se necesita": "Tell us what is happening and what is needed",
+        "Información adicional solo para el equipo": "Additional information only for the team",
+        "Tu nombre (de quien hace el reporte)": "Your name (of the person filing the report)",
+        "Teléfono o correo donde podamos contactarte": "Phone or email where we can reach you",
+        "Entiendo que el reporte será revisado y que no debo incluir datos sensibles en la descripción pública.":
+            "I understand the report will be reviewed and that I must not include sensitive data in the public description.",
+        "Dejar vacío": "Leave empty",
+        "Enviar reporte de forma segura": "Submit report securely",
+        "Nombre de la persona desaparecida": "Name of the missing person",
+        "Apellido de la persona desaparecida": "Surname of the missing person",
+        "Edad aproximada de la persona": "Approximate age of the person",
+        "Género de la persona (opcional)": "Person's gender (optional)",
+        "Prefiero no indicar": "Prefer not to say",
+        "Femenino": "Female",
+        "Masculino": "Male",
+        "Otro": "Other",
+        "Otra": "Other",
+        "Fecha aproximada del último contacto con la persona": "Approximate date of last contact with the person",
+        "¿Dónde se le vio por última vez?": "Where was it last seen?",
+        "Descripción de la persona (estatura, contextura, ropa, señas particulares)":
+            "Description of the person (height, build, clothing, distinguishing marks)",
+        "Relación con la persona (privado)": "Relationship to the person (private)",
+        "Información médica necesaria para revisión (privada)": "Medical information needed for review (private)",
+        "La persona es menor de edad": "The person is a minor",
+        "Resumen de la necesidad": "Summary of the need",
+        "Necesidad principal": "Main need",
+        "Atención médica o medicamentos": "Medical care or medicines",
+        "Agua": "Water",
+        "Alimentos": "Food",
+        "Refugio": "Shelter",
+        "Transporte": "Transport",
+        "Rescate": "Rescue",
+        "Personas afectadas": "People affected",
+        "Hay menores, adultos mayores o personas con discapacidad": "There are minors, older adults or people with disabilities",
+        "Necesidad médica": "Medical need",
+        "Necesidad de agua": "Water need",
+        "Necesidad de alimentos": "Food need",
+        "Necesidad de refugio": "Shelter need",
+        "Necesidad de transporte": "Transport need",
+        "Detalles médicos (privados)": "Medical details (private)",
+        "Resumen del recurso que ofreces": "Summary of the resource you offer",
+        "Tipo de recurso": "Resource type",
+        "Voluntariado": "Volunteering",
+        "Cantidad o capacidad": "Quantity or capacity",
+        "Disponibilidad": "Availability",
+        "Edificio o lugar afectado que quieres reportar": "Building or place affected you want to report",
+        "Nivel aparente de daño": "Apparent level of damage",
+        "No determinado": "Undetermined",
+        "Bajo": "Low",
+        "Medio": "Medium",
+        "Alto": "High",
+        "Crítico": "Critical",
+        "Necesita agua": "Needs water",
+        "Necesita alimentos": "Needs food",
+        "Necesita atención médica": "Needs medical care",
+        "Necesita refugio": "Needs shelter",
+        "Necesita transporte": "Needs transport",
+        "Nombre o identificación de la mascota": "Pet name or identification",
+        "Tipo de animal": "Type of animal",
+        "Perro": "Dog",
+        "Gato": "Cat",
+        "Ave": "Bird",
+        "Raza (opcional)": "Breed (optional)",
+        "Color y señas (opcional)": "Color and markings (optional)",
+        "Fecha aproximada en que se perdió": "Approximate date it went missing",
+        "Enlace a una foto (opcional)": "Link to a photo (optional)",
+        "Pega un enlace https directo a una imagen (.jpg, .png, .webp o .gif).":
+            "Paste a direct https link to an image (.jpg, .png, .webp or .gif).",
+        "Descripción de la mascota (tamaño, señas, collar, comportamiento)":
+            "Description of the pet (size, markings, collar, behavior)",
+        "¿Qué zona está sin comunicación?": "Which area is without communication?",
+        "¿Qué se sabe? (sin nombres ni datos personales)": "What is known? (no names or personal data)",
+        "Tu contacto (privado y opcional, por si necesitamos corroborar)": "Your contact (private and optional, in case we need to corroborate)",
+        "Entiendo que es un reporte sin verificar y que no debo incluir datos personales públicos.":
+            "I understand this is an unverified report and that I must not include public personal data.",
+        "Reportar zona sin comunicación": "Report area without communication",
+        "Motivo": "Reason",
+        "Información posiblemente falsa": "Possibly false information",
+        "Expone información sensible": "Exposes sensitive information",
+        "Posible fraude o estafa": "Possible fraud or scam",
+        "El caso ya fue resuelto": "The case has already been resolved",
+        "Detalles": "Details",
+        "Contacto opcional (privado)": "Optional contact (private)",
+        "Enviar reporte de abuso": "Submit abuse report",
+        # --- formularios: títulos (rutas) y chrome del asistente ---
+        "Reportar persona sin contacto": "Report a person out of contact",
+        "Ofrecer ayuda o recursos": "Offer help or resources",
+        "Reportar una zona afectada": "Report an affected area",
+        "Reportar mascota desaparecida": "Report a lost pet",
+        "Reporte protegido": "Protected report",
+        "Inicio": "Home",
+        "Te guiaremos paso a paso. Solo pedimos la información necesaria para que una persona pueda revisar el caso.":
+            "We'll guide you step by step. We only ask for the information needed for a person to review the case.",
+        "Privado hasta ser revisado": "Private until reviewed",
+        "Tu contacto, dirección y detalles sensibles nunca aparecen en el sitio público.":
+            "Your contact, address and sensitive details never appear on the public site.",
+        "¿Conexión inestable?": "Unstable connection?",
+        "Puedes guardar en este dispositivo únicamente los campos no sensibles.":
+            "You can save only the non-sensitive fields on this device.",
+        "Guardar borrador": "Save draft",
+        "Borrar": "Delete",
+        "Revisa la información marcada.": "Check the highlighted information.",
+        "Conservamos lo que escribiste para que puedas corregirlo.": "We keep what you wrote so you can correct it.",
+        "Progreso del reporte": "Report progress",
+        "Situación": "Situation",
+        "Ubicación": "Location",
+        "Contacto": "Contact",
+        "Paso 1 de 3": "Step 1 of 3",
+        "Cuéntanos la situación": "Tell us the situation",
+        "Empieza por lo esencial. Podrás añadir detalles antes de enviar.": "Start with the essentials. You can add details before submitting.",
+        "Si no la sabes, puedes dejarla vacía.": "If you don't know it, you can leave it empty.",
+        "Una fecha aproximada también ayuda.": "An approximate date also helps.",
+        "Ejemplo: Agua para 20 familias en Caraballeda.": "Example: Water for 20 families in Caraballeda.",
+        "Una estimación es suficiente.": "An estimate is enough.",
+        "También se necesita": "Also needed",
+        "Ejemplo: Excavadora con operador disponible.": "Example: Excavator with operator available.",
+        "Indica unidad: litros, raciones, plazas o equipos.": "Specify unit: liters, rations, spots or equipment.",
+        "Ejemplo: Disponible hoy de 8:00 a 18:00.": "Example: Available today from 8:00 to 18:00.",
+        "Ejemplo: Edificios dañados en el sector central.": "Example: Damaged buildings in the central sector.",
+        "Necesidades observadas": "Observed needs",
+        "Nombre o cómo identificarla.": "Name or how to identify it.",
+        "Enlace https directo a una imagen (.jpg, .png, .webp). Opcional.": "Direct https link to an image (.jpg, .png, .webp). Optional.",
+        "Paso 2 de 3": "Step 2 of 3",
+        "¿Dónde ocurre?": "Where is it happening?",
+        "Escribe una zona reconocible. No necesitas conocer coordenadas.": "Enter a recognizable area. You don't need to know coordinates.",
+        "Sector, comunidad, parroquia o punto de referencia general.": "Sector, community, parish or general landmark.",
+        "Ubicación asistida": "Assisted location",
+        "Si estás en el lugar, tu dispositivo puede añadir la ubicación. Solo el equipo autorizado recibe la precisión original.":
+            "If you are on site, your device can add the location. Only the authorized team receives the original precision.",
+        "Usar mi ubicación": "Use my location",
+        "No se ha añadido ubicación del dispositivo.": "No device location has been added.",
+        "Añadir una referencia privada para el equipo": "Add a private reference for the team",
+        "No se mostrará en el mapa ni en reportes públicos.": "It will not be shown on the map or in public reports.",
+        "Paso 3 de 3": "Step 3 of 3",
+        "Detalles y contacto": "Details and contact",
+        "Una persona revisará el reporte antes de que cualquier parte pueda publicarse.":
+            "A person will review the report before any part can be published.",
+        "No incluyas teléfonos, nombres completos ni direcciones exactas.": "Do not include phone numbers, full names or exact addresses.",
+        "Añadir información privada para la revisión": "Add private information for the review",
+        "Contacto privado": "Private contact",
+        "¿Cómo podemos confirmar el reporte?": "How can we confirm the report?",
+        "Estos datos solo son visibles para personal autorizado.": "These details are only visible to authorized staff.",
+        "Teléfono, WhatsApp o correo.": "Phone, WhatsApp or email.",
+        "Al enviar": "On submit",
+        "El reporte quedará pendiente y privado hasta que una persona lo revise.":
+            "The report will remain pending and private until a person reviews it.",
+        "Continuar a ubicación": "Continue to location",
+        "Volver": "Back",
+        "Continuar a contacto": "Continue to contact",
+        "Volver al inicio": "Back to home",
+        "Privado": "Private",
+        # --- confirmación / abuso / flashes ---
+        "Reporte recibido": "Report received",
+        "Gracias. Ahora comienza la revisión.": "Thank you. The review now begins.",
+        "Tu referencia es": "Your reference is",
+        "El reporte permanece privado hasta que una persona autorizada lo revise.":
+            "The report stays private until an authorized person reviews it.",
+        "Revisión comunitaria": "Community review",
+        "Reportar un problema": "Report a problem",
+        "El contenido no se eliminará automáticamente. Una persona autorizada revisará el aviso.":
+            "Content will not be removed automatically. An authorized person will review the notice.",
+        "Gracias. Tu reporte de zona sin comunicación fue recibido como alerta sin verificar.":
+            "Thank you. Your report of an area without communication was received as an unverified alert.",
+        # --- reportes: listado y detalle ---
+        "Información pública revisada": "Reviewed public information",
+        "Reportes aprobados": "Approved reports",
+        "La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.":
+            "Information may be incomplete or change. Contacts and exact addresses are not shown.",
+        "Volver a reportes": "Back to reports",
     },
 }
 
@@ -169,6 +344,38 @@ def translate(text: str, **kwargs) -> str:
     if locale != DEFAULT_LOCALE:
         text = TRANSLATIONS.get(locale, {}).get(text, text)
     return text.format(**kwargs) if kwargs else text
+
+
+class LazyString:
+    """Cadena traducible de forma diferida: se traduce al convertirse a texto, ya dentro
+    del contexto de petición (sirve para etiquetas de WTForms, definidas al cargar la clase)."""
+
+    __slots__ = ("_text",)
+
+    def __init__(self, text: str):
+        self._text = text
+
+    def __str__(self) -> str:
+        return translate(self._text)
+
+    def __html__(self):
+        return escape(translate(self._text))
+
+    def __eq__(self, other) -> bool:
+        return str(self) == str(other)
+
+    def __hash__(self) -> int:
+        return hash(self._text)
+
+    def __bool__(self) -> bool:
+        return bool(self._text)
+
+    def __repr__(self) -> str:
+        return f"LazyString({self._text!r})"
+
+
+def lazy(text: str) -> LazyString:
+    return LazyString(text)
 
 
 def set_lang_link(lang: str) -> str:

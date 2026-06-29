@@ -3,8 +3,8 @@
 {% from "_ui.html" import hero with context %}
 {% block content %}
 <div class="rv-page">
-{% call hero('Revisión comunitaria', 'Reportar un problema') %}
-  <p class="rv-lead">El contenido no se eliminará automáticamente. Una persona autorizada revisará el aviso.</p>
+{% call hero(_('Revisión comunitaria'), _('Reportar un problema')) %}
+  <p class="rv-lead">{{ _('El contenido no se eliminará automáticamente. Una persona autorizada revisará el aviso.') }}</p>
 {% endcall %}
 <section class="container narrow section-space">
   <form method="post" novalidate>{{ form.hidden_tag() }}

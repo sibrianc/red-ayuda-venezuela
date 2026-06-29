@@ -3,7 +3,7 @@
 {% from "_ui.html" import hero with context %}
 {% block content %}
 <div class="rv-page">
-{% call hero(report_type_labels[report_type], title, back_url=url_for('reports.index'), back_label='Volver a reportes') %}
+{% call hero(report_type_labels[report_type], title, back_url=url_for('reports.index'), back_label=_('Volver a reportes')) %}
   <p class="rv-lead">{{ report.description_public }}</p>
 {% endcall %}
 <article class="container narrow section-space report-detail">

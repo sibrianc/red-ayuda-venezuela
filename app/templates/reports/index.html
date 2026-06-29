@@ -3,8 +3,8 @@
 {% from "_ui.html" import hero with context %}
 {% block content %}
 <div class="rv-page">
-{% call hero('Información pública revisada', 'Reportes aprobados') %}
-  <p class="rv-lead">La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.</p>
+{% call hero(_('Información pública revisada'), _('Reportes aprobados')) %}
+  <p class="rv-lead">{{ _('La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.') }}</p>
 {% endcall %}
 <section class="container section-space">
   <form class="filter-panel" method="get" role="search">
