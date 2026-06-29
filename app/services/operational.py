@@ -10,6 +10,7 @@ import urllib.parse
 from sqlalchemy import func, or_
 
 from app.constants import ReportStatus
+from app.ingestion.normalize import normalize_name
 from app.models import (
     CommunicationSignal,
     DirectoryEntry,
@@ -84,20 +85,102 @@ DAMAGE_CANDIDATE_CATEGORIES = {
 
 SEVERITY_WEIGHT = {"critical": 1.0, "high": 0.7, "medium": 0.45, "low": 0.25}
 
+# Zonas afectadas conocidas (coordenadas aproximadas) para geolocalizar la ubicación
+# de TEXTO de los desaparecidos y poder pesarlas en el mapa de calor. Orden: específico
+# primero (Catia La Mar antes que La Guaira), genérico al final.
+ZONE_COORDS = [
+    (("catia la mar",), 10.6020, -67.0260, "Catia La Mar"),
+    (("caraballeda",), 10.6110, -66.8510, "Caraballeda"),
+    (("tanaguarena", "tanaguar"), 10.6190, -66.8330, "Tanaguarena"),
+    (("naiguata",), 10.6170, -66.7390, "Naiguatá"),
+    (("maiquetia",), 10.5980, -66.9810, "Maiquetía"),
+    (("macuto",), 10.6080, -66.8920, "Macuto"),
+    (("petare",), 10.4760, -66.8050, "Petare"),
+    (("la guaira", "guaira", "vargas", "caribe", "los cocos", "vistamar"), 10.6010, -66.9330, "La Guaira"),
+    (("catia",), 10.5230, -66.9280, "Catia"),
+    (("caracas",), 10.4880, -66.8790, "Caracas"),
+]
+
+
+def _match_zone(text: str | None):
+    t = normalize_name(text)
+    if not t:
+        return None
+    for keys, lat, lng, label in ZONE_COORDS:
+        if any(k in t for k in keys):
+            return (lat, lng, label)
+    return None
+
+
+def missing_person_hotspots() -> list[dict]:
+    """Zonas con MÁS personas desaparecidas (geolocalizadas por su ubicación de texto).
+    Prioriza la búsqueda y hace que el mapa de calor marque como más intensas las zonas
+    con más desaparecidos."""
+    rows = (
+        PersonRecord.query.filter(
+            PersonRecord.is_minor.is_(False),
+            PersonRecord.person_status == "missing",
+        )
+        .with_entities(PersonRecord.last_known_location, PersonRecord.home_location)
+        .all()
+    )
+    agg: dict[str, dict] = {}
+    for last_known, home in rows:
+        zone = _match_zone(last_known or home or "")
+        if not zone:
+            continue
+        lat, lng, label = zone
+        cell = agg.setdefault(label, {"label": label, "lat": lat, "lng": lng, "count": 0})
+        cell["count"] += 1
+    return sorted(agg.values(), key=lambda z: z["count"], reverse=True)
+
+
 def affected_intensity() -> list[list[float]]:
-    """Calor basado solo en registros estructurales trazables, nunca puntos inventados."""
+    """Calor de zonas afectadas: registros estructurales trazables + DENSIDAD de personas
+    desaparecidas (las zonas con más desaparecidos son las más intensas). Nunca inventa puntos."""
     points = []
     for incident in public_incidents(require_coordinates=True):
         confidence = incident.get("confidence")
-        weight = SEVERITY_WEIGHT.get(incident["severity"], 0.35)
+        # Tope para que la densidad de desaparecidos pueda dominar la zona más intensa.
+        weight = min(0.7, SEVERITY_WEIGHT.get(incident["severity"], 0.35))
         if confidence is not None:
             weight *= max(0.2, confidence)
-        points.append([
-            incident["latitude"],
-            incident["longitude"],
-            round(weight, 3),
-        ])
+        points.append([incident["latitude"], incident["longitude"], round(weight, 3)])
+    hotspots = missing_person_hotspots()
+    if hotspots:
+        top = max(h["count"] for h in hotspots) or 1
+        for h in hotspots:
+            # 0.5..1.0 según el número de desaparecidos (la zona con más = máxima intensidad).
+            weight = 0.5 + 0.5 * (h["count"] / top)
+            points.append([h["lat"], h["lng"], round(weight, 3)])
     return points
+
+
+DANGER_CATEGORIES_PUBLIC = {
+    "collapsed_structure", "trapped_persons", "buried_persons", "fire", "blocked_road",
+}
+
+
+def coordination_overview() -> dict:
+    """Datos del Centro de Coordinación que conecta familias ↔ rescatistas ↔ recursos:
+    prioridades de rescate, zonas con más desaparecidos, zonas sin comunicación y conteos."""
+    incidents = public_incidents()
+    priorities = [
+        i for i in incidents
+        if i["category"] in DANGER_CATEGORIES_PUBLIC
+        and i["severity"] in {"critical", "high"}
+        and i.get("latitude") is not None
+    ][:30]
+    return {
+        "missing_total": count_person_records("missing"),
+        "localized_total": count_person_records("found"),
+        "deceased_total": count_person_records("deceased"),
+        "incident_total": len(incidents),
+        "priorities": priorities,
+        "hotspots": missing_person_hotspots(),
+        "comms_zones": public_comms_zones(),
+        "registries": OFFICIAL_REGISTRIES,
+    }
 
 CATEGORY_LABELS = {
     "hospital": "Hospital",

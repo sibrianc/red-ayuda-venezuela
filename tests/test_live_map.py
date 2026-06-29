@@ -63,3 +63,22 @@ def test_live_endpoint_returns_events_and_services(app, client):
     assert service["category_label"] == "Hospital"
     assert service["name"] == "Hospital Central"
     assert service["emergency"] is True
+
+
+def test_missing_persons_drive_heat_intensity(app):
+    from app.models import PersonRecord
+    from app.services.operational import affected_intensity, missing_person_hotspots
+
+    with app.app_context():
+        for i in range(4):
+            db.session.add(PersonRecord(
+                source_slug="t", external_id=f"m{i}", content_hash=str(i),
+                full_name=f"Persona {i}", person_status="missing", is_minor=False,
+                last_known_location="La Guaira",
+            ))
+        db.session.commit()
+        hot = missing_person_hotspots()
+        assert hot[0]["label"] == "La Guaira"
+        assert hot[0]["count"] == 4
+        # La zona con más desaparecidos es la más intensa del mapa de calor.
+        assert any(round(p[2], 2) >= 0.99 for p in affected_intensity())

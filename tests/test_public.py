@@ -234,3 +234,12 @@ def test_abuse_can_only_target_public_report(app, client):
         db.session.commit()
         public_id = report.public_id
     assert client.get(f"/reportes/help_request/{public_id}/abuso").status_code == 404
+
+
+def test_coordination_hub_connects_actors(client):
+    html = client.get("/coordinacion").text
+    assert "Centro de coordinación" in html
+    assert "Familias" in html
+    assert "Rescatistas" in html
+    assert "Prioridades de rescate" in html
+    assert "Zonas con más desaparecidos" in html

@@ -6,6 +6,7 @@ from app.public import bp
 from app.services.operational import (
     CATEGORY_LABELS,
     OFFICIAL_REGISTRIES,
+    coordination_overview,
     count_directory,
     count_person_records,
     directory_category_counts,
@@ -17,7 +18,7 @@ from app.services.operational import (
     public_person_records,
     public_situation,
 )
-from app.services.reporting import public_items, public_summary
+from app.services.reporting import public_items, public_report_dict, public_summary
 
 
 @bp.get("/")
@@ -88,6 +89,25 @@ def directory():
         registries=OFFICIAL_REGISTRIES,
         q=q,
         category=category,
+    )
+
+
+@bp.get("/coordinacion")
+def coordination():
+    """Centro de Coordinación: conecta familias ↔ rescatistas ↔ recursos en un solo lugar."""
+    overview = coordination_overview()
+    needs, resources = [], []
+    for item in public_items():
+        record = public_report_dict(item.report_type, item.report)
+        if item.report_type.value == "help_request":
+            needs.append(record)
+        elif item.report_type.value == "resource_offer":
+            resources.append(record)
+    return render_template(
+        "public/coordination.html",
+        needs=needs[:20],
+        resources=resources[:20],
+        **overview,
     )
 
 
