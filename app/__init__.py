@@ -309,9 +309,13 @@ def register_cli(app: Flask) -> None:
             fetch_gdacs, fetch_overpass, fetch_usgs,
             parse_gdacs_geojson, parse_overpass, parse_usgs_geojson,
         )
+        import time
+
+        from app.ingestion.localizados import fetch_localizados, parse_localizados
         from app.ingestion.pipeline import (
-            directory_overview, event_overview, ingest_directory, ingest_events,
+            directory_overview, event_overview, ingest_directory, ingest_events, ingest_persons,
         )
+        from app.ingestion.venezuelareporta import fetch_reporta, parse_reporta
 
         def step(name, action):
             try:
@@ -329,6 +333,24 @@ def register_cli(app: Flask) -> None:
                                    region_only=True, event_types={"earthquake"}))
         step("OpenStreetMap — directorio de servicios",
              lambda: ingest_directory(parse_overpass(fetch_overpass()), region_only=True))
+
+        def _localizados():
+            page = 1
+            while page <= 100:
+                payload = fetch_localizados(page=page, limit=100)
+                people = parse_localizados(payload)
+                if not people:
+                    break
+                ingest_persons(people)
+                meta = payload.get("meta", {}) if isinstance(payload, dict) else {}
+                if meta.get("totalPages") and page >= meta["totalPages"]:
+                    break
+                page += 1
+                time.sleep(0.15)
+
+        step("Localizados Venezuela — personas localizadas", _localizados)
+        step("Venezuela Reporta — desaparecidos",
+             lambda: ingest_persons(parse_reporta(fetch_reporta())))
         if pfif:
             from app.ingestion.pfif import fetch_pfif, parse_pfif
             from app.ingestion.pipeline import ingest_persons
