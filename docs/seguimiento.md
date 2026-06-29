@@ -301,6 +301,21 @@ PÚBLICA, de solo lectura, sin autenticación** ("para integraciones"). Es la v�
 - 78 pruebas. Para refrescar: `flask import-localizados`. Mapea a `PersonRecord`, así que
   el buscador del directorio cruza desaparecidos/localizados/fallecidos.
 
+### Desaparecidos vía página pública (venezuelareporta.org)
+
+Para el lado "desaparecidos" no hubo API pública limpia: venezuelatebusca.com no expone
+API; el backend de desaparecidosterremotovenezuela.com (`theempire.tech`) responde **403
+Forbidden** (restringido a su frontend — NO se fuerza, no es vía limpia). Pero
+**venezuelareporta.org** server-renderiza sus fichas y su robots permite `/` (solo prohíbe
+`/api/` y `/admin`):
+- Conector `app/ingestion/venezuelareporta.py` (parsea las páginas públicas, no `/api/`) +
+  comando `flask import-reporta`. Estado por el chip ("Se busca"→missing, "a salvo"→found),
+  atribución, enlace a la ficha, menores excluidos.
+- **150 personas reales** ingeridas (≈145 desaparecidas + algunas a salvo). El HTML trae el
+  primer lote; el resto carga por `/api/` (prohibido) → para más, export/acuerdo (outreach).
+- Resultado: el directorio tiene **ambos lados reales** — Desaparecidos (145) y Localizadas
+  (4.335) — buscables y cruzados. 80 pruebas.
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y

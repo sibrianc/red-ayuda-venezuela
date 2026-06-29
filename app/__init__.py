@@ -342,6 +342,22 @@ def register_cli(app: Flask) -> None:
         click.echo(f"  servicios: {directory['total']}")
         click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
 
+    @app.cli.command("import-reporta")
+    def import_reporta_cmd():
+        """Importa personas de venezuelareporta.org (páginas públicas server-rendered, robots-OK)."""
+        from app.ingestion.pipeline import ingest_persons
+        from app.ingestion.venezuelareporta import fetch_reporta, parse_reporta
+
+        try:
+            html = fetch_reporta()
+        except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+            raise click.ClickException(f"No se pudo descargar ({type(exc).__name__}: {exc}).") from exc
+        people = parse_reporta(html)
+        stats = ingest_persons(people)
+        click.echo(f"Venezuela Reporta: {stats.new} nuevos, {stats.unchanged} sin cambios.")
+        minors = sum(1 for person in people if person.is_minor)
+        click.echo(f"Menores detectados (excluidos del público): {minors}")
+
     @app.cli.command("import-localizados")
     @click.option("--max-pages", type=int, default=200, help="Tope de páginas por seguridad.")
     @click.option("--limit", type=int, default=100, show_default=True)
