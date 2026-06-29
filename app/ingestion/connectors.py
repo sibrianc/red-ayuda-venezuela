@@ -4,7 +4,7 @@ Cada conector conoce el esquema de SU fuente y devuelve eventos ya mapeados al
 objeto canónico (ParsedEvent). El *fetch* de red se mantiene separado del
 *parseo* para que las pruebas corran sobre fixtures sin tocar Internet.
 
-Sin dependencias nuevas: se usa la librería estándar (urllib + json).
+Usa la librería estándar (urllib + json) y `certifi` para las CA de SSL.
 """
 
 from __future__ import annotations
@@ -18,6 +18,20 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 USER_AGENT = "RedAyudaVE/ingesta (proyecto humanitario; contacto pendiente)"
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """Contexto SSL con el bundle de CA de certifi.
+
+    Evita el error `CERTIFICATE_VERIFY_FAILED` en entornos cuyo Python no encuentra
+    las CA del sistema (típico en macOS). Si certifi no está, usa el contexto por defecto.
+    """
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:  # noqa: BLE001 — fallback al contexto por defecto
+        return ssl.create_default_context()
 
 # Recuadro aproximado de Venezuela (incluye costa y zonas fronterizas) para marcar
 # qué eventos caen en la región de interés sin descartar el resto.
@@ -114,7 +128,7 @@ def fetch_usgs(feed: str = "month_2.5", *, timeout: int = 30) -> dict:
     """Descarga un feed GeoJSON de USGS. Requiere red; no se llama en pruebas."""
     url = USGS_FEEDS.get(feed, feed)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    context = ssl.create_default_context()
+    context = _ssl_context()
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
         return json.load(response)
 
@@ -246,7 +260,7 @@ def fetch_gdacs(feed: str = "map", *, timeout: int = 30) -> dict:
     """Descarga un feed GeoJSON de GDACS. Requiere red; no se llama en pruebas."""
     url = GDACS_FEEDS.get(feed, feed)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    context = ssl.create_default_context()
+    context = _ssl_context()
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
         return json.load(response)
 
@@ -381,7 +395,7 @@ def fetch_overpass(query: str | None = None, *, timeout: int = 120) -> dict:
     request = urllib.request.Request(
         OVERPASS_ENDPOINT, data=body, headers={"User-Agent": USER_AGENT}
     )
-    context = ssl.create_default_context()
+    context = _ssl_context()
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
         return json.load(response)
 

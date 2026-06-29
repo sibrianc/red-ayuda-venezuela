@@ -244,6 +244,23 @@ no genérica, y datos reales verificados.
   operativos) y `38079af` (UI). Datos del mapa aún de **muestra** (preview) salvo las
   cifras, que son reales; los datos reales entran con la ingesta y el importador PFIF.
 
+### HITO — Recopilación REAL desbloqueada (certifi) 🎉
+
+El error `CERTIFICATE_VERIFY_FAILED` no era falta de red, sino que Python no encontraba
+las CA del sistema. Solución: los conectores usan ahora el bundle de **certifi**
+(`_ssl_context()` en `app/ingestion/connectors.py`, también en `pfif.py`; `certifi` agregado
+a `requirements.txt`). Con eso, `flask ingest-all` **recopila datos reales de verdad**:
+
+- **OpenStreetMap → 16.204 servicios reales** de Venezuela (hospitales, clínicas, refugios,
+  bomberos, farmacias, puntos de agua). Ej.: «Hospital Antonio Patricio de Alcalá» (Cumaná).
+- **USGS → sismos reales** en la región (réplicas del 24 jun; usa `month_all` para más).
+- **GDACS** alerta + **cifras oficiales** (ONU/OCHA) cargadas.
+
+Para poblar todo en una máquina con red:
+`flask db upgrade && flask ingest-all && flask load-official-figures`.
+(El mapa sirve hasta 3.000 servicios por rendimiento; el directorio lista los principales.
+Pendiente menor: mostrar el total real (16.204) en el conteo del directorio.)
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y

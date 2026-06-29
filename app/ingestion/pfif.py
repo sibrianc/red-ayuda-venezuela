@@ -105,7 +105,7 @@ def _home_location(fields: dict) -> str | None:
 def fetch_pfif(url: str, *, timeout: int = 30) -> str:
     """Descarga un documento PFIF. Requiere red; no se llama en pruebas."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    context = ssl.create_default_context()
+    context = _ssl_context()
     with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
         return response.read().decode("utf-8", errors="replace")
 
