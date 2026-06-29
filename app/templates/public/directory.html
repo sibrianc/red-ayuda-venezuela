@@ -29,11 +29,11 @@
         {% if q %}<a class="dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
       </form>
       <nav class="dir-tabs" aria-label="Secciones del directorio">
-        <a href="#personas">Desaparecidos <span>{{ person_total }}</span></a>
-        <a href="#fallecidos">Fallecidos <span>{{ deceased_total }}</span></a>
-        <a href="#comunicacion">Sin comunicación <span>{{ comms_total }}</span></a>
-        <a href="#incidentes">Incidentes <span>{{ incident_total }}</span></a>
-        <a href="#servicios">Servicios <span>{{ service_total }}</span></a>
+        <a href="#personas">Desaparecidos{% if person_total %} <span>{{ person_total }}</span>{% endif %}</a>
+        <a href="#fallecidos">Fallecidos{% if deceased_total %} <span>{{ deceased_total }}</span>{% endif %}</a>
+        <a href="#comunicacion">Sin comunicación{% if comms_total %} <span>{{ comms_total }}</span>{% endif %}</a>
+        <a href="#incidentes">Incidentes{% if incident_total %} <span>{{ incident_total }}</span>{% endif %}</a>
+        <a href="#servicios">Servicios{% if service_total %} <span>{{ service_total }}</span>{% endif %}</a>
       </nav>
     </div>
     {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ person_total }} desaparecidos · {{ deceased_total }} fallecidos · {{ incident_total }} incidentes · {{ service_total }} servicios.</p>{% endif %}
@@ -42,7 +42,8 @@
       <div class="dir-section-head">
         <div>
           <p class="eyebrow">Prioridad: las personas</p>
-          <h2>Personas desaparecidas <span class="dir-count">{{ person_total }}</span></h2>
+          <h2>Personas desaparecidas{% if person_total %} <span class="dir-count">{{ person_total }}</span>{% endif %}</h2>
+          {% if figure_missing %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_missing.value).replace(",", ".") }}</strong> ({{ figure_missing.source_name }}). Los nombres están en los registros activos de abajo.</p>{% endif %}
         </div>
         <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
       </div>
@@ -74,7 +75,7 @@
       </div>
       {% else %}
       <div class="dir-empty">
-        <p>Aún no hay reportes públicos de personas{% if q %} para «{{ q }}»{% endif %}. Reporta un familiar arriba, o consulta los registros oficiales de búsqueda.</p>
+        <p>Aquí aparecerán los reportes que reciba esta plataforma{% if q %} para «{{ q }}»{% endif %}. <strong>Las decenas de miles de nombres ya reportados están en los registros activos</strong> (abajo). Si buscas a un familiar, consúltalos o repórtalo con el botón de arriba.</p>
       </div>
       {% endif %}
 
@@ -93,7 +94,8 @@
       <div class="dir-section-head">
         <div>
           <p class="eyebrow">Registros publicados y atribuidos</p>
-          <h2>Personas fallecidas <span class="dir-count dir-count-deceased">{{ deceased_total }}</span></h2>
+          <h2>Personas fallecidas{% if deceased_total %} <span class="dir-count dir-count-deceased">{{ deceased_total }}</span>{% endif %}</h2>
+          {% if figure_dead %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}). Solo se listan nombres ya publicados por fuentes identificadas.</p>{% endif %}
         </div>
       </div>
       <p class="dir-section-intro">Esta sección reúne únicamente nombres ya publicados por fuentes identificadas. No convierte cifras agregadas en identidades ni muestra menores.</p>

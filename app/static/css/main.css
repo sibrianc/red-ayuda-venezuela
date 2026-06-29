@@ -541,3 +541,5 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-tabs a span { background:var(--brand); color:#04222e; border-radius:99px; padding:.05rem .45rem; font-size:.72rem; font-weight:850; }
 .dir-searchnote { margin:.7rem 0 0; color:var(--text-soft); font-size:.9rem; }
 .dir-section { scroll-margin-top:84px; }
+.dir-figure-context { margin:.35rem 0 0; color:var(--text-soft); font-size:.9rem; max-width:60ch; }
+.dir-figure-context strong { color:var(--ve-yellow); }

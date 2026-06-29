@@ -21,13 +21,26 @@ from app.models import (
 )
 
 # Registros oficiales de búsqueda y reunificación (referencia, no ingestión privada).
+# Registros REALES de búsqueda y reunificación de este evento (referencia, no ingestión
+# privada). Los nombres viven en estas plataformas; aquí solo enlazamos para que familias
+# y rescatistas lleguen a ellas. A las plataformas ciudadanas se enlaza por búsqueda
+# (evita fijar una URL no verificada que pueda cambiar o suplantarse).
 OFFICIAL_REGISTRIES = [
-    {"name": "Cruz Roja — Restoring Family Links", "detail": "Búsqueda internacional de familiares",
+    {"name": "Desaparecidos Terremoto Venezuela",
+     "detail": "Registro ciudadano de desaparecidos y localizados (~50.000 reportados)",
+     "url": "https://www.google.com/search?q=Desaparecidos+Terremoto+Venezuela"},
+    {"name": "Venezuela Te Busca",
+     "detail": "Registrar y buscar personas: nombre, edad, foto, última ubicación",
+     "url": "https://www.google.com/search?q=%22Venezuela+Te+Busca%22+desaparecidos"},
+    {"name": "CIVIS Venezuela",
+     "detail": "Búsqueda de personas desaparecidas y recursos",
+     "url": "https://www.google.com/search?q=CIVIS+Venezuela+desaparecidos+terremoto"},
+    {"name": "Cruz Roja — Restoring Family Links",
+     "detail": "Búsqueda internacional de familiares",
      "url": "https://familylinks.icrc.org/online-tracing"},
-    {"name": "VenApp / 0800-RESCATE", "detail": "Línea oficial: 0800-7372282",
-     "url": "https://www.vtv.gob.ve/"},
-    {"name": "Trace the Face — Cruz Roja", "detail": "Publica tu foto para que te reconozcan",
-     "url": "https://familylinks.icrc.org/"},
+    {"name": "Gobierno — VenApp / 0800-RESCATE",
+     "detail": "Línea oficial para reportar: 0800-7372282",
+     "url": "https://www.google.com/search?q=VenApp+0800+RESCATE+terremoto+Venezuela"},
 ]
 
 SITUATION_HEADLINE = [
@@ -230,6 +243,19 @@ def public_comms_zones(q: str | None = None, limit: int = 200) -> list[dict]:
         }
         for signal in query.all()
     ]
+
+
+def count_directory(q: str | None = None) -> int:
+    """Total real de servicios (para el conteo del directorio, no limitado por display)."""
+    query = DirectoryEntry.query.filter(
+        DirectoryEntry.latitude.isnot(None), DirectoryEntry.longitude.isnot(None)
+    )
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(DirectoryEntry.name.ilike(term), DirectoryEntry.address_public.ilike(term))
+        )
+    return query.count()
 
 
 def public_situation() -> list[dict]:

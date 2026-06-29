@@ -258,8 +258,14 @@ a `requirements.txt`). Con eso, `flask ingest-all` **recopila datos reales de ve
 
 Para poblar todo en una máquina con red:
 `flask db upgrade && flask ingest-all && flask load-official-figures`.
-(El mapa sirve hasta 3.000 servicios por rendimiento; el directorio lista los principales.
-Pendiente menor: mostrar el total real (16.204) en el conteo del directorio.)
+
+**Honestidad del directorio (sin "0" engañosos):** las secciones sin fuente abierta de
+datos (personas, fallecidos) **no inventan ni muestran "0 personas"**. En su lugar muestran
+la **cifra oficial real** (ej. 50.000 desaparecidos, 1.430 fallecidos, con fuente), el botón
+de reportar y **enlaces a los registros reales del evento** donde están los nombres
+(Desaparecidos Terremoto Venezuela, Venezuela Te Busca, CIVIS, Cruz Roja, VenApp). Los
+badges de conteo se ocultan cuando son 0. El conteo de servicios muestra el total real
+(16.204). El mapa sirve hasta 3.000 servicios por rendimiento. No se siembran datos falsos.
 
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
