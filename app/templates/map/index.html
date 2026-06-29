@@ -1,125 +1,112 @@
 {% extends "base.html" %}
-{% block title %}Mapa operativo · {{ config.APP_NAME }}{% endblock %}
+{% block title %}Centro de operaciones · {{ config.APP_NAME }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<section class="map-page">
-  <div class="container map-heading">
-    <div>
-      <p class="eyebrow">Mapa vivo</p>
-      <h1>Mapa operativo del terremoto</h1>
-      <p>Daño estructural trazable, sismos y servicios en un solo espacio. El mapa separa hechos corroborados de evaluaciones satelitales pendientes y nunca infiere personas atrapadas a partir de un edificio dañado.</p>
-    </div>
-    <div class="map-privacy-note" role="note">
-      <span aria-hidden="true"></span>
-      <p><strong>Privacidad geográfica</strong> Todas las ubicaciones públicas han sido reducidas a un área aproximada.</p>
-    </div>
+<section class="mapc" aria-label="Centro de operaciones del terremoto">
+  <div id="cmd-map" class="mapc-canvas"
+       data-live-endpoint="{{ url_for('map.live') }}"
+       data-data-endpoint="{{ url_for('map.data') }}"
+       data-tile-url="{{ config.MAP_TILE_URL }}"
+       role="region" aria-label="Mapa operativo del terremoto" tabindex="0"></div>
+
+  <div class="mapc-frame" aria-hidden="true">
+    <span class="mapc-scan"></span>
+    <span class="mapc-corner tl"></span><span class="mapc-corner tr"></span>
+    <span class="mapc-corner bl"></span><span class="mapc-corner br"></span>
   </div>
 
-  <div class="container situation-bar">
-    <div class="situation-metrics" data-situation-metrics role="list" aria-label="Cifras de situación reportadas">
-      <p class="situation-loading">Cargando cifras de situación…</p>
+  <header class="mapc-top">
+    <div class="mapc-top-id">
+      <span class="mapc-dot" aria-hidden="true"></span>
+      <span class="mapc-title">RED DE AYUDA · VENEZUELA</span>
+      <span class="mapc-subtitle">CENTRO DE OPERACIONES</span>
     </div>
-    <p class="situation-disclaimer">
-      Cifras agregadas <strong>reportadas por fuentes públicas y en verificación</strong>;
-      no son un conteo oficial confirmado. Cada cifra muestra su fuente y fecha.
-    </p>
+    <div class="mapc-top-event">
+      <span class="mapc-ev-label">SISMO</span>
+      <span class="mapc-ev-mag" id="cmd-mag">M —</span>
+      <span class="mapc-ev-epi" id="cmd-epi">EPICENTRO · zona afectada</span>
+    </div>
+    <div class="mapc-top-tel">
+      <span>UTC <b id="cmd-clock">--:--:--</b></span>
+      <span id="cmd-zoom">Z—</span>
+      <span class="mapc-coord" id="cmd-cursor">--.----, --.----</span>
+      <a class="mapc-exit" href="{{ url_for('public.home') }}">Salir ✕</a>
+    </div>
+  </header>
+
+  <aside class="mapc-left">
+    <div class="mapc-panel">
+      <div class="mapc-panel-h">CAPAS</div>
+      <div class="mapc-layers">
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="heat" aria-pressed="true"><span class="mapc-led"></span>Mapa de calor</button>
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="rings" aria-pressed="true"><span class="mapc-led"></span>Anillos radar</button>
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="zona" aria-pressed="true"><span class="mapc-led" style="--led:#ff3b3b"></span>Zonas afectadas</button>
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="auxilio" aria-pressed="true"><span class="mapc-led" style="--led:#ffb02e"></span>Auxilio</button>
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="recurso" aria-pressed="true"><span class="mapc-led" style="--led:#3ddc84"></span>Recursos</button>
+        <button type="button" class="mapc-chip is-on" data-cmd-layer="persona" aria-pressed="true"><span class="mapc-led" style="--led:#c77dff"></span>Personas</button>
+      </div>
+    </div>
+    <div class="mapc-zoombar">
+      <button type="button" class="mapc-btn" data-cmd-zoom-out aria-label="Alejar">−</button>
+      <button type="button" class="mapc-btn" data-cmd-zoom-in aria-label="Acercar">+</button>
+      <button type="button" class="mapc-btn mapc-btn-epi" data-cmd-recenter aria-label="Centrar en el epicentro">EPI</button>
+    </div>
+  </aside>
+
+  <aside class="mapc-right mapc-panel">
+    <div class="mapc-panel-h mapc-right-h">
+      <span>INTEL · EN RADIO</span>
+      <span class="mapc-count" id="cmd-intel-count">0</span>
+    </div>
+    <div class="mapc-intel rk-scroll" id="cmd-intel-list" role="list">
+      <p class="mapc-intel-empty">Cargando información…</p>
+    </div>
+    <div class="mapc-right-foot">
+      Ordenado por distancia geodésica al epicentro.
+      {% if unlocated_structures %}<span class="mapc-unlocated"><strong>{{ unlocated_structures }} estructuras publicadas</strong> aún sin coordenada precisa: <a href="{{ url_for('public.directory', category='collapsed_structure') }}#incidentes">Ver lista nominal y fuentes</a>.</span>{% endif %}
+    </div>
+  </aside>
+
+  <div class="mapc-legend mapc-panel">
+    <div class="mapc-panel-h">INTENSIDAD DE DAÑO</div>
+    <div class="mapc-heatbar"></div>
+    <div class="mapc-heatscale"><span>BAJA</span><span>CRÍTICA</span></div>
+    <div class="mapc-legend-types">
+      <span><i style="--c:#ff3b3b">Z</i>Zona</span>
+      <span><i style="--c:#ffb02e">A</i>Auxilio</span>
+      <span><i style="--c:#3ddc84">R</i>Recurso</span>
+      <span><i style="--c:#c77dff">P</i>Persona</span>
+    </div>
+    <div class="mapc-scale"><span class="mapc-scale-bar" id="cmd-scale-bar"></span><span id="cmd-scale-text">—</span></div>
   </div>
 
-  <div class="container map-workspace">
-    <div class="map-toolbar" aria-label="Controles del mapa">
-      <div class="map-control-group">
-        <span class="map-control-label">Capas</span>
-        <div class="map-filter-buttons" role="group" aria-label="Mostrar u ocultar capas del mapa">
-          <button type="button" class="map-chip map-layer-chip danger-chip is-active" data-map-layer="danger" aria-pressed="true"><i class="chip-dot" style="--dot:#e5253a"></i>Colapsos</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="assessments" aria-pressed="true"><i class="chip-dot" style="--dot:#ef7d2e"></i>Daño satelital</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="services" aria-pressed="true"><i class="chip-dot" style="--dot:#2a8fd6"></i>Servicios</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="reports" aria-pressed="true"><i class="chip-dot" style="--dot:#8a7de0"></i>Reportes</button>
-          <button type="button" class="map-chip map-layer-chip" data-map-layer="events" aria-pressed="false"><i class="chip-dot" style="--dot:#9aa6ad"></i>Sismos</button>
-        </div>
-      </div>
-      <div class="map-control-group">
-        <span class="map-control-label">Reportes</span>
-        <div class="map-filter-buttons" role="group" aria-label="Filtrar reportes por tipo">
-          <button type="button" class="map-chip is-active" data-map-filter="all" aria-pressed="true">Todo</button>
-          <button type="button" class="map-chip" data-map-filter="help_request" aria-pressed="false">Necesidades</button>
-          <button type="button" class="map-chip" data-map-filter="resource_offer" aria-pressed="false">Recursos</button>
-          <button type="button" class="map-chip" data-map-filter="location_report" aria-pressed="false">Zonas afectadas</button>
-          <button type="button" class="map-chip" data-map-filter="missing_person" aria-pressed="false">Sin contacto</button>
-        </div>
-      </div>
-      <div class="map-control-group map-near-control">
-        <span class="map-control-label">Cerca de mí</span>
-        <div class="map-filter-buttons" role="group" aria-label="Ubicación y radio de búsqueda">
-          <button type="button" class="map-chip map-locate-chip" data-map-locate aria-pressed="false">Usar mi ubicación</button>
-          <button type="button" class="map-chip map-radius-chip is-active" data-map-radius="0" aria-pressed="true">Todo</button>
-          <button type="button" class="map-chip map-radius-chip" data-map-radius="5" aria-pressed="false">5 km</button>
-          <button type="button" class="map-chip map-radius-chip" data-map-radius="10" aria-pressed="false">10 km</button>
-          <button type="button" class="map-chip map-radius-chip" data-map-radius="25" aria-pressed="false">25 km</button>
-          <button type="button" class="map-chip map-radius-chip" data-map-radius="50" aria-pressed="false">50 km</button>
-        </div>
-      </div>
-      <div class="map-control-group map-view-control">
-        <span class="map-control-label">Vista</span>
-        <div class="map-segmented" role="group" aria-label="Cambiar representación del mapa">
-          <button type="button" class="is-active" data-map-mode="points" aria-pressed="true">Reportes</button>
-          <button type="button" data-map-mode="density" aria-pressed="false">Concentración</button>
-        </div>
-      </div>
+  <div class="mapc-radius mapc-panel">
+    <div class="mapc-radius-top">
+      <span class="mapc-panel-h">RADIO DE BÚSQUEDA</span>
+      <span class="mapc-radius-val"><b id="cmd-radius-label">15</b> KM</span>
     </div>
-
-    <div class="map-layout">
-      <div class="map-canvas-panel">
-        <div
-          id="report-map"
-          data-map-endpoint="{{ url_for('map.data') }}"
-          data-live-endpoint="{{ url_for('map.live') }}"
-          data-tile-url="{{ config.MAP_TILE_URL }}"
-          role="region"
-          aria-label="Mapa vivo de sismos, servicios y reportes aprobados"
-          tabindex="0"
-        ></div>
-        <div class="map-legend" aria-label="Leyenda del mapa">
-          <span><i class="legend-danger"></i>Colapso corroborado</span>
-          <span><i class="legend-assessment"></i>Daño satelital por validar</span>
-          <span><i class="legend-dot crit"></i>Crítico</span>
-          <span><i class="legend-dot high"></i>Alto</span>
-          <span><i class="legend-dot quake"></i>Sismo</span>
-          <span><i class="legend-dot hospital"></i>Hospital</span>
-          <span><i class="legend-dot shelter"></i>Refugio</span>
-          <span><i class="legend-dot water"></i>Agua</span>
-        </div>
-      </div>
-
-      <aside class="map-results" aria-labelledby="map-results-title">
-        <div class="map-results-heading">
-          <div>
-            <p class="eyebrow">Vista accesible</p>
-            <h2 id="map-results-title">Evidencia en el mapa</h2>
-          </div>
-          <a href="{{ url_for('reports.index') }}">Ver listado completo</a>
-        </div>
-        <p id="map-status" class="map-status" role="status" aria-live="polite">Cargando información revisada…</p>
-        {% if unlocated_structures %}<p class="map-unlocated-note"><strong>{{ unlocated_structures }} estructuras publicadas</strong> aún no tienen coordenada suficientemente precisa para mostrarlas como pin. <a href="{{ url_for('public.directory', category='collapsed_structure') }}#incidentes">Ver lista nominal y fuentes</a>.</p>{% endif %}
-        <div class="map-result-list" data-map-results></div>
-      </aside>
+    <input type="range" class="mapc-range" id="cmd-radius" min="1" max="50" step="1" value="15" aria-label="Radio de búsqueda en kilómetros">
+    <div class="mapc-radius-foot">
+      <span>1 KM</span>
+      <span>DENTRO: <strong id="cmd-inside">0</strong> / <span id="cmd-total">0</span> reportes</span>
+      <span>50 KM</span>
     </div>
+    <p class="mapc-radius-note">Filtro geodésico: fuera del radio no se muestra. Arrastra el epicentro para reubicarlo.</p>
+  </div>
 
-    <div class="map-method-note">
-      <strong>Cómo leer el mapa</strong>
-      <p>El calor se calcula únicamente desde registros estructurales con fuente. Los puntos naranjas y amarillos son <strong>predicciones satelitales pendientes de validación</strong>; no confirman colapso ni ocupantes. Los colapsos corroborados muestran fuente y fecha. Ninguna capa sustituye una evaluación en terreno.</p>
-    </div>
+  <div class="mapc-fallback" id="cmd-fallback" hidden>
+    <p><strong>Mapa visual pausado.</strong> En modo ligero o sin mapa, usa el <a href="{{ url_for('reports.index') }}">listado de información revisada</a> y el <a href="{{ url_for('public.directory') }}">directorio</a>.</p>
   </div>
 </section>
 {% endblock %}
 
 {% block scripts %}
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" defer></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
-  <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
 {% endblock %}

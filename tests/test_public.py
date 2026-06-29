@@ -88,18 +88,17 @@ def test_public_forms_use_guided_flow_and_hide_manual_coordinates(client, endpoi
     assert "Longitud aproximada (opcional)" not in html
 
 
-def test_map_page_has_operational_filters_and_density_view(client):
+def test_map_page_is_command_center(client):
     html = client.get("/mapa").text
-    assert 'data-map-filter="help_request"' in html
-    assert 'data-map-filter="resource_offer"' in html
-    assert 'data-map-mode="density"' in html
-    assert "Concentración" in html
-    assert 'data-map-layer="assessments"' in html
-    assert 'data-map-radius="10"' in html
-    assert 'data-map-radius="25"' in html
-    assert 'data-map-radius="50"' in html
-    assert "Usar mi ubicación" in html
-    assert "⚠" not in html and "📍" not in html
+    # Centro de Operaciones: capas, radio configurable y panel de inteligencia.
+    assert 'id="cmd-map"' in html
+    assert 'data-cmd-layer="heat"' in html
+    assert 'data-cmd-layer="zona"' in html
+    assert 'data-cmd-layer="recurso"' in html
+    assert 'id="cmd-radius"' in html
+    assert "CENTRO DE OPERACIONES" in html
+    assert "RADIO DE BÚSQUEDA" in html
+    assert "INTEL · EN RADIO" in html
 
 
 @pytest.mark.parametrize(

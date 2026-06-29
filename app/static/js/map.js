@@ -1,809 +1,442 @@
+// Centro de Operaciones — mapa de comando del terremoto.
+// Diseño tipo sala de mando (oscuro, táctico) cableado a DATOS REALES:
+//   /mapa/live  -> { situation, intensity, incidents, events, services }
+//   /mapa/data  -> { reports }  (reportes ciudadanos revisados)
+// Reglas que pidió el propietario:
+//   - El radio CONCENTRA de verdad: lo que queda fuera NO se dibuja.
+//   - El mapa de calor es consistente: se alimenta del campo de intensidad real
+//     (zonas afectadas), no de blobs dispersos.
 window.addEventListener("DOMContentLoaded", async () => {
   "use strict";
+  const root = document.getElementById("cmd-map");
+  if (!root) return;
 
-  const element = document.getElementById("report-map");
-  const status = document.getElementById("map-status");
-  const resultList = document.querySelector("[data-map-results]");
-  if (!element) return;
+  const fallback = document.getElementById("cmd-fallback");
   const lowBandwidth = document.documentElement.dataset.bandwidth === "low";
-  const mapAvailable = !lowBandwidth && typeof L !== "undefined";
-
-  const typeMeta = {
-    help_request: { label: "Necesidad", color: "#d95c4f", className: "need" },
-    resource_offer: { label: "Recurso", color: "#168579", className: "resource" },
-    location_report: { label: "Zona afectada", color: "#d59726", className: "affected" },
-    missing_person: { label: "Persona sin contacto", color: "#5e6ad2", className: "missing" },
-  };
-  const serviceMeta = {
-    hospital: { label: "Hospital", color: "#e2473d" },
-    clinic: { label: "Clínica", color: "#27a59a" },
-    pharmacy: { label: "Farmacia", color: "#4cae6a" },
-    fire_station: { label: "Bomberos", color: "#ef7d2e" },
-    police: { label: "Policía", color: "#2a6fd6" },
-    shelter: { label: "Refugio", color: "#caa12f" },
-    water_point: { label: "Punto de agua", color: "#2a8fd6" },
-    community_center: { label: "Centro comunitario", color: "#8a7de0" },
-    fuel: { label: "Combustible", color: "#6b7785" },
-    supplies: { label: "Víveres", color: "#c2603d" },
-    other: { label: "Servicio", color: "#9aa6ad" },
-  };
-  // Glifos SVG (trazo, estilo Lucide/OCHA) para que el icono hable por sí solo.
-  const serviceGlyphs = {
-    hospital: "M5 12h14M12 5v14",
-    clinic: "M5 12h14M12 5v14",
-    pharmacy: "M5 12h14M12 5v14",
-    shelter: "m3 10.5 9-7 9 7M5 9v12h14V9M10 21v-6h4v6",
-    water_point: "M12 21a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 4.5 12 2c-.5 2.5-2 4.9-4 6.5S5 12 5 14a7 7 0 0 0 7 7z",
-    fire_station: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1-2-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z",
-    police: "M12 3l7 3v5c0 4.5-3 7-7 8.5C8 18 5 15.5 5 11V6z",
-    community_center: "M4 21V8l8-5 8 5v13M4 21h16M9 21v-5h6v5",
-    fuel: "M5 21V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v16M4 21h11M7 9h4M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3",
-    supplies: "M4 8h16l-1.5 11H5.5zM4 8l3-5h10l3 5M9 12v3m6-3v3",
-    other: "M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
-  };
-  const serviceIcon = (meta, category) =>
-    L.divIcon({
-      className: "svc-pin",
-      html: `<i style="--c:${meta.color}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" `
-        + `stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">`
-        + `<path d="${serviceGlyphs[category] || serviceGlyphs.other}"/></svg></i>`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -15],
-    });
-
-  // --- Zonas de peligro (CRÍTICO: edificios colapsados / atrapados / incendio / vía
-  // bloqueada). Marcador de advertencia + círculo de área a EVITAR, visible en todo zoom.
-  const DANGER_CATEGORIES = new Set([
-    "collapsed_structure", "trapped_persons", "buried_persons", "fire", "blocked_road",
-  ]);
-  const DAMAGE_CANDIDATE_CATEGORIES = new Set([
-    "destroyed_structure_candidate", "major_damage_candidate", "minor_damage_candidate",
-  ]);
-  const dangerColor = (sev) =>
-    ({ critical: "#e5253a", high: "#ef5f2e", medium: "#f0a23a", low: "#f0c93a" }[sev] || "#ef5f2e");
-  const dangerRadiusM = (sev) =>
-    ({ critical: 250, high: 150, medium: 90, low: 60 }[sev] || 120);
-  const dangerIcon = (sev) =>
-    L.divIcon({
-      className: `danger-pin sev-${sev}`,
-      html: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22.5 21H1.5Z" `
-        + `fill="${dangerColor(sev)}" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>`
-        + `<rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/>`
-        + `<circle cx="12" cy="17.6" r="1.25" fill="#fff"/></svg>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 27],
-      popupAnchor: [0, -24],
-    });
-  const severityColor = (severity) =>
-    ({ critical: "#e5443a", high: "#ef7d2e", medium: "#f3c534", low: "#46b06a" }[severity] || "#ef7d2e");
-  const severityLabel = (severity) =>
-    ({ critical: "Crítico", high: "Alto", medium: "Medio", low: "Bajo" }[severity] || "Prioridad");
-
-  const dotIcon = (kind, color, severity) =>
-    L.divIcon({
-      className: `rav-pin ${kind}${severity ? " " + severity : ""}`,
-      html: `<span style="--c:${color}"></span>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
-      popupAnchor: [0, -10],
-    });
-
-  let map = null;
-  let pointLayer = null;
-  let densityLayer = null;
-  let eventsLayer = null;
-  let servicesLayer = null;
-  let incidentsCluster = null;
-  let incidentsHeat = null;
-  let dangerLayer = null;
-  let assessmentLayer = null;
-  let userLayer = null;
-  let applyIncidentLayers = () => {};
-  if (mapAvailable) {
-    // Encuadre inicial en la ZONA AFECTADA (La Guaira / Caracas), no todo el país,
-    // para que el mapa se vea concentrado donde están los daños.
-    map = L.map(element, { scrollWheelZoom: false, zoomControl: false, preferCanvas: true })
-      .setView([10.58, -66.93], 11);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    // Mapa base profesional CARTO (oscuro por defecto; "voyager" claro en modo sol).
-    const cartoUrl = (theme) => theme === "light"
-      ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-    let baseLayer = null;
-    const setBasemap = () => {
-      const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
-      if (baseLayer) map.removeLayer(baseLayer);
-      baseLayer = L.tileLayer(cartoUrl(theme), {
-        subdomains: "abcd",
-        maxZoom: 20,
-        detectRetina: true,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      }).addTo(map);
-      baseLayer.bringToBack();
-    };
-    setBasemap();
-    window.addEventListener("rav:themechange", setBasemap);
-
-    // Clustering más agresivo: agrupa los puntos en burbujas por zona en vez de
-    // dispersarlos. Así se ve "concentrado en zonas afectadas", no un reguero de pines.
-    const clusterGroup = () => (typeof L.markerClusterGroup === "function"
-      ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 80, spiderfyOnMaxZoom: true, chunkedLoading: true })
-      : L.layerGroup());
-
-    // Mapa de calor (KDE) para el zoom-out: muchos kernels gaussianos que se suman
-    // en un campo continuo y se colorean por densidad (verde→rojo).
-    incidentsHeat = (typeof L.heatLayer === "function")
-      ? L.heatLayer([], { radius: 34, blur: 24, maxZoom: 9, max: 8, minOpacity: 0.42,
-          gradient: { 0.2: "#37d06f", 0.4: "#f0d836", 0.6: "#f4a23a", 0.8: "#ef5f2e", 1: "#e5253a" } }).addTo(map)
-      : null;
-    eventsLayer = L.layerGroup().addTo(map);
-    servicesLayer = clusterGroup().addTo(map);
-    incidentsCluster = clusterGroup();
-    dangerLayer = L.layerGroup().addTo(map);
-    assessmentLayer = clusterGroup().addTo(map);
-    userLayer = L.layerGroup().addTo(map);    // "tú estás aquí" + radio de búsqueda
-    pointLayer = L.layerGroup().addTo(map);
-    densityLayer = L.layerGroup();
-
-    // Transición por zoom (lo que pediste): a zoom bajo manda el CALOR; al acercar
-    // (>= umbral) el calor desaparece y aparecen los clusters/puntos separados, sin estorbar.
-    const HEAT_MAX_ZOOM = 11;
-    applyIncidentLayers = () => {
-      if (!map) return;
-      const zoomedIn = map.getZoom() >= HEAT_MAX_ZOOM;
-      const showHeat = layerVisible.assessments && !zoomedIn;
-      const showCluster = layerVisible.incidents && zoomedIn;
-      if (incidentsHeat && showHeat && !map.hasLayer(incidentsHeat)) {
-        incidentsHeat.addTo(map);
-      } else if (incidentsHeat && !showHeat && map.hasLayer(incidentsHeat)) {
-        // leaflet.heat 0.2.0 no cancela su requestAnimationFrame al salir del
-        // mapa. Si el zoom cambia durante ese frame, intenta pintar sin _map.
-        if (incidentsHeat._frame) {
-          L.Util.cancelAnimFrame(incidentsHeat._frame);
-          incidentsHeat._frame = null;
-        }
-        map.removeLayer(incidentsHeat);
-      }
-      if (incidentsCluster && showCluster && !map.hasLayer(incidentsCluster)) {
-        incidentsCluster.addTo(map);
-      } else if (incidentsCluster && !showCluster && map.hasLayer(incidentsCluster)) {
-        map.removeLayer(incidentsCluster);
-      }
-      // Zonas de peligro: visibles en TODO nivel de zoom mientras la capa esté activa.
-      if (dangerLayer) {
-        if (layerVisible.danger && !map.hasLayer(dangerLayer)) dangerLayer.addTo(map);
-        else if (!layerVisible.danger && map.hasLayer(dangerLayer)) map.removeLayer(dangerLayer);
-      }
-      if (assessmentLayer) {
-        if (layerVisible.assessments && !map.hasLayer(assessmentLayer)) assessmentLayer.addTo(map);
-        else if (!layerVisible.assessments && map.hasLayer(assessmentLayer)) map.removeLayer(assessmentLayer);
-      }
-    };
-    map.on("zoomend", applyIncidentLayers);
-  } else {
-    const notice = document.createElement("div");
-    notice.className = "low-bandwidth-map-notice";
-    const text = document.createElement("p");
-    const heading = document.createElement("strong");
-    heading.textContent = lowBandwidth ? "Mapa visual pausado" : "Mapa visual no disponible";
-    text.append(
-      heading,
-      lowBandwidth
-        ? "El modo ligero evita descargar teselas. Usa el listado accesible junto al mapa."
-        : "Usa el listado accesible de información revisada."
-    );
-    notice.append(text);
-    element.replaceChildren(notice);
+  // El modo ligero evita descargar teselas: dejamos el camino accesible
+  // (listado + directorio) en lugar del mapa visual.
+  if (lowBandwidth || typeof L === "undefined") {
+    if (fallback) fallback.hidden = false;
+    return;
   }
 
-  let reports = [];
-  let events = [];
-  let services = [];
-  let incidents = [];
-  let situation = [];
-  let intensity = [];
-  let activeFilter = "all";
-  let activeMode = "points";
-  // Prioridad: los afectados. Los sismos quedan apagados por defecto (estorban y, con
-  // datos de muestra, caen en el mar); siguen disponibles con su toggle.
-  const layerVisible = {
-    danger: true, assessments: true, incidents: true,
-    events: false, services: true, reports: true,
+  const ACCENT = "#2de1d6";
+  const TYPE = {
+    zona:    { code: "Z", color: "#ff3b3b", label: "Zona afectada" },
+    auxilio: { code: "A", color: "#ffb02e", label: "Solicitud de auxilio" },
+    recurso: { code: "R", color: "#3ddc84", label: "Recurso disponible" },
+    persona: { code: "P", color: "#c77dff", label: "Persona sin contacto" },
   };
-  const filteredReports = () => reports.filter((report) => activeFilter === "all" || report.type === activeFilter);
+  const PRI = {
+    critical: { label: "CRÍTICA", color: "#ff3b3b" },
+    high:     { label: "ALTA",    color: "#ffb02e" },
+    medium:   { label: "MEDIA",   color: "#2de1d6" },
+    low:      { label: "BAJA",    color: "#3ddc84" },
+  };
+  const REPORT_KIND = {
+    help_request: "auxilio", resource_offer: "recurso",
+    location_report: "zona", missing_person: "persona",
+  };
 
-  // --- GPS del usuario + radio de búsqueda configurable ---------------------
-  let userLocation = null;
-  let activeRadius = 0; // km; 0 = todo
-  const haversineKm = (aLat, aLng, bLat, bLng) => {
-    const toRad = (d) => (d * Math.PI) / 180;
-    const dLat = toRad(bLat - aLat);
-    const dLng = toRad(bLng - aLng);
-    const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
-    return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  // ---------------- estado ----------------
+  let items = [];
+  let heatPoints = [];
+  let epicenter = { lat: 10.6017, lng: -66.9331 }; // La Guaira (zona afectada) por defecto
+  let magnitude = null;
+  let radiusKm = 15;
+  let selectedId = null;
+  const layers = { heat: true, rings: true, zona: true, auxilio: true, recurso: true, persona: true };
+
+  // ---------------- geo helpers ----------------
+  const haversine = (aLat, aLng, bLat, bLng) => {
+    const R = 6371, d = Math.PI / 180;
+    const dLa = (bLat - aLat) * d, dLo = (bLng - aLng) * d;
+    const a = Math.sin(dLa / 2) ** 2 + Math.cos(aLat * d) * Math.cos(bLat * d) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  };
+  const destination = (c, brng, km) => {
+    const R = 6371, d = Math.PI / 180, r = 180 / Math.PI, dr = km / R, b = brng * d;
+    const la1 = c.lat * d, lo1 = c.lng * d;
+    const la2 = Math.asin(Math.sin(la1) * Math.cos(dr) + Math.cos(la1) * Math.sin(dr) * Math.cos(b));
+    const lo2 = lo1 + Math.atan2(Math.sin(b) * Math.sin(dr) * Math.cos(la1), Math.cos(dr) - Math.sin(la1) * Math.sin(la2));
+    return [la2 * r, lo2 * r];
   };
   const fmtDist = (km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
-  const servicesInRange = () =>
-    userLocation && activeRadius
-      ? services.filter((s) => haversineKm(userLocation.lat, userLocation.lng, s.latitude, s.longitude) <= activeRadius)
-      : services;
-  const drawUserLayer = () => {
-    if (!userLayer) return;
-    userLayer.clearLayers();
-    if (!userLocation) return;
-    L.marker([userLocation.lat, userLocation.lng], {
-      icon: L.divIcon({ className: "user-pin", html: "<span></span>", iconSize: [22, 22], iconAnchor: [11, 11] }),
-      zIndexOffset: 1200,
-    }).bindPopup("Tu ubicación").addTo(userLayer);
-    if (activeRadius) {
-      L.circle([userLocation.lat, userLocation.lng], {
-        radius: activeRadius * 1000, color: "#2a8fd6", weight: 1.4,
-        fillColor: "#2a8fd6", fillOpacity: 0.06, dashArray: "6 6", interactive: false,
-      }).addTo(userLayer);
-    }
-  };
-  const locateUser = (btn) => {
-    if (!navigator.geolocation) {
-      if (status) status.textContent = "Tu navegador no permite geolocalización.";
-      return;
-    }
-    if (status) status.textContent = "Obteniendo tu ubicación…";
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        if (btn) { btn.classList.add("is-active"); btn.setAttribute("aria-pressed", "true"); }
-        if (map) map.setView([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 12));
-        drawUserLayer();
-        render();
-      },
-      () => { if (status) status.textContent = "No pudimos obtener tu ubicación (permiso denegado o sin señal)."; },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  };
 
-  const popupRow = (parent, text, className) => {
-    if (!text) return;
-    const p = document.createElement("p");
-    if (className) p.className = className;
-    p.textContent = text;
-    parent.append(p);
+  // ---------------- mapa ----------------
+  const map = L.map(root, {
+    zoomControl: false, attributionControl: true, scrollWheelZoom: true, preferCanvas: true,
+    center: [epicenter.lat, epicenter.lng], zoom: 12, minZoom: 7, maxZoom: 18,
+  });
+  const cartoUrl = (theme) => theme === "light"
+    ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  let baseLayer = null;
+  const setBasemap = () => {
+    const theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    if (baseLayer) map.removeLayer(baseLayer);
+    baseLayer = L.tileLayer(cartoUrl(theme), {
+      subdomains: "abcd", maxZoom: 19, detectRetina: true,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>',
+    }).addTo(map);
+    baseLayer.bringToBack();
   };
+  setBasemap();
+  window.addEventListener("rav:themechange", setBasemap);
 
-  // --- Incidentes de prioridad (heatmap + clustering + popup rico) ----------
-  const incidentPopup = (incident) => {
-    const popup = document.createElement("div");
-    popup.className = "map-popup";
-    const badge = document.createElement("span");
-    badge.className = `map-popup-type sev-${incident.severity}`;
-    badge.textContent = `${incident.category_label} · ${severityLabel(incident.severity)}`;
-    const heading = document.createElement("strong");
-    heading.textContent = incident.label;
-    popup.append(badge, heading);
-    if (incident.is_damage_candidate) {
-      popupRow(
-        popup,
-        "Evaluación satelital: requiere validación en terreno.",
-        "map-popup-assessment"
-      );
-    } else if (incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category)) {
-      popupRow(popup, "Zona de riesgo documentada — evita ingresar.", "map-popup-danger");
-    }
-    popupRow(popup, incident.address);
-    popupRow(popup, incident.situation_note);
-    if (incident.people_trapped_status === "confirmed") {
-      const count = incident.people_trapped_count;
-      popupRow(
-        popup,
-        count ? `Personas atrapadas confirmadas: ${count}` : "Personas atrapadas: confirmación activa",
-        "map-popup-people"
-      );
-    } else if (incident.category === "collapsed_structure") {
-      popupRow(popup, "Personas atrapadas: sin confirmación individual.", "map-popup-source");
-    }
-    if (incident.verification_label) {
-      popupRow(popup, incident.verification_label, "map-popup-verification");
-    }
-    if (incident.confidence != null) {
-      popupRow(
-        popup,
-        `Confianza del modelo: ${Math.round(incident.confidence * 100)}%`,
-        "map-popup-source"
-      );
-    }
-    if (incident.maps_url) {
-      const link = document.createElement("a");
-      link.className = "map-popup-maps";
-      link.href = incident.maps_url; link.target = "_blank"; link.rel = "noopener noreferrer";
-      link.textContent = "Abrir ubicación";
-      popup.appendChild(link);
-    }
-    if (incident.source_url) {
-      const source = document.createElement("a");
-      source.className = "map-popup-source-link";
-      source.href = incident.source_url;
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      source.textContent = incident.source_name ? `Fuente: ${incident.source_name}` : "Consultar fuente";
-      popup.append(source);
-    } else {
-      popupRow(popup, incident.source_name || incident.attribution, "map-popup-source");
-    }
-    if (incident.source_date) {
-      const date = new Intl.DateTimeFormat("es-VE", {
-        day: "2-digit", month: "short", year: "numeric",
-      }).format(new Date(incident.source_date));
-      popupRow(popup, `Información publicada: ${date}`, "map-popup-source");
-    }
-    return popup;
+  // ---------------- mapa de calor métrico (anclado a metros, consistente) -------
+  let lut = null;
+  const buildLut = () => {
+    const cv = document.createElement("canvas");
+    cv.width = 256; cv.height = 1;
+    const g = cv.getContext("2d");
+    const grad = g.createLinearGradient(0, 0, 256, 0);
+    grad.addColorStop(0.00, "rgba(10,40,70,0)");
+    grad.addColorStop(0.16, "rgba(20,90,120,0.32)");
+    grad.addColorStop(0.36, "rgba(31,143,176,0.58)");
+    grad.addColorStop(0.54, "rgba(45,225,214,0.72)");
+    grad.addColorStop(0.70, "rgba(255,210,63,0.82)");
+    grad.addColorStop(0.85, "rgba(255,122,26,0.9)");
+    grad.addColorStop(1.00, "rgba(255,45,45,0.96)");
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 1);
+    lut = g.getImageData(0, 0, 256, 1).data;
   };
-  const renderIncidents = () => {
-    if (incidentsCluster) incidentsCluster.clearLayers();
-    if (dangerLayer) dangerLayer.clearLayers();
-    if (assessmentLayer) assessmentLayer.clearLayers();
-    incidents.forEach((incident) => {
-      const isDanger = incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category);
-      if (DAMAGE_CANDIDATE_CATEGORIES.has(incident.category) && assessmentLayer) {
-        const marker = L.circleMarker([incident.latitude, incident.longitude], {
-          radius: incident.category === "destroyed_structure_candidate" ? 8 : 6,
-          weight: 2,
-          color: incident.category === "destroyed_structure_candidate" ? "#ef6a60" : "#e0a02a",
-          fillColor: incident.category === "minor_damage_candidate" ? "#f0c93a" : "#ef7d2e",
-          fillOpacity: 0.72,
-          className: "assessment-marker",
-        });
-        marker.bindPopup(incidentPopup(incident), { minWidth: 270 });
-        assessmentLayer.addLayer(marker);
-      } else if (isDanger && dangerLayer) {
-        // Solo evidencia corroborada o verificada llega a esta capa pública.
-        L.circle([incident.latitude, incident.longitude], {
-          radius: incident.area_radius_m || dangerRadiusM(incident.severity),
-          color: dangerColor(incident.severity),
-          weight: 1.2, fillColor: dangerColor(incident.severity), fillOpacity: 0.14,
-          dashArray: "5 4", interactive: false,
-        }).addTo(dangerLayer);
-        const marker = L.marker([incident.latitude, incident.longitude], {
-          icon: dangerIcon(incident.severity), zIndexOffset: 1000,
-        });
-        marker.bindPopup(incidentPopup(incident), { minWidth: 248 });
-        dangerLayer.addLayer(marker);
-      } else if (incidentsCluster) {
-        // Incidentes no peligrosos: cluster normal (aparecen al acercar).
-        const marker = L.marker([incident.latitude, incident.longitude], {
-          icon: dotIcon("incident", severityColor(incident.severity), incident.severity),
-        });
-        marker.bindPopup(incidentPopup(incident), { minWidth: 248 });
-        incidentsCluster.addLayer(marker);
-      }
+  buildLut();
+  const metersPerPixel = () => {
+    const c = map.getCenter();
+    const p1 = map.latLngToContainerPoint(c);
+    const c2 = L.latLng(c.lat, c.lng + 0.05);
+    const p2 = map.latLngToContainerPoint(c2);
+    return map.distance(c, c2) / p1.distanceTo(p2);
+  };
+  const drawHeat = (cv) => {
+    const ctx = cv.getContext("2d");
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!heatPoints.length) return;
+    const mpp = metersPerPixel();
+    for (const h of heatPoints) {
+      const cp = map.latLngToContainerPoint([h.lat, h.lng]);
+      if (cp.x < -300 || cp.y < -300 || cp.x > cv.width + 300 || cp.y > cv.height + 300) continue;
+      const w = Math.max(0.15, Math.min(1, h.weight || 0.5));
+      const rad = Math.max(10, (700 + w * 1100) / mpp);
+      const g = ctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, rad);
+      g.addColorStop(0, `rgba(0,0,0,${0.12 * w})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cp.x, cp.y, rad, 0, 6.2832); ctx.fill();
+    }
+    const img = ctx.getImageData(0, 0, cv.width, cv.height);
+    const dd = img.data;
+    for (let i = 0; i < dd.length; i += 4) {
+      let al = dd[i + 3];
+      if (al === 0) continue;
+      if (al > 255) al = 255;
+      const o = al * 4;
+      dd[i] = lut[o]; dd[i + 1] = lut[o + 1]; dd[i + 2] = lut[o + 2]; dd[i + 3] = lut[o + 3];
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  const HeatLayer = L.Layer.extend({
+    onAdd(m) {
+      this._m = m;
+      const cv = this._cv = L.DomUtil.create("canvas", "mapc-heat");
+      cv.style.position = "absolute";
+      cv.style.pointerEvents = "none";
+      cv.style.mixBlendMode = "screen";
+      m.getPanes().overlayPane.appendChild(cv);
+      m.on("moveend zoomend resize", this._reset, this);
+      this._reset();
+    },
+    onRemove(m) { L.DomUtil.remove(this._cv); m.off("moveend zoomend resize", this._reset, this); },
+    redraw() { if (this._cv) drawHeat(this._cv); },
+    _reset() {
+      const m = this._m, size = m.getSize();
+      const tl = m.containerPointToLayerPoint([0, 0]);
+      L.DomUtil.setPosition(this._cv, tl);
+      this._cv.width = size.x; this._cv.height = size.y;
+      drawHeat(this._cv);
+    },
+  });
+  const heatLayer = new HeatLayer();
+
+  // ---------------- anillos radar ----------------
+  const ringsGroup = L.layerGroup();
+  const populateRings = () => {
+    ringsGroup.clearLayers();
+    [5, 10, 15, 20, 30].forEach((km) => {
+      L.circle([epicenter.lat, epicenter.lng], {
+        radius: km * 1000, color: ACCENT, weight: 1, opacity: 0.18, fill: false,
+        dashArray: "2 7", interactive: false,
+      }).addTo(ringsGroup);
+      const lp = destination(epicenter, 0, km);
+      L.marker(lp, {
+        icon: L.divIcon({
+          className: "",
+          html: `<div style="color:${ACCENT};font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.55;white-space:nowrap;transform:translateY(-50%);background:rgba(5,8,11,.6);padding:0 3px;letter-spacing:.06em;">${km} KM</div>`,
+          iconSize: [0, 0],
+        }), interactive: false, keyboard: false,
+      }).addTo(ringsGroup);
     });
-    // El mapa de calor usa la capa de intensidad de zonas afectadas (no los incidentes).
-    if (incidentsHeat) {
-      // Leaflet.heat no permite setLatLngs() mientras la capa está fuera del mapa:
-      // intenta redibujar con this._map=null. Conservamos los datos para que onAdd
-      // los pinte al volver a una escala de calor.
-      if (map?.hasLayer(incidentsHeat)) incidentsHeat.setLatLngs(intensity);
-      else incidentsHeat._latlngs = intensity;
-    }
-    applyIncidentLayers();
-  };
-
-  // --- Sismos ---------------------------------------------------------------
-  const quakeColor = (magnitude) => {
-    if (magnitude == null) return "#7c8a93";
-    if (magnitude >= 6) return "#c0271f";
-    if (magnitude >= 5) return "#e2473d";
-    if (magnitude >= 4) return "#ef7d2e";
-    if (magnitude >= 3) return "#f3c534";
-    return "#46b06a";
-  };
-  const renderEvents = () => {
-    if (!eventsLayer) return;
-    eventsLayer.clearLayers();
-    if (!layerVisible.events) return;
-    events.forEach((event) => {
-      const magnitude = event.magnitude;
-      const radius = 4 + (magnitude != null ? Math.max(magnitude, 0) * 2.1 : 2);
-      const marker = L.circleMarker([event.latitude, event.longitude], {
-        radius, weight: 1.5, color: "#ffffff", fillColor: quakeColor(magnitude),
-        fillOpacity: 0.82, className: "quake-marker",
-      });
-      const popup = document.createElement("div");
-      popup.className = "map-popup";
-      const meta = document.createElement("span");
-      meta.className = "map-popup-type quake";
-      meta.textContent = magnitude != null ? `Magnitud ${magnitude}` : "Sismo";
-      const heading = document.createElement("strong");
-      heading.textContent = event.place || event.title || "Sismo";
-      popup.append(meta, heading);
-      popupRow(popup, event.occurred_at
-        ? new Intl.DateTimeFormat("es-VE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(event.occurred_at))
-        : "");
-      popupRow(popup, event.attribution, "map-popup-source");
-      marker.bindPopup(popup, { minWidth: 220 }).addTo(eventsLayer);
+    [0, 90, 180, 270].forEach((b) => {
+      const end = destination(epicenter, b, 30);
+      L.polyline([[epicenter.lat, epicenter.lng], end], { color: ACCENT, weight: 1, opacity: 0.08, interactive: false }).addTo(ringsGroup);
     });
   };
 
-  // --- Servicios (directorio, agrupados) ------------------------------------
-  const renderServices = () => {
-    if (!servicesLayer) return;
-    servicesLayer.clearLayers();
-    if (!layerVisible.services) return;
-    servicesInRange().forEach((service) => {
-      const meta = serviceMeta[service.category] || serviceMeta.other;
-      const marker = L.marker([service.latitude, service.longitude], {
-        icon: serviceIcon(meta, service.category),
-      });
-      const popup = document.createElement("div");
-      popup.className = "map-popup";
-      const tag = document.createElement("span");
-      tag.className = "map-popup-type service";
-      tag.textContent = service.category_label || meta.label;
-      const heading = document.createElement("strong");
-      heading.textContent = service.name;
-      popup.append(tag, heading);
-      popupRow(popup, service.address);
-      popupRow(popup, service.phone);
-      if (userLocation) {
-        const dist = haversineKm(userLocation.lat, userLocation.lng, service.latitude, service.longitude);
-        popupRow(popup, `A ${fmtDist(dist)} de ti`, "map-popup-dist");
-      }
-      if (service.maps_url) {
-        const link = document.createElement("a");
-        link.className = "map-popup-maps";
-        link.href = service.maps_url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "Cómo llegar (Google Maps)";
-        popup.appendChild(link);
-      }
-      popupRow(popup, service.attribution, "map-popup-source");
-      marker.bindPopup(popup, { minWidth: 220 });
-      servicesLayer.addLayer(marker);
+  // ---------------- radio + epicentro ----------------
+  const radiusCircle = L.circle([epicenter.lat, epicenter.lng], {
+    radius: radiusKm * 1000, color: ACCENT, weight: 1.5, opacity: 0.9,
+    fillColor: ACCENT, fillOpacity: 0.05, interactive: false,
+  }).addTo(map);
+  const epiIcon = L.divIcon({
+    className: "mapc-epi", html: "<div><i></i><i></i><b></b></div>", iconSize: [42, 42], iconAnchor: [21, 21],
+  });
+  const epiMarker = L.marker([epicenter.lat, epicenter.lng], { icon: epiIcon, draggable: true, zIndexOffset: 1200, keyboard: false }).addTo(map);
+  epiMarker.on("drag", () => {
+    const ll = epiMarker.getLatLng();
+    epicenter = { lat: ll.lat, lng: ll.lng };
+    radiusCircle.setLatLng(ll);
+    populateRings();
+    recompute();
+  });
+
+  // ---------------- marcadores ----------------
+  const markersGroup = L.layerGroup().addTo(map);
+  const makeIcon = (it) => {
+    const t = TYPE[it.kind];
+    return L.divIcon({
+      className: "mapc-mk",
+      html: `<span style="--c:${t.color}">${t.code}</span>`,
+      iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12],
     });
   };
-
-  const popupFor = (report) => {
-    const popup = document.createElement("div");
-    popup.className = "map-popup";
-    const meta = document.createElement("span");
-    meta.className = `map-popup-type ${typeMeta[report.type]?.className || ""}`;
-    meta.textContent = typeMeta[report.type]?.label || "Reporte";
-    const heading = document.createElement("strong");
-    heading.textContent = report.title;
-    const location = document.createElement("p");
-    location.textContent = report.location.label;
-    const link = document.createElement("a");
-    link.href = report.url;
-    link.textContent = "Ver información revisada";
-    popup.append(meta, heading, location, link);
-    return popup;
-  };
-
-  const renderPoints = (visibleReports) => {
-    if (!pointLayer) return;
-    pointLayer.clearLayers();
-    if (!layerVisible.reports) return;
-    visibleReports.forEach((report) => {
-      const meta = typeMeta[report.type] || typeMeta.help_request;
-      L.circleMarker([report.location.latitude, report.location.longitude], {
-        radius: report.priority === "critical" ? 10 : 8, weight: 3, color: "#ffffff",
-        fillColor: meta.color, fillOpacity: 0.94, className: `operational-marker marker-${meta.className}`,
-      }).addTo(pointLayer).bindPopup(popupFor(report), { minWidth: 220 });
-    });
-  };
-
-  const densityGroups = (visibleReports) => {
-    const groups = new Map();
-    visibleReports.forEach((report) => {
-      const latitude = Math.round(report.location.latitude * 10) / 10;
-      const longitude = Math.round(report.location.longitude * 10) / 10;
-      const key = `${latitude}:${longitude}`;
-      const group = groups.get(key) || { latitude, longitude, reports: [] };
-      group.reports.push(report);
-      groups.set(key, group);
-    });
-    return [...groups.values()];
-  };
-
-  const renderDensity = (visibleReports) => {
-    if (!densityLayer) return;
-    densityLayer.clearLayers();
-    const groups = densityGroups(visibleReports);
-    const maximum = Math.max(...groups.map((group) => group.reports.length), 1);
-    groups.forEach((group) => {
-      const count = group.reports.length;
-      const intensity = count / maximum;
-      const circle = L.circleMarker([group.latitude, group.longitude], {
-        radius: 18 + Math.sqrt(count) * 8, weight: 2,
-        color: intensity > 0.65 ? "#9f352f" : "#bc7622",
-        fillColor: intensity > 0.65 ? "#d95c4f" : "#f0ad3c",
-        fillOpacity: 0.3 + intensity * 0.35, className: "density-marker",
-      }).addTo(densityLayer);
-      const summary = document.createElement("div");
-      summary.className = "density-popup";
-      const total = document.createElement("strong");
-      total.textContent = `${count} ${count === 1 ? "reporte revisado" : "reportes revisados"}`;
-      const note = document.createElement("p");
-      note.textContent = "Concentración aproximada por sector; no representa una ubicación exacta.";
-      summary.append(total, note);
-      circle.bindPopup(summary, { minWidth: 230 });
-    });
-  };
-
-  // Vuela al punto exacto y abre su ficha (independiente del clustering).
-  const focusOnPoint = (lat, lng, popupContent) => {
-    if (!map || lat == null || lng == null) return;
-    map.flyTo([lat, lng], 16, { duration: 0.7 });
-    L.popup({ minWidth: 248, autoPan: true })
-      .setLatLng([lat, lng])
-      .setContent(popupContent)
-      .openOn(map);
-  };
-
-  const listActions = (article, focusFn, externalUrl, externalLabel) => {
+  const popupFor = (it) => {
+    const t = TYPE[it.kind];
+    const pop = document.createElement("div");
+    const tag = document.createElement("span");
+    tag.className = "mapc-pop-tag";
+    tag.style.setProperty("--c", t.color);
+    tag.textContent = `${t.label}${it.priorityLabel ? " · " + it.priorityLabel : ""}`;
+    const h = document.createElement("strong");
+    h.textContent = it.title;
+    pop.append(tag, h);
+    if (it.meta) { const p = document.createElement("p"); p.style.margin = "4px 0 0"; p.style.color = "#9fc0c2"; p.textContent = it.meta; pop.append(p); }
     const actions = document.createElement("div");
-    actions.className = "map-result-actions";
-    const focusBtn = document.createElement("button");
-    focusBtn.type = "button";
-    focusBtn.className = "map-result-action focus";
-    focusBtn.textContent = "Ver en el mapa";
-    focusBtn.addEventListener("click", (event) => { event.stopPropagation(); focusFn(); });
-    actions.append(focusBtn);
-    if (externalUrl) {
-      const link = document.createElement("a");
-      link.className = "map-result-action gmaps";
-      link.href = externalUrl;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = externalLabel;
-      link.addEventListener("click", (event) => event.stopPropagation());
-      actions.append(link);
+    if (it.mapsUrl) {
+      const a = document.createElement("a"); a.className = "mapc-pop-a"; a.href = it.mapsUrl; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = "Cómo llegar"; actions.append(a);
     }
-    article.append(actions);
+    if (it.detailUrl) {
+      const a = document.createElement("a"); a.className = "mapc-pop-a"; a.href = it.detailUrl; a.textContent = "Ver detalle"; actions.append(a);
+    }
+    if (actions.childNodes.length) pop.append(actions);
+    return pop;
+  };
+  const inRadius = () => items.filter((it) => it.dist <= radiusKm && layers[it.kind]);
+  const renderMarkers = () => {
+    markersGroup.clearLayers();
+    inRadius().forEach((it) => {
+      const m = L.marker([it.lat, it.lng], { icon: makeIcon(it), keyboard: false });
+      m.bindPopup(popupFor(it), { minWidth: 220 });
+      m.on("click", () => { selectedId = it.id; renderIntel(); });
+      markersGroup.addLayer(m);
+    });
   };
 
-  const renderList = (visibleReports) => {
-    if (!resultList) return;
-    resultList.replaceChildren();
-    const cards = incidents.slice(0, 16);
-    cards.forEach((incident) => {
-      const article = document.createElement("article");
-      article.className = "map-result-card incident is-clickable";
-      article.tabIndex = 0;
-      article.setAttribute("role", "button");
-      article.setAttribute("aria-label", `Ver ${incident.label} en el mapa`);
-      const label = document.createElement("span");
-      label.className = `map-result-type sev-${incident.severity}`;
-      label.textContent = incident.is_damage_candidate
-        ? `${incident.category_label} · por validar`
-        : `${incident.category_label} · ${severityLabel(incident.severity)}`;
-      const heading = document.createElement("h3");
-      heading.textContent = incident.label;
-      article.append(label, heading);
-      if (incident.address) popupRow(article, incident.address);
-      // Una sola línea de estado, sin repetir.
-      const statusLine = incident.is_damage_candidate
-        ? (incident.confidence != null
-            ? `Daño satelital · confianza ${Math.round(incident.confidence * 100)}%`
-            : "Daño satelital por validar")
-        : (incident.verification_label || incident.source_name || "");
-      if (statusLine) popupRow(article, statusLine, "map-result-source");
-      const focus = () => focusOnPoint(incident.latitude, incident.longitude, incidentPopup(incident));
-      listActions(article, focus, incident.maps_url, "Google Maps");
-      article.addEventListener("click", focus);
-      article.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); focus(); }
+  // ---------------- panel INTEL ----------------
+  const intelList = document.getElementById("cmd-intel-list");
+  const intelCount = document.getElementById("cmd-intel-count");
+  const focus = (it) => {
+    selectedId = it.id;
+    map.flyTo([it.lat, it.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
+    L.popup({ minWidth: 220, autoPan: true }).setLatLng([it.lat, it.lng]).setContent(popupFor(it)).openOn(map);
+    renderIntel();
+  };
+  const renderIntel = () => {
+    if (!intelList) return;
+    const near = inRadius().slice().sort((a, b) => a.dist - b.dist).slice(0, 80);
+    if (intelCount) intelCount.textContent = String(inRadius().length);
+    intelList.replaceChildren();
+    if (!near.length) {
+      const p = document.createElement("p"); p.className = "mapc-intel-empty";
+      p.textContent = "Sin elementos dentro del radio. Amplía el radio o arrastra el epicentro.";
+      intelList.append(p); return;
+    }
+    near.forEach((it) => {
+      const t = TYPE[it.kind];
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "mapc-card" + (it.id === selectedId ? " is-sel" : "");
+      card.setAttribute("role", "listitem");
+      const code = document.createElement("span");
+      code.className = "mapc-card-code"; code.style.setProperty("--c", t.color); code.textContent = t.code;
+      const body = document.createElement("span"); body.className = "mapc-card-body";
+      const title = document.createElement("span"); title.className = "mapc-card-title"; title.textContent = it.title;
+      const meta = document.createElement("span"); meta.className = "mapc-card-meta";
+      meta.style.color = it.priorityColor || "#7fb6b3";
+      meta.textContent = `${it.priorityLabel || ""}${it.priorityLabel ? " · " : ""}${t.label}`;
+      body.append(title, meta);
+      const dist = document.createElement("span"); dist.className = "mapc-card-dist"; dist.textContent = fmtDist(it.dist);
+      card.append(code, body, dist);
+      card.addEventListener("click", () => focus(it));
+      intelList.append(card);
+    });
+  };
+
+  // ---------------- recompute (distancias + filtro por radio) ----------------
+  const insideEl = document.getElementById("cmd-inside");
+  const totalEl = document.getElementById("cmd-total");
+  const recompute = () => {
+    let inside = 0;
+    for (const it of items) {
+      it.dist = haversine(epicenter.lat, epicenter.lng, it.lat, it.lng);
+      if (it.dist <= radiusKm && layers[it.kind]) inside++;
+    }
+    if (insideEl) insideEl.textContent = String(inside);
+    if (totalEl) totalEl.textContent = String(items.length);
+    renderMarkers();
+    renderIntel();
+  };
+
+  // ---------------- capas ----------------
+  const applyStaticLayers = () => {
+    if (layers.heat && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
+    else if (!layers.heat && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+    if (layers.rings && !map.hasLayer(ringsGroup)) ringsGroup.addTo(map);
+    else if (!layers.rings && map.hasLayer(ringsGroup)) map.removeLayer(ringsGroup);
+  };
+
+  // ---------------- normalización de datos reales ----------------
+  const priorityOf = (sev) => PRI[sev] ? sev : "medium";
+  const normalize = (live, reports) => {
+    const out = [];
+    (live.incidents || []).forEach((i) => {
+      if (i.latitude == null || i.longitude == null) return;
+      const sev = priorityOf(i.severity);
+      out.push({
+        id: "inc-" + i.public_id, kind: "zona", lat: i.latitude, lng: i.longitude,
+        title: i.label || i.category_label || "Zona afectada", meta: i.category_label,
+        priorityLabel: PRI[sev].label, priorityColor: PRI[sev].color, mapsUrl: i.maps_url,
       });
-      resultList.append(article);
     });
-    if (!cards.length) {
-      visibleReports.slice(0, 12).forEach((report) => {
-        const meta = typeMeta[report.type] || typeMeta.help_request;
-        const article = document.createElement("article");
-        article.className = "map-result-card is-clickable";
-        article.tabIndex = 0;
-        article.setAttribute("role", "button");
-        const label = document.createElement("span");
-        label.className = `map-result-type ${meta.className}`;
-        label.textContent = meta.label;
-        const heading = document.createElement("h3");
-        heading.textContent = report.title;
-        article.append(label, heading);
-        popupRow(article, report.location.label);
-        const focus = () => focusOnPoint(report.location.latitude, report.location.longitude, popupFor(report));
-        listActions(article, focus, report.url, "Ver detalle");
-        article.addEventListener("click", focus);
-        article.addEventListener("keydown", (event) => {
-          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); focus(); }
-        });
-        resultList.append(article);
+    (live.services || []).forEach((s) => {
+      if (s.latitude == null || s.longitude == null) return;
+      const sev = s.emergency ? "high" : "low";
+      out.push({
+        id: "svc-" + s.public_id, kind: "recurso", lat: s.latitude, lng: s.longitude,
+        title: s.name || s.category_label || "Servicio", meta: s.category_label,
+        priorityLabel: PRI[sev].label, priorityColor: PRI[sev].color, mapsUrl: s.maps_url,
       });
-    }
-    if (!cards.length && !visibleReports.length) {
-      const empty = document.createElement("p");
-      empty.className = "map-empty-state";
-      empty.textContent = "Aún no hay datos cargados para mostrar.";
-      resultList.append(empty);
-    }
-  };
-
-  const numberFmt = new Intl.NumberFormat("es-VE");
-  const updateMetrics = () => {
-    const host = document.querySelector("[data-situation-metrics]");
-    if (!host) return;
-    host.replaceChildren();
-    if (!situation.length) {
-      const empty = document.createElement("p");
-      empty.className = "situation-loading";
-      empty.textContent = "Aún no hay cifras de situación cargadas.";
-      host.append(empty);
-      return;
-    }
-    situation.forEach((metric) => {
-      const cell = document.createElement("div");
-      cell.className = `situation-cell metric-${metric.key}`;
-      cell.setAttribute("role", "listitem");
-      const value = document.createElement("strong");
-      value.textContent = numberFmt.format(metric.value);
-      const label = document.createElement("span");
-      label.className = "situation-label";
-      label.textContent = metric.label;
-      const isLink = metric.attribution && /^https?:\/\//.test(metric.attribution);
-      const source = document.createElement(isLink ? "a" : "span");
-      source.className = "situation-source";
-      if (isLink) { source.href = metric.attribution; source.target = "_blank"; source.rel = "noopener"; }
-      const date = metric.as_of
-        ? new Intl.DateTimeFormat("es-VE", { day: "2-digit", month: "short" }).format(new Date(metric.as_of))
-        : "";
-      source.textContent = [metric.source_name, date].filter(Boolean).join(" · ");
-      if (metric.note) cell.title = metric.note;
-      cell.append(value, label, source);
-      if (metric.verification_status) {
-        const status = document.createElement("span");
-        status.className = "situation-status";
-        status.textContent = metric.verification_status === "reported" ? "Reportada · en verificación" : metric.verification_status;
-        cell.append(status);
-      }
-      host.append(cell);
     });
-  };
-
-  const allPoints = () => {
-    const structuralPoints = [];
-    incidents.forEach((incident) => {
-      const visible = incident.is_damage_candidate
-        ? layerVisible.assessments
-        : (incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category)
-          ? layerVisible.danger
-          : layerVisible.incidents);
-      if (visible) structuralPoints.push([incident.latitude, incident.longitude]);
-    });
-    // La prioridad visual son víctimas y daño. Los miles de servicios no deben
-    // alejar el encuadre hasta mostrar todo el país cuando ya hay evidencia estructural.
-    if (structuralPoints.length) return structuralPoints;
-    const points = [];
-    if (layerVisible.events) events.forEach((e) => points.push([e.latitude, e.longitude]));
-    if (layerVisible.services) services.forEach((s) => points.push([s.latitude, s.longitude]));
-    if (layerVisible.reports) filteredReports().forEach((r) => points.push([r.location.latitude, r.location.longitude]));
-    return points;
-  };
-
-  const render = () => {
-    const visibleReports = filteredReports();
-    renderIncidents();
-    renderEvents();
-    renderServices();
-    renderPoints(visibleReports);
-    renderDensity(visibleReports);
-    renderList(visibleReports);
-    if (!map) {
-      if (status) status.textContent = `${incidents.length} incidentes y ${services.length} servicios en el listado ligero.`;
-      return;
-    }
-    if (activeMode === "density" && layerVisible.reports) {
-      map.removeLayer(pointLayer);
-      densityLayer.addTo(map);
-    } else {
-      map.removeLayer(densityLayer);
-      pointLayer.addTo(map);
-    }
-    if (status) {
-      const candidates = incidents.filter((incident) => incident.is_damage_candidate).length;
-      const documented = incidents.length - candidates;
-      status.textContent = `${documented} incidentes documentados · ${candidates} evaluaciones por validar · ${services.length} servicios.`;
-    }
-  };
-
-  document.querySelectorAll("[data-map-layer]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const layer = button.dataset.mapLayer;
-      layerVisible[layer] = !layerVisible[layer];
-      button.classList.toggle("is-active", layerVisible[layer]);
-      button.setAttribute("aria-pressed", layerVisible[layer] ? "true" : "false");
-      render();
-    });
-  });
-
-  document.querySelectorAll("[data-map-locate]").forEach((button) => {
-    button.addEventListener("click", () => locateUser(button));
-  });
-  document.querySelectorAll("[data-map-radius]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeRadius = Number(button.dataset.mapRadius) || 0;
-      document.querySelectorAll("[data-map-radius]").forEach((candidate) => {
-        const active = candidate === button;
-        candidate.classList.toggle("is-active", active);
-        candidate.setAttribute("aria-pressed", active ? "true" : "false");
+    (reports || []).forEach((r) => {
+      const loc = r.location || {};
+      if (loc.latitude == null || loc.longitude == null) return;
+      const kind = REPORT_KIND[r.type] || "auxilio";
+      const sev = priorityOf(r.priority);
+      out.push({
+        id: "rep-" + (r.id || r.public_id || Math.random().toString(36).slice(2)),
+        kind, lat: loc.latitude, lng: loc.longitude,
+        title: r.title || TYPE[kind].label, meta: loc.label,
+        priorityLabel: PRI[sev].label, priorityColor: PRI[sev].color, detailUrl: r.url,
       });
-      if (!userLocation && activeRadius) {
-        locateUser(document.querySelector("[data-map-locate]"));
-        return;
-      }
-      drawUserLayer();
-      render();
     });
-  });
-
-  document.querySelectorAll("[data-map-filter]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeFilter = button.dataset.mapFilter;
-      document.querySelectorAll("[data-map-filter]").forEach((candidate) => {
-        const active = candidate === button;
-        candidate.classList.toggle("is-active", active);
-        candidate.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-      render();
-    });
-  });
-
-  document.querySelectorAll("[data-map-mode]").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeMode = button.dataset.mapMode;
-      document.querySelectorAll("[data-map-mode]").forEach((candidate) => {
-        const active = candidate === button;
-        candidate.classList.toggle("is-active", active);
-        candidate.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-      render();
-    });
-  });
-
-  const fitToData = () => {
-    if (!map) return;
-    const points = allPoints();
-    if (points.length) map.fitBounds(points, { padding: [48, 48], maxZoom: 12 });
+    return out;
+  };
+  const computeEpicenter = (live) => {
+    const pts = live.intensity || [];
+    if (pts.length) {
+      let sLat = 0, sLng = 0, sW = 0;
+      pts.forEach((p) => { const w = (p[2] || 0.5); sLat += p[0] * w; sLng += p[1] * w; sW += w; });
+      if (sW > 0) return { lat: sLat / sW, lng: sLng / sW };
+    }
+    const evs = (live.events || []).filter((e) => e.latitude != null && e.magnitude != null);
+    if (evs.length) { const top = evs.reduce((a, b) => (b.magnitude > a.magnitude ? b : a)); return { lat: top.latitude, lng: top.longitude }; }
+    return epicenter;
   };
 
-  const loadReports = async () => {
+  const loadData = async () => {
+    let live = { incidents: [], services: [], events: [], intensity: [], situation: [] };
+    let reports = [];
     try {
-      const response = await fetch(element.dataset.mapEndpoint, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("map-data");
-      const payload = await response.json();
-      reports = payload.reports.filter((report) => report.location?.latitude != null && report.location?.longitude != null);
-    } catch (_) { reports = []; }
-  };
-
-  const loadLive = async () => {
-    if (!element.dataset.liveEndpoint) return;
+      const r = await fetch(root.dataset.liveEndpoint, { headers: { Accept: "application/json" } });
+      if (r.ok) live = await r.json();
+    } catch (_) { /* sin datos */ }
     try {
-      const response = await fetch(element.dataset.liveEndpoint, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("live-data");
-      const payload = await response.json();
-      situation = payload.situation || [];
-      intensity = payload.intensity || [];
-      const valid = (item) => item.latitude != null && item.longitude != null;
-      incidents = (payload.incidents || []).filter(valid);
-      events = (payload.events || []).filter(valid);
-      services = (payload.services || []).filter(valid);
-    } catch (_) { situation = []; intensity = []; incidents = []; events = []; services = []; }
+      const r = await fetch(root.dataset.dataEndpoint, { headers: { Accept: "application/json" } });
+      if (r.ok) reports = (await r.json()).reports || [];
+    } catch (_) { /* sin reportes */ }
+
+    heatPoints = (live.intensity || []).map((p) => ({ lat: p[0], lng: p[1], weight: p[2] }));
+    epicenter = computeEpicenter(live);
+    const evs = (live.events || []).filter((e) => e.magnitude != null);
+    magnitude = evs.length ? Math.max(...evs.map((e) => e.magnitude)) : null;
+    items = normalize(live, reports);
   };
 
-  await Promise.all([loadReports(), loadLive()]);
-  updateMetrics();
-  render();
-  fitToData();
-  if (status && !incidents.length && !events.length && !services.length && !reports.length) {
-    status.textContent = "Aún no hay datos cargados. Ejecuta la ingesta de fuentes para ver el mapa vivo.";
+  // ---------------- cabecera (reloj, zoom, cursor, magnitud) -------------------
+  const elClock = document.getElementById("cmd-clock");
+  const elZoom = document.getElementById("cmd-zoom");
+  const elCursor = document.getElementById("cmd-cursor");
+  const elMag = document.getElementById("cmd-mag");
+  const elEpi = document.getElementById("cmd-epi");
+  const elScaleBar = document.getElementById("cmd-scale-bar");
+  const elScaleText = document.getElementById("cmd-scale-text");
+  const pad = (n) => String(n).padStart(2, "0");
+  const tick = () => { const d = new Date(); if (elClock) elClock.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`; };
+  tick(); setInterval(tick, 1000);
+  const updateScale = () => {
+    const mpp = metersPerPixel();
+    const nice = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+    let chosen = nice[0];
+    nice.forEach((n) => { if (n / mpp <= 130) chosen = n; });
+    if (elScaleBar) elScaleBar.style.width = Math.round(chosen / mpp) + "px";
+    if (elScaleText) elScaleText.textContent = chosen >= 1000 ? (chosen / 1000) + " km" : chosen + " m";
+  };
+  let mm = 0;
+  map.on("mousemove", (e) => {
+    const now = performance.now(); if (now - mm < 60) return; mm = now;
+    if (elCursor) elCursor.textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+  });
+  map.on("moveend zoomend", () => { if (elZoom) elZoom.textContent = "Z" + map.getZoom(); updateScale(); });
+
+  // ---------------- controles ----------------
+  document.querySelectorAll("[data-cmd-layer]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.cmdLayer;
+      layers[key] = !layers[key];
+      btn.classList.toggle("is-on", layers[key]);
+      btn.setAttribute("aria-pressed", layers[key] ? "true" : "false");
+      if (key === "heat" || key === "rings") applyStaticLayers();
+      else recompute();
+    });
+  });
+  const radiusInput = document.getElementById("cmd-radius");
+  const radiusLabel = document.getElementById("cmd-radius-label");
+  let raf = null;
+  if (radiusInput) {
+    radiusInput.addEventListener("input", () => {
+      radiusKm = Number(radiusInput.value) || 1;
+      if (radiusLabel) radiusLabel.textContent = String(radiusKm);
+      radiusCircle.setRadius(radiusKm * 1000);
+      if (!raf) raf = requestAnimationFrame(() => { raf = null; recompute(); });
+    });
   }
+  const qb = (sel, fn) => { const el = document.querySelector(sel); if (el) el.addEventListener("click", fn); };
+  qb("[data-cmd-zoom-in]", () => map.zoomIn());
+  qb("[data-cmd-zoom-out]", () => map.zoomOut());
+  qb("[data-cmd-recenter]", () => map.flyTo([epicenter.lat, epicenter.lng], 12, { duration: 0.6 }));
+
+  // ---------------- arranque ----------------
+  await loadData();
+  populateRings();
+  radiusCircle.setLatLng([epicenter.lat, epicenter.lng]);
+  epiMarker.setLatLng([epicenter.lat, epicenter.lng]);
+  map.setView([epicenter.lat, epicenter.lng], 12);
+  if (elMag) elMag.textContent = magnitude != null ? "M " + magnitude.toFixed(1) : "M —";
+  if (elEpi) elEpi.textContent = `EPICENTRO · ${epicenter.lat.toFixed(3)}°N ${Math.abs(epicenter.lng).toFixed(3)}°W`;
+  applyStaticLayers();
+  recompute();
+  updateScale();
+  if (elZoom) elZoom.textContent = "Z" + map.getZoom();
+  setTimeout(() => map.invalidateSize(), 160);
+  setTimeout(() => map.invalidateSize(), 480);
 });
