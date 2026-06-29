@@ -24,7 +24,16 @@ from app.ingestion.normalize import match_key
 from app.ingestion.incidents import ParsedIncident
 from app.ingestion.pets import ParsedPet
 from app.ingestion.pfif import ParsedPerson
-from app.models import DirectoryEntry, Incident, IngestedEvent, PersonRecord, PetRecord, SourceRecord
+from app.ingestion.recognitions import ParsedRecognition
+from app.models import (
+    DirectoryEntry,
+    Incident,
+    IngestedEvent,
+    PersonRecord,
+    PetRecord,
+    Recognition,
+    SourceRecord,
+)
 
 
 @dataclass
@@ -451,6 +460,53 @@ def ingest_pets(pets: list[ParsedPet], *, commit: bool = True) -> IngestStats:
         else:
             stats.updated += 1
         _apply_pet_fields(existing, pet)
+
+    if commit:
+        db.session.commit()
+    return stats
+
+
+def _apply_recognition_fields(target: Recognition, rec: ParsedRecognition) -> None:
+    target.content_hash = rec.content_hash
+    target.kind = rec.kind
+    target.name = rec.name
+    target.org = rec.org
+    target.role = rec.role
+    target.description = rec.description
+    target.photo_url = rec.photo_url
+    target.source_name = rec.source_name
+    target.source_url = rec.source_url
+    target.source_date = rec.source_date
+    target.attribution = rec.attribution
+
+
+def ingest_recognitions(recognitions: list[ParsedRecognition], *, commit: bool = True) -> IngestStats:
+    """Limpia, deduplica y persiste reconocimientos de fuentes oficiales (idempotente por origen)."""
+    stats = IngestStats(received=len(recognitions))
+
+    deduped: dict[tuple[str, str], ParsedRecognition] = {}
+    for rec in recognitions:
+        if not rec.external_id:
+            stats.invalid += 1
+            continue
+        deduped[(rec.source_slug, rec.external_id)] = rec
+
+    for (source_slug, external_id), rec in deduped.items():
+        existing = (
+            db.session.query(Recognition)
+            .filter_by(source_slug=source_slug, external_id=external_id)
+            .one_or_none()
+        )
+        if existing is not None and existing.content_hash == rec.content_hash:
+            stats.unchanged += 1
+            continue
+        if existing is None:
+            existing = Recognition(source_slug=source_slug, external_id=external_id)
+            db.session.add(existing)
+            stats.new += 1
+        else:
+            stats.updated += 1
+        _apply_recognition_fields(existing, rec)
 
     if commit:
         db.session.commit()

@@ -112,6 +112,13 @@ SPECIES_LABELS = {
     "other": "Otra",
 }
 
+# Reconocimientos: por protección de datos, los humanos se reconocen SOLO a nivel de
+# unidad/organización (sin datos personales). Los perros rescatistas sí con nombre.
+RECOGNITION_KIND_LABELS = {
+    "responder_unit": "Unidad de rescate",
+    "rescue_dog": "Perro rescatista",
+}
+
 STATUS_LABELS = {
     ReportStatus.PENDING: "Pendiente",
     ReportStatus.NEEDS_VERIFICATION: "Necesita verificación",

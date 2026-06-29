@@ -1061,3 +1061,13 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
   .nav-utilities{ width:100%; }
   .nav-report-button{ display:inline-flex; justify-content:center; width:100%; margin:.55rem 0; }
 }
+
+/* ===== Reconocimientos (unidades + perros) ===== */
+.rv-recognition-note{color:var(--muted);font-size:.9rem;margin:1.4rem 0 .2rem;}
+.rv-recognition-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;}
+.rv-recognition-card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;}
+.rv-recognition-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--brand);}
+.rv-recognition-photo{width:100%;height:170px;object-fit:cover;background:var(--glass);border-bottom:1px solid var(--border);}
+.rv-recognition-body{padding:1.05rem;}
+.rv-recognition-body .dir-item-tag{display:inline-flex;align-items:center;gap:.3rem;}
+.rv-recognition-body h3{margin:.4rem 0 .25rem;font-size:1.05rem;}

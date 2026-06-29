@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Reconocimientos') }} · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero, icon with context %}
+{% block content %}
+<div class="rv-page">
+{% call hero(_('Gratitud'), _('Reconocimientos'), back_url=url_for('public.home'), back_label=_('Inicio')) %}
+  <p class="rv-lead">{{ _('Honramos a las unidades de rescate y a los perros rescatistas que ayudaron tras el sismo. Información de fuentes oficiales, con atribución.') }}</p>
+{% endcall %}
+
+<div class="container">
+  <p class="rv-recognition-note">{{ _('Por respeto a la privacidad, las personas se reconocen a nivel de unidad u organización, sin datos personales.') }} {{ _('¿Una atribución es incorrecta?') }} <a href="{{ url_for('reports.help_request') }}">{{ _('Avísanos') }}</a>.</p>
+
+  <section class="rv-section">
+    <p class="rv-kicker">{{ _('Unidades de rescate') }}</p>
+    <h2 class="rv-h2">{{ _('Unidades y organizaciones') }}{% if units %} <span class="dir-count">{{ units|length }}</span>{% endif %}</h2>
+    {% if units %}
+    <div class="rv-recognition-grid">
+      {% for u in units %}
+      <article class="rv-recognition-card">
+        {% if u.photo_url %}<img class="rv-recognition-photo" src="{{ u.photo_url }}" alt="{{ u.name }}" loading="lazy" referrerpolicy="no-referrer" decoding="async">{% endif %}
+        <div class="rv-recognition-body">
+          {% if u.role %}<span class="dir-item-tag">{{ u.role }}</span>{% endif %}
+          <h3>{{ u.name }}</h3>
+          {% if u.org %}<p class="dir-person-meta">{{ u.org }}</p>{% endif %}
+          {% if u.description %}<p class="dir-person-summary">{{ u.description }}</p>{% endif %}
+          <div class="dir-record-provenance">
+            {% if u.source_url %}<a href="{{ u.source_url }}" target="_blank" rel="noopener noreferrer">{{ _('Consultar fuente') }}</a>{% elif u.source_name %}<span>{{ u.source_name }}</span>{% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="dir-empty"><p>{{ _('Aún no hay unidades publicadas. Se añadirán desde fuentes oficiales.') }}</p></div>
+    {% endif %}
+  </section>
+
+  <section class="rv-section">
+    <p class="rv-kicker">{{ _('Perros rescatistas') }}</p>
+    <h2 class="rv-h2">{{ _('Perros rescatistas') }}{% if dogs %} <span class="dir-count">{{ dogs|length }}</span>{% endif %}</h2>
+    {% if dogs %}
+    <div class="rv-recognition-grid">
+      {% for d in dogs %}
+      <article class="rv-recognition-card">
+        {% if d.photo_url %}<img class="rv-recognition-photo" src="{{ d.photo_url }}" alt="{{ d.name }}" loading="lazy" referrerpolicy="no-referrer" decoding="async">{% endif %}
+        <div class="rv-recognition-body">
+          <span class="dir-item-tag">{{ icon('paw', 14) }} {{ _('Perro rescatista') }}</span>
+          <h3>{{ d.name }}</h3>
+          {% if d.org %}<p class="dir-person-meta">{{ d.org }}</p>{% endif %}
+          {% if d.description %}<p class="dir-person-summary">{{ d.description }}</p>{% endif %}
+          <div class="dir-record-provenance">
+            {% if d.source_url %}<a href="{{ d.source_url }}" target="_blank" rel="noopener noreferrer">{{ _('Consultar fuente') }}</a>{% elif d.source_name %}<span>{{ d.source_name }}</span>{% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="dir-empty"><p>{{ _('Aún no hay perros publicados. Se añadirán desde fuentes oficiales.') }}</p></div>
+    {% endif %}
+  </section>
+</div>
+</div>
+{% endblock %}

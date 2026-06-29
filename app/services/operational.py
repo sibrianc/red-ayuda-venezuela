@@ -9,7 +9,7 @@ import urllib.parse
 
 from sqlalchemy import func, or_
 
-from app.constants import SPECIES_LABELS, ReportStatus
+from app.constants import RECOGNITION_KIND_LABELS, SPECIES_LABELS, ReportStatus
 from app.ingestion.normalize import normalize_name
 from app.models import (
     CommunicationSignal,
@@ -20,6 +20,7 @@ from app.models import (
     MissingPersonReport,
     PersonRecord,
     PetRecord,
+    Recognition,
     SituationMetric,
 )
 
@@ -678,3 +679,36 @@ def public_pet_records(q: str | None = None, limit: int = 60, offset: int = 0) -
 
 def count_pet_records(q: str | None = None) -> int:
     return _pet_records_query(q).count()
+
+
+def _recognition_dict(r) -> dict:
+    return {
+        "public_id": r.public_id,
+        "kind": r.kind,
+        "kind_label": RECOGNITION_KIND_LABELS.get(r.kind, "Reconocimiento"),
+        "name": r.name,
+        "org": r.org,
+        "role": r.role,
+        "description": r.description,
+        "photo_url": r.photo_url,
+        "source_name": r.source_name,
+        "source_url": r.source_url,
+        "source_date": r.source_date.isoformat() if r.source_date else None,
+        "attribution": r.attribution,
+    }
+
+
+def public_recognitions(kind: str | None = None) -> list[dict]:
+    """Reconocimientos publicados desde fuentes oficiales. `kind`: responder_unit | rescue_dog."""
+    query = Recognition.query
+    if kind:
+        query = query.filter(Recognition.kind == kind)
+    rows = query.order_by(Recognition.source_date.desc().nullslast(), Recognition.name.asc()).all()
+    return [_recognition_dict(r) for r in rows]
+
+
+def count_recognitions(kind: str | None = None) -> int:
+    query = Recognition.query
+    if kind:
+        query = query.filter(Recognition.kind == kind)
+    return query.count()

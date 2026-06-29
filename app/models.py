@@ -326,6 +326,37 @@ class PetRecord(TimestampMixin, db.Model):
     attribution: Mapped[str | None] = mapped_column(String(240))
 
 
+class Recognition(TimestampMixin, db.Model):
+    """Reconocimiento honorífico de quienes ayudaron, ingerido de fuentes oficiales y con
+    atribución. Por protección de datos, los humanos se reconocen SOLO a nivel de
+    unidad/organización (sin datos personales); los perros rescatistas sí con nombre.
+    """
+
+    __tablename__ = "recognitions"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_recognitions_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    # responder_unit (unidad/organización, sin personas) | rescue_dog (perro, con nombre)
+    kind: Mapped[str] = mapped_column(String(20), default="responder_unit", nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    org: Mapped[str | None] = mapped_column(String(200))
+    role: Mapped[str | None] = mapped_column(String(160))
+    description: Mapped[str | None] = mapped_column(Text)
+    photo_url: Mapped[str | None] = mapped_column(String(500))
+    source_name: Mapped[str | None] = mapped_column(String(200))
+    source_url: Mapped[str | None] = mapped_column(String(500))
+    source_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attribution: Mapped[str | None] = mapped_column(String(240))
+
+
 class SituationMetric(TimestampMixin, db.Model):
     """Cifra agregada de situación (objeto canónico OperationalFact).
 

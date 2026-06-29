@@ -333,6 +333,23 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.":
             "Information may be incomplete or change. Contacts and exact addresses are not shown.",
         "Volver a reportes": "Back to reports",
+        # --- reconocimientos ---
+        "Reconocimientos": "Recognition",
+        "Gratitud": "Gratitude",
+        "Honramos a las unidades de rescate y a los perros rescatistas que ayudaron tras el sismo. Información de fuentes oficiales, con atribución.":
+            "We honor the rescue units and rescue dogs that helped after the earthquake. Information from official sources, with attribution.",
+        "Por respeto a la privacidad, las personas se reconocen a nivel de unidad u organización, sin datos personales.":
+            "Out of respect for privacy, people are recognized at the unit or organization level, without personal data.",
+        "¿Una atribución es incorrecta?": "Is an attribution incorrect?",
+        "Avísanos": "Let us know",
+        "Unidades de rescate": "Rescue units",
+        "Unidades y organizaciones": "Units and organizations",
+        "Perros rescatistas": "Rescue dogs",
+        "Perro rescatista": "Rescue dog",
+        "Aún no hay unidades publicadas. Se añadirán desde fuentes oficiales.":
+            "No units published yet. They will be added from official sources.",
+        "Aún no hay perros publicados. Se añadirán desde fuentes oficiales.":
+            "No dogs published yet. They will be added from official sources.",
         # --- directorio: subpáginas ---
         "Personas · Reunificación familiar": "People · Family reunification",
         "Buscar personas": "Search people",

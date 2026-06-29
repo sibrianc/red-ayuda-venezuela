@@ -609,6 +609,33 @@ def register_cli(app: Flask) -> None:
         for key, value in stats.as_dict().items():
             click.echo(f"  {key}: {value}")
 
+    @app.cli.command("import-recognitions-json")
+    @click.argument("source")
+    @click.option("--source-slug", default="recognitions", show_default=True)
+    @click.option("--attribution", default=None, help="Atribución de la fuente oficial.")
+    def import_recognitions_json_cmd(source: str, source_slug: str, attribution: str | None):
+        """Importa reconocimientos (unidades + perros) desde un export JSON de una FUENTE OFICIAL."""
+        from app.ingestion.pfif import fetch_pfif
+        from app.ingestion.pipeline import ingest_recognitions
+        from app.ingestion.recognitions import parse_recognitions_json
+
+        if source.startswith(("http://", "https://")):
+            try:
+                text = fetch_pfif(source)
+            except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+                raise click.ClickException(
+                    f"No se pudo descargar ({type(exc).__name__}: {exc})."
+                ) from exc
+        else:
+            with open(source, encoding="utf-8") as handle:
+                text = handle.read()
+
+        recognitions = parse_recognitions_json(text, source_slug=source_slug, attribution=attribution)
+        stats = ingest_recognitions(recognitions)
+        click.echo("Resultado del import JSON de reconocimientos:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+
     @app.cli.command("import-pfif")
     @click.argument("source")
     @click.option("--source-slug", default="pfif", show_default=True)

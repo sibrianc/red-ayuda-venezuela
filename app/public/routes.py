@@ -21,6 +21,7 @@ from app.services.operational import (
     public_missing_persons,
     public_person_records,
     public_pet_records,
+    public_recognitions,
     public_situation,
 )
 from app.services.reporting import public_items, public_report_dict, public_summary
@@ -203,6 +204,17 @@ def contacts():
     from app.services.contacts import emergency_groups
 
     return render_template("public/contacts.html", groups=emergency_groups())
+
+
+@bp.get("/reconocimientos")
+def recognitions():
+    """Reconocimiento de quienes ayudaron: unidades de rescate (sin datos personales) y
+    perros rescatistas, desde fuentes oficiales con atribución."""
+    return render_template(
+        "public/recognitions.html",
+        units=public_recognitions("responder_unit"),
+        dogs=public_recognitions("rescue_dog"),
+    )
 
 
 @bp.get("/privacidad")
