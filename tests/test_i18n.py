@@ -14,8 +14,8 @@ def test_english_toggle_translates_nav_and_home(client):
     # home traducida
     assert "Coordinated help for Venezuela" in html
     assert "What do you want to report?" in html
-    # el selector de idioma está presente
-    assert "lang-switch" in html
+    # el botón de idioma está presente
+    assert "lang-toggle" in html
 
 
 def test_language_choice_persists_via_cookie(client):

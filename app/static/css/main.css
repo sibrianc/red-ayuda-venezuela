@@ -1021,3 +1021,43 @@ html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,
 .lang-toggle{display:inline-flex;align-items:center;gap:.4rem;font-weight:700;font-size:.82rem;line-height:1;color:var(--text);background:var(--glass);border:1px solid var(--border);border-radius:999px;padding:.42rem .85rem;text-decoration:none;transition:border-color .14s ease, background .14s ease, color .14s ease;}
 .lang-toggle:hover{color:var(--text);border-color:var(--brand);background:var(--surface);}
 .lang-toggle svg{width:16px;height:16px;flex:none;}
+
+/* ===== Nav reordenado, agrupado y más claro ===== */
+.site-nav .nav-link{ display:inline-flex; align-items:center; gap:.42rem; }
+.site-nav .nav-link svg{ width:16px; height:16px; flex:none; opacity:.8; }
+.nav-group-label{ display:none; }
+.nav-link-muted{ color:var(--muted) !important; font-weight:600; }
+
+/* Emergencia: pill roja inconfundible */
+.site-nav .nav-emergency{ color:#fff !important; background:var(--red,#cf142b); border-radius:999px; padding:.42rem .9rem; font-weight:800; }
+.site-nav .nav-emergency:hover,.site-nav .nav-emergency:focus{ color:#fff !important; filter:brightness(1.08); }
+.site-nav .nav-emergency svg{ opacity:1; }
+
+/* Preferencias (idioma/tema/datos) como grupo */
+.nav-utilities{ display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+
+/* Hamburguesa más visible + ícono con buen contraste */
+.navbar-toggler{ border:1px solid var(--border-strong); border-radius:10px; padding:.4rem .55rem; }
+.navbar-toggler:focus{ box-shadow:0 0 0 .2rem rgba(0,48,154,.28); }
+.navbar-toggler-icon{ background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23e8eef5' stroke-width='2.3' stroke-linecap='round' d='M4 8h22M4 15h22M4 22h22'/%3e%3c/svg%3e"); }
+html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%231a2330' stroke-width='2.3' stroke-linecap='round' d='M4 8h22M4 15h22M4 22h22'/%3e%3c/svg%3e"); }
+
+/* Escritorio: alinear y separar grupos con divisores verticales */
+@media (min-width:992px){
+  .site-nav-list{ display:flex; align-items:center; gap:.15rem; }
+  .nav-divider{ margin-left:.55rem; padding-left:.65rem; border-left:1px solid var(--border); }
+  .nav-utilities{ margin-left:.55rem; padding-left:.65rem; border-left:1px solid var(--border); }
+  .nav-internal{ margin-left:.35rem; }
+  .nav-report-button{ margin-left:.35rem; }
+}
+
+/* Móvil (menú hamburguesa): encabezados de sección + divisores horizontales */
+@media (max-width:991.98px){
+  .site-nav-list{ padding:.6rem 0 .3rem; }
+  .nav-group-label{ display:block; font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:.7rem .35rem .25rem; }
+  .site-nav .nav-link{ padding:.6rem .35rem; }
+  .nav-divider,.nav-utilities,.nav-internal{ margin-top:.55rem; padding-top:.75rem; border-top:1px solid var(--border); }
+  .site-nav .nav-emergency{ width:max-content; }
+  .nav-utilities{ width:100%; }
+  .nav-report-button{ display:inline-flex; justify-content:center; width:100%; margin:.55rem 0; }
+}

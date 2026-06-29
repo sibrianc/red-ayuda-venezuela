@@ -30,32 +30,33 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navPrincipal">
-        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.home') }}#situacion">{{ _('Situación') }}</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('reports.index') }}">{{ _('Información') }}</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('map.index') }}">{{ _('Mapa') }}</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.directory') }}">{{ _('Directorio') }}</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.coordination') }}">{{ _('Coordinación') }}</a></li>
-          <li class="nav-item"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">{{ _('Emergencia') }}</a></li>
-          <li class="nav-item">
-            <button class="btn btn-sm theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="{{ _('Cambiar entre modo oscuro y modo para luz solar') }}">
-              <span class="theme-toggle-dot" aria-hidden="true"></span><span data-theme-label>{{ _('Modo sol') }}</span>
-            </button>
-          </li>
-          <li class="nav-item">
-            <button class="btn btn-sm bandwidth-toggle" type="button" data-bandwidth-toggle aria-pressed="false">
-              {{ _('Modo ligero') }}
-            </button>
-          </li>
-          <li class="nav-item lang-switch">
+        <ul class="navbar-nav ms-auto align-items-lg-center site-nav-list">
+          {# Grupo 1 · Destinos principales #}
+          <li class="nav-group-label" aria-hidden="true">{{ _('Explorar') }}</li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('map.index') }}">{{ icon('map-pin', 16) }}<span>{{ _('Mapa') }}</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.directory') }}">{{ icon('user-search', 16) }}<span>{{ _('Directorio') }}</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.coordination') }}">{{ icon('life-buoy', 16) }}<span>{{ _('Coordinación') }}</span></a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('reports.index') }}">{{ icon('list', 16) }}<span>{{ _('Información') }}</span></a></li>
+
+          {# Grupo 2 · Acciones destacadas #}
+          <li class="nav-item nav-divider"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">{{ icon('phone', 15) }}<span>{{ _('Emergencia') }}</span></a></li>
+          <li class="nav-item"><a class="btn btn-sm btn-primary nav-report-button" href="{{ url_for('reports.help_request') }}">{{ _('Crear reporte') }}</a></li>
+
+          {# Grupo 3 · Preferencias (idioma / tema / datos) #}
+          <li class="nav-item nav-utilities" role="group" aria-label="{{ _('Preferencias') }}">
             {% set _other = 'en' if current_locale == 'es' else 'es' %}
             <a class="btn btn-sm lang-toggle" href="{{ set_lang_link(_other) }}" hreflang="{{ _other }}" rel="nofollow" aria-label="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}" title="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}">
               {{ icon('globe', 16) }}<span>{{ LANGUAGES[_other] }}</span>
             </a>
+            <button class="btn btn-sm theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="{{ _('Cambiar entre modo oscuro y modo para luz solar') }}">
+              <span class="theme-toggle-dot" aria-hidden="true"></span><span data-theme-label>{{ _('Modo sol') }}</span>
+            </button>
+            <button class="btn btn-sm bandwidth-toggle" type="button" data-bandwidth-toggle aria-pressed="false">{{ _('Modo ligero') }}</button>
           </li>
-          <li class="nav-item"><a class="btn btn-sm btn-primary nav-report-button" href="{{ url_for('reports.help_request') }}">{{ _('Crear reporte') }}</a></li>
+
+          {# Grupo 4 · Acceso interno #}
           {% if current_user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">{{ _('Administración') }}</a></li>
+            <li class="nav-item nav-internal"><a class="nav-link nav-link-muted" href="{{ url_for('admin.dashboard') }}">{{ _('Administración') }}</a></li>
             <li class="nav-item">
               <form method="post" action="{{ url_for('auth.logout') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -63,7 +64,7 @@
               </form>
             </li>
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">{{ _('Acceso interno') }}</a></li>
+            <li class="nav-item nav-internal"><a class="nav-link nav-link-muted" href="{{ url_for('auth.login') }}">{{ _('Acceso interno') }}</a></li>
           {% endif %}
         </ul>
       </div>

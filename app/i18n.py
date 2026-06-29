@@ -35,6 +35,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "Salir": "Sign out",
         "Acceso interno": "Internal access",
         "Idioma": "Language",
+        "Explorar": "Explore",
+        "Preferencias": "Preferences",
         "Información humanitaria revisada por personas. Ausencia de reportes no significa ausencia de daño.":
             "Humanitarian information reviewed by people. Absence of reports does not mean absence of harm.",
         "Reportes revisados": "Reviewed reports",
