@@ -301,6 +301,47 @@ def register_cli(app: Flask) -> None:
         click.echo(f"Cargadas {len(figures)} cifras oficiales citadas (al {date(2026,6,27)}).")
         click.echo("Fuentes: ONU News y OCHA. Cifras en verificación y en aumento.")
 
+    @app.cli.command("ingest-all")
+    @click.option("--pfif", default=None, help="URL de un feed PFIF para importar personas.")
+    def ingest_all(pfif: str | None):
+        """Recopila TODOS los datos reales en un paso (USGS, GDACS, OSM, +PFIF opcional)."""
+        from app.ingestion.connectors import (
+            fetch_gdacs, fetch_overpass, fetch_usgs,
+            parse_gdacs_geojson, parse_overpass, parse_usgs_geojson,
+        )
+        from app.ingestion.pipeline import (
+            directory_overview, event_overview, ingest_directory, ingest_events,
+        )
+
+        def step(name, action):
+            try:
+                action()
+                click.echo(f"  ✓ {name}")
+            except Exception as exc:  # noqa: BLE001 — seguir con las demás fuentes
+                click.echo(f"  ✗ {name}: {type(exc).__name__}: {exc}")
+
+        click.echo("Recopilando datos reales (solo Venezuela, solo terremotos)...")
+        step("USGS — sismos/réplicas",
+             lambda: ingest_events(parse_usgs_geojson(fetch_usgs("month_2.5")),
+                                   region_only=True, event_types={"earthquake"}))
+        step("GDACS — alerta oficial",
+             lambda: ingest_events(parse_gdacs_geojson(fetch_gdacs("map")),
+                                   region_only=True, event_types={"earthquake"}))
+        step("OpenStreetMap — directorio de servicios",
+             lambda: ingest_directory(parse_overpass(fetch_overpass()), region_only=True))
+        if pfif:
+            from app.ingestion.pfif import fetch_pfif, parse_pfif
+            from app.ingestion.pipeline import ingest_persons
+            step("PFIF — personas",
+                 lambda: ingest_persons(parse_pfif(fetch_pfif(pfif), source_slug="pfif")))
+
+        events = event_overview()
+        directory = directory_overview()
+        click.echo("Totales en base:")
+        click.echo(f"  sismos: {events['total']} (en región Venezuela: {events['en_region']})")
+        click.echo(f"  servicios: {directory['total']}")
+        click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
+
     @app.cli.command("import-pfif")
     @click.argument("source")
     @click.option("--source-slug", default="pfif", show_default=True)

@@ -309,6 +309,23 @@ conectar una fuente nominal pública y verificable o mantener correctamente los 
 vacíos.
 
 **Cómo continuar:** leer esta sección y `git log` en `phase/e4-elite-experience`.
+
+### Checkpoint fase #3 (inicio) — recopilación real en un comando y deploy-readiness
+
+- **`flask ingest-all [--pfif <URL>]`**: recopila TODOS los datos reales en un paso —
+  USGS (sismos), GDACS (alerta), OpenStreetMap (directorio) y, opcional, PFIF (personas).
+  Cada fuente está aislada: si una falla (p. ej. sin red), las demás continúan y se
+  imprime un resumen. Es el comando que usaría un cron para mantener el mapa vivo.
+- Para datos reales basta, en una máquina con red:
+  `flask db upgrade && flask ingest-all && flask load-official-figures`.
+- **Deploy-readiness verificado:** las **8 migraciones** (hasta `f6a7b8c9d0e1`) aplican
+  limpias en una base nueva y `flask db check` no detecta deriva. El esquema completo está
+  listo para PostgreSQL en producción. 68/68 pruebas, `compileall` OK.
+- **Sigue faltando para el deploy:** (1) correr `ingest-all` con red real + conectar un feed
+  PFIF / lista oficial; (2) **aprobar hosting/costo** (Render + PostgreSQL — decisión del
+  propietario); (3) `SECRET_KEY`/`DATABASE_URL` de producción + `flask create-admin`;
+  (4) cron para el refresco automático; (5) prueba de humo final + fusionar las ramas
+  apiladas (e2 → e3 → e4) o abrir PRs en orden. El código y la experiencia están listos.
 Esperar la revisión visual del propietario antes de iniciar otra fase. El servidor local
 de revisión usa `instance/demo_review.sqlite3` y el puerto 5015; el comando completo está
 en la sección 5 y en el resumen de cierre entregado al propietario.
