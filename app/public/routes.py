@@ -111,6 +111,14 @@ def coordination():
     )
 
 
+@bp.get("/contactos")
+def contacts():
+    """Red de contacto verificada: 911, instituciones de rescate y colectivos de búsqueda."""
+    from app.services.contacts import emergency_groups
+
+    return render_template("public/contacts.html", groups=emergency_groups())
+
+
 @bp.get("/privacidad")
 def privacy():
     return render_template("public/privacy.html")

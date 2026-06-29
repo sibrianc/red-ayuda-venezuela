@@ -274,3 +274,19 @@ def test_coordination_hub_connects_actors(client):
     assert "Rescatistas" in html
     assert "Prioridades de rescate" in html
     assert "Zonas con más desaparecidos" in html
+
+
+def test_emergency_contacts_page_lists_verified_channels(client):
+    html = client.get("/contactos").text
+    assert "Contactos de emergencia" in html
+    assert 'href="tel:911"' in html
+    assert "0800-7372282" in html
+    assert "Cruz Roja" in html
+    # entrada para buscar familiares presente
+    assert "Buscar a un familiar" in html
+
+
+def test_home_links_to_family_search_and_emergency(client):
+    html = client.get("/").text
+    assert "Buscar a un familiar" in html
+    assert "/contactos" in html

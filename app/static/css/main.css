@@ -865,3 +865,18 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .coord-registries{margin:.5rem 0 0;padding-left:1.1rem;color:var(--text-soft);font-size:.9rem;}
 .coord-registries a{color:var(--brand,#2a8fd6);}
 @media (max-width:680px){.coord-two{grid-template-columns:1fr;}.coord-hot{grid-template-columns:100px 1fr 34px;}}
+
+/* ===== Contactos de emergencia ===== */
+.contacts-page{padding:2.2rem 0 3rem;}
+.nav-emergency{font-weight:800;color:#ff6470 !important;}
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem;}
+.contact-card{padding:1.1rem;border:1px solid var(--border);border-left:4px solid #e5443a;border-radius:var(--radius);background:var(--surface);}
+.contact-card h3{font-size:1.05rem;margin:0 0 .3rem;}
+.contact-role{color:var(--text-soft);font-size:.9rem;margin:0 0 .7rem;}
+.contact-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem;}
+.contact-phone{display:inline-block;font-weight:800;font-size:1rem;color:#fff;background:#e5443a;padding:.35rem .7rem;border-radius:8px;text-decoration:none;}
+.contact-phone:hover{filter:brightness(1.08);color:#fff;}
+.contact-link{display:inline-block;font-weight:700;color:var(--brand,#2a8fd6);text-decoration:none;align-self:center;}
+.contact-source{font-size:.78rem;color:var(--muted);margin:.2rem 0 0;}
+.contacts-disclaimer{margin-top:1.4rem;font-size:.88rem;color:var(--muted);border-top:1px solid var(--border);padding-top:1rem;}
+.contacts-disclaimer a{color:var(--brand,#2a8fd6);}

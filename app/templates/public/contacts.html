@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Contactos de emergencia · {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="contacts-page">
+  <div class="container">
+    <header class="coord-head">
+      <p class="eyebrow">Red de contacto verificada</p>
+      <h1>Contactos de emergencia e instituciones</h1>
+      <p class="lead">Llama o escribe a canales oficiales y colectivos de búsqueda verificados. Esta plataforma <strong>no es</strong> un servicio oficial de emergencia: ante peligro inmediato, marca el <strong>9-1-1</strong>.</p>
+      <div class="coord-actions">
+        <a class="btn btn-danger" href="tel:911">Llamar al 9-1-1</a>
+        <a class="btn btn-primary" href="{{ url_for('public.directory') }}#personas">Buscar a un familiar</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+      </div>
+    </header>
+
+    {% for group in groups %}
+    <section class="coord-section" id="{{ group.id }}">
+      <h2>{{ group.title }}</h2>
+      {% if group.intro %}<p class="coord-intro">{{ group.intro }}</p>{% endif %}
+      <div class="contacts-grid">
+        {% for item in group['items'] %}
+        <article class="contact-card">
+          <h3>{{ item.name }}</h3>
+          <p class="contact-role">{{ item.role }}</p>
+          <div class="contact-actions">
+            {% if item.phone %}<a class="contact-phone" href="tel:{{ item.phone_tel }}">📞 {{ item.phone }}</a>{% endif %}
+            {% if item.url %}<a class="contact-link" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Abrir canal oficial →</a>{% endif %}
+          </div>
+          {% if item.source %}<p class="contact-source">{{ item.source }}</p>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <p class="contacts-disclaimer">Los números y enlaces pueden cambiar durante la emergencia; confírmalos localmente. ¿Tienes el contacto verificado de una unidad de rescate o institución que llegó? <a href="{{ url_for('reports.help_request') }}">Háznoslo saber</a> para sumarlo con su fuente.</p>
+  </div>
+</section>
+{% endblock %}
