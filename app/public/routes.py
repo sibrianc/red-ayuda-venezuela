@@ -3,6 +3,7 @@ from collections import Counter
 
 from flask import render_template, request, url_for
 
+from app.i18n import translate as _
 from app.public import bp
 from app.services.operational import (
     CATEGORY_LABELS,
@@ -64,16 +65,16 @@ def directory():
     situation = public_situation()
     figures = {metric["key"]: metric for metric in situation}
     sections = [
-        {"label": "Personas", "desc": "Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar.",
+        {"label": _("Personas"), "desc": _("Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar."),
          "count": count_person_records("missing") + count_person_records("found") + count_person_records("deceased"),
          "url": url_for("public.directory_people"), "accent": "#2a6fd6"},
-        {"label": "Edificios e incidentes", "desc": "Colapsos y evaluación estructural, con fuente.",
+        {"label": _("Edificios e incidentes"), "desc": _("Colapsos y evaluación estructural, con fuente."),
          "count": len(public_incidents()), "url": url_for("public.directory_incidents"), "accent": "#e5443a"},
-        {"label": "Servicios", "desc": "Hospitales, refugios, agua, farmacias, combustible y víveres.",
+        {"label": _("Servicios"), "desc": _("Hospitales, refugios, agua, farmacias, combustible y víveres."),
          "count": count_directory(), "url": url_for("public.directory_services"), "accent": "#1f9d63"},
-        {"label": "Zonas sin comunicación", "desc": "Alertas de posibles víctimas incomunicadas.",
+        {"label": _("Zonas sin comunicación"), "desc": _("Alertas de posibles víctimas incomunicadas."),
          "count": len(public_comms_zones()), "url": url_for("public.directory_zones"), "accent": "#8a5cf0"},
-        {"label": "Mascotas desaparecidas", "desc": "Mascotas perdidas (comunidad + fuentes verificadas).",
+        {"label": _("Mascotas desaparecidas"), "desc": _("Mascotas perdidas (comunidad + fuentes verificadas)."),
          "count": count_lost_pets() + count_pet_records(), "url": url_for("public.directory_pets"), "accent": "#e0a02a"},
     ]
     return render_template(

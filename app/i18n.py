@@ -106,6 +106,56 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
             "Explore the directory and map, search for a relative or file a report in minutes.",
         "Ver directorio": "View directory",
         "Contactos · 911": "Contacts · 911",
+        # --- directorio: chrome compartido (buscador + navegación) ---
+        "Buscar persona, edificio, dirección o servicio…": "Search person, building, address or service…",
+        "Buscar": "Search",
+        "Limpiar": "Clear",
+        "Secciones del directorio": "Directory sections",
+        "Resumen": "Overview",
+        "Personas": "People",
+        "Edificios e incidentes": "Buildings and incidents",
+        "Servicios": "Services",
+        "Zonas sin comunicación": "Areas without communication",
+        "Mascotas": "Pets",
+        # --- directorio: hub ---
+        "Directorio · Reunificación familiar": "Directory · Family reunification",
+        "Directorio del terremoto": "Earthquake directory",
+        "Elige una sección: personas, edificios e incidentes, servicios o zonas sin comunicación. Cada una con su propia página y buscador.":
+            "Choose a section: people, buildings and incidents, services or areas without communication. Each with its own page and search.",
+        "Cifras reportadas por fuentes oficiales y en verificación; no son un conteo confirmado.":
+            "Figures reported by official sources and under verification; they are not a confirmed count.",
+        "Secciones": "Sections",
+        "Explora por categoría": "Browse by category",
+        "Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar.":
+            "Missing, located and deceased. Search or report a relative.",
+        "Colapsos y evaluación estructural, con fuente.": "Collapses and structural assessment, with source.",
+        "Hospitales, refugios, agua, farmacias, combustible y víveres.":
+            "Hospitals, shelters, water, pharmacies, fuel and supplies.",
+        "Alertas de posibles víctimas incomunicadas.": "Alerts of possible cut-off victims.",
+        "Mascotas desaparecidas": "Lost pets",
+        "Mascotas perdidas (comunidad + fuentes verificadas).": "Lost pets (community + verified sources).",
+        "registros · Abrir →": "records · Open →",
+        "Registros oficiales de búsqueda y reunificación": "Official search and reunification registries",
+        "Por protección, los reportes de menores no aparecen públicamente: se gestionan de forma privada y prioritaria.":
+            "For protection, reports involving minors do not appear publicly: they are handled privately and as a priority.",
+        # --- contactos ---
+        "Red de contacto verificada": "Verified contact network",
+        "Contactos de emergencia e instituciones": "Emergency contacts and institutions",
+        "Llama o escribe a canales oficiales y colectivos de búsqueda verificados. Esta plataforma no es un servicio oficial de emergencia: ante peligro inmediato, marca el 9-1-1.":
+            "Call or message official channels and verified search collectives. This platform is not an official emergency service: in immediate danger, call 9-1-1.",
+        "Llamar al 9-1-1": "Call 9-1-1",
+        "Buscar a un familiar": "Search for a relative",
+        "Los números y enlaces pueden cambiar durante la emergencia; confírmalos localmente. ¿Tienes el contacto verificado de una unidad de rescate o institución que llegó?":
+            "Numbers and links may change during the emergency; confirm them locally. Do you have the verified contact of a rescue unit or institution that arrived?",
+        "Háznoslo saber": "Let us know",
+        "para sumarlo con su fuente.": "to add it with its source.",
+        # --- coordinación ---
+        "Red de coordinación": "Coordination network",
+        "Centro de coordinación": "Coordination center",
+        "Buscar en el directorio": "Search the directory",
+        "Reportar mascota": "Report a pet",
+        "Un solo lugar que conecta a familias, rescatistas y a quienes ofrecen recursos. Las familias reportan y buscan; los equipos ven dónde se necesita ayuda; los recursos se enlazan con las necesidades.":
+            "A single place connecting families, rescuers and those offering resources. Families report and search; teams see where help is needed; resources are matched with needs.",
     },
 }
 

@@ -32,17 +32,17 @@
       <h1>{{ h1 }}</h1>
       <p class="rv-dir-lead">{{ lead }}</p>
       <form class="rv-dir-search" method="get" action="{{ action }}" role="search">
-        <input type="search" name="q" value="{{ q }}" placeholder="Buscar persona, edificio, dirección o servicio…" aria-label="Buscar en el directorio">
-        <button type="submit">Buscar</button>
-        {% if q %}<a class="rv-dir-clear" href="{{ action }}">Limpiar</a>{% endif %}
+        <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Buscar persona, edificio, dirección o servicio…') }}" aria-label="{{ _('Buscar') }}">
+        <button type="submit">{{ _('Buscar') }}</button>
+        {% if q %}<a class="rv-dir-clear" href="{{ action }}">{{ _('Limpiar') }}</a>{% endif %}
       </form>
-      <nav class="rv-chipnav" aria-label="Secciones del directorio">
-        <a class="{{ 'is-active' if active == 'hub' }}" href="{{ url_for('public.directory') }}">Resumen</a>
-        <a class="{{ 'is-active' if active == 'personas' }}" href="{{ url_for('public.directory_people') }}">Personas</a>
-        <a class="{{ 'is-active' if active == 'incidentes' }}" href="{{ url_for('public.directory_incidents') }}">Edificios e incidentes</a>
-        <a class="{{ 'is-active' if active == 'servicios' }}" href="{{ url_for('public.directory_services') }}">Servicios</a>
-        <a class="{{ 'is-active' if active == 'zonas' }}" href="{{ url_for('public.directory_zones') }}">Zonas sin comunicación</a>
-        <a class="{{ 'is-active' if active == 'mascotas' }}" href="{{ url_for('public.directory_pets') }}">Mascotas</a>
+      <nav class="rv-chipnav" aria-label="{{ _('Secciones del directorio') }}">
+        <a class="{{ 'is-active' if active == 'hub' }}" href="{{ url_for('public.directory') }}">{{ _('Resumen') }}</a>
+        <a class="{{ 'is-active' if active == 'personas' }}" href="{{ url_for('public.directory_people') }}">{{ _('Personas') }}</a>
+        <a class="{{ 'is-active' if active == 'incidentes' }}" href="{{ url_for('public.directory_incidents') }}">{{ _('Edificios e incidentes') }}</a>
+        <a class="{{ 'is-active' if active == 'servicios' }}" href="{{ url_for('public.directory_services') }}">{{ _('Servicios') }}</a>
+        <a class="{{ 'is-active' if active == 'zonas' }}" href="{{ url_for('public.directory_zones') }}">{{ _('Zonas sin comunicación') }}</a>
+        <a class="{{ 'is-active' if active == 'mascotas' }}" href="{{ url_for('public.directory_pets') }}">{{ _('Mascotas') }}</a>
       </nav>
     </div>
   </section>

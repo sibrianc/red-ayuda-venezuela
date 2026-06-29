@@ -8,8 +8,8 @@
 {% from "public/_dir_macros.html" import chrome with context %}
 {% block content %}
 <div class="rv-page directory-page">
-  {{ chrome('hub', 'Directorio · Reunificación familiar', 'Directorio del terremoto',
-            'Elige una sección: personas, edificios e incidentes, servicios o zonas sin comunicación. Cada una con su propia página y buscador.',
+  {{ chrome('hub', _('Directorio · Reunificación familiar'), _('Directorio del terremoto'),
+            _('Elige una sección: personas, edificios e incidentes, servicios o zonas sin comunicación. Cada una con su propia página y buscador.'),
             '', url_for('public.directory_people')) }}
 
   <div class="container">
@@ -22,18 +22,18 @@
       </div>
       {% endfor %}
     </div>
-    <p class="situation-disclaimer">Cifras reportadas por fuentes oficiales y <strong>en verificación</strong>; no son un conteo confirmado.</p>
+    <p class="situation-disclaimer">{{ _('Cifras reportadas por fuentes oficiales y en verificación; no son un conteo confirmado.') }}</p>
     {% endif %}
 
     <section class="rv-section">
-      <p class="rv-kicker">Secciones</p>
-      <h2 class="rv-h2">Explora por categoría</h2>
+      <p class="rv-kicker">{{ _('Secciones') }}</p>
+      <h2 class="rv-h2">{{ _('Explora por categoría') }}</h2>
       <div class="rv-action-grid">
         {% for s in sections %}
         <a class="rv-card" style="--rc:{{ s.accent }}" href="{{ s.url }}">
           <h3>{{ s.label }}</h3>
           <p>{{ s.desc }}</p>
-          <span class="rv-go">{{ "{:,}".format(s.count).replace(",", ".") }} registros · Abrir →</span>
+          <span class="rv-go">{{ "{:,}".format(s.count).replace(",", ".") }} {{ _('registros · Abrir →') }}</span>
         </a>
         {% endfor %}
       </div>
@@ -41,14 +41,14 @@
 
     <section class="rv-section dir-registries-section" id="registros">
       <div class="dir-registries">
-        <h3>Registros oficiales de búsqueda y reunificación</h3>
+        <h3>{{ _('Registros oficiales de búsqueda y reunificación') }}</h3>
         <ul>
           {% for r in registries %}
           <li><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.name }}</a> — {{ r.detail }}</li>
           {% endfor %}
         </ul>
       </div>
-      <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
+      <p class="dir-note">{{ _('Por protección, los reportes de menores no aparecen públicamente: se gestionan de forma privada y prioritaria.') }}</p>
     </section>
   </div>
 </div>
