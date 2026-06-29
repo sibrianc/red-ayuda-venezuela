@@ -22,6 +22,8 @@ from app.reports.forms import (
     ResourceOfferForm,
 )
 from app.services.automation import find_duplicate_candidates, suggest_priority
+from app.services.forwarding import forward_report_to_institutions
+from app.services.intake import evaluate_intake
 from app.services.reporting import (
     get_report_by_public_id,
     parse_report_type,
@@ -62,12 +64,19 @@ def save_report(report_type: ReportType, report):
     report.priority = suggested_priority
     for candidate in find_duplicate_candidates(report_type, report):
         db.session.add(candidate)
+    # Compuerta automática: limpia y decide publicar o resguardar para revisión.
+    decision = evaluate_intake(report_type, report)
+    report.status = decision.status
+    report.is_public = decision.is_public
     db.session.commit()
+    if decision.is_public:
+        forward_report_to_institutions(report_type, report)
     return redirect(
         url_for(
             "reports.confirmation",
             public_id=report.public_id,
             draft_key=f"rav-draft-{report_type.value}",
+            published="1" if decision.is_public else "0",
         )
     )
 

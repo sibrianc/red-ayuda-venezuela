@@ -145,32 +145,63 @@ def test_map_page_is_command_center(client):
         ),
     ],
 )
-def test_public_forms_create_pending_private_reports(app, client, base_report_data, endpoint, extra, model):
+def test_valid_reports_auto_publish_after_cleaning(app, client, base_report_data, endpoint, extra, model):
+    # Operación autónoma: un reporte limpio y completo se publica solo, sin revisión.
     response = client.post(endpoint, data={**base_report_data, **extra})
     assert response.status_code == 302
     with app.app_context():
         report = model.query.one()
-        assert report.status is ReportStatus.PENDING
-        assert report.is_public is False
+        assert report.status is ReportStatus.APPROVED
+        assert report.is_public is True
         assert report.public_id
 
 
-def test_pending_report_is_never_public(app, client, base_report_data):
+def test_minor_report_is_held_and_never_public(app, client, base_report_data):
     client.post(
-        "/reportes/ayuda",
+        "/reportes/persona",
         data={
             **base_report_data,
-            "title": "Necesidad pendiente secreta",
-            "request_type": "water",
-            "people_affected": "2",
+            "first_name": "Niño",
+            "last_name": "Protegido",
+            "age": "8",
+            "last_contact_date": "2026-06-26",
+            "involves_minor": "y",
         },
     )
     with app.app_context():
-        report = HelpRequest.query.one()
+        report = MissingPersonReport.query.one()
+        assert report.is_public is False
+        assert report.status is ReportStatus.NEEDS_VERIFICATION
         public_id = report.public_id
-    assert "Necesidad pendiente secreta" not in client.get("/reportes").text
-    assert client.get(f"/reportes/help_request/{public_id}").status_code == 404
+    assert client.get(f"/reportes/missing_person/{public_id}").status_code == 404
     assert client.get("/mapa/data").json == {"reports": []}
+
+
+def test_manual_review_mode_queues_without_publishing(app, client, base_report_data):
+    app.config["AUTO_PUBLISH"] = False
+    client.post(
+        "/reportes/ayuda",
+        data={**base_report_data, "title": "Agua potable", "request_type": "water", "people_affected": "2"},
+    )
+    with app.app_context():
+        report = HelpRequest.query.one()
+        assert report.status is ReportStatus.PENDING
+        assert report.is_public is False
+
+
+def test_auto_published_report_still_hides_private_fields(app, client, base_report_data):
+    client.post(
+        "/reportes/ayuda",
+        data={**base_report_data, "title": "Agua potable urgente", "request_type": "water", "people_affected": "5"},
+    )
+    with app.app_context():
+        report = HelpRequest.query.one()
+        assert report.is_public is True
+        public_id = report.public_id
+    html = client.get(f"/reportes/help_request/{public_id}").text
+    assert "+58 000 0000000" not in html
+    assert "Calle privada 123" not in html
+    assert "Detalle interno reservado." not in html
 
 
 def test_approved_report_exposes_only_public_projection(app, client):

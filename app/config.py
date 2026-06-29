@@ -35,6 +35,18 @@ class Config:
     MAP_TILE_URL = os.getenv(
         "MAP_TILE_URL", "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
     )
+    # Operación autónoma: publica reportes limpios sin revisión humana (los que no
+    # pasan la verificación automática quedan en cola). Pon AUTO_PUBLISH=false para
+    # exigir aprobación manual cuando haya personas revisando.
+    AUTO_PUBLISH = os.getenv("AUTO_PUBLISH", "true").lower() in {"1", "true", "yes", "on"}
+    # Reenvío automático a instituciones (solo proyección pública, sin datos privados).
+    INSTITUTION_FORWARD_ENABLED = os.getenv("INSTITUTION_FORWARD_ENABLED", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    INSTITUTION_WEBHOOK_URL = os.getenv("INSTITUTION_WEBHOOK_URL", "").strip() or None
 
 
 class DevelopmentConfig(Config):
