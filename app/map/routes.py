@@ -1,6 +1,13 @@
 from flask import jsonify, render_template, url_for
 
 from app.map import bp
+from app.services.operational import (
+    affected_intensity,
+    public_directory,
+    public_events,
+    public_incidents,
+    public_situation,
+)
 from app.services.reporting import public_items, public_report_dict
 
 
@@ -24,4 +31,18 @@ def data():
         reports.append(record)
     response = jsonify({"reports": reports})
     response.headers["Cache-Control"] = "public, max-age=60"
+    return response
+
+
+@bp.get("/live")
+def live():
+    """Datos recopilados de fuentes públicas: sismos (USGS/GDACS) y servicios (OSM)."""
+    response = jsonify({
+        "situation": public_situation(),
+        "intensity": affected_intensity(),
+        "incidents": public_incidents(),
+        "events": public_events(),
+        "services": public_directory(),
+    })
+    response.headers["Cache-Control"] = "public, max-age=120"
     return response

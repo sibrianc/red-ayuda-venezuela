@@ -253,6 +253,62 @@ class DirectoryEntry(TimestampMixin, db.Model):
     attribution: Mapped[str | None] = mapped_column(String(240))
 
 
+class SituationMetric(TimestampMixin, db.Model):
+    """Cifra agregada de situación (objeto canónico OperationalFact).
+
+    Titulares de magnitud: desaparecidos, fallecidos, heridos, rescatados, etc.
+    Siempre con fuente, fecha y estado de verificación; nunca se presenta una cifra
+    de una sola fuente sin verificar como hecho confirmado.
+    """
+
+    __tablename__ = "situation_metrics"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    metric_key: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    value: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(40))
+    source_name: Mapped[str | None] = mapped_column(String(200))
+    attribution: Mapped[str | None] = mapped_column(String(240))
+    verification_status: Mapped[str] = mapped_column(String(20), default="reported", nullable=False, index=True)
+    note: Mapped[str | None] = mapped_column(String(500))
+    as_of: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class Incident(TimestampMixin, db.Model):
+    """Incidente de prioridad situacional (objeto operativo del mapa vivo).
+
+    Representa una SITUACIÓN en un lugar: edificio colapsado, personas atrapadas,
+    incendio, vía bloqueada, etc. Es información situacional y pública (el lugar),
+    NO un registro de personas con nombre: los casos individuales de personas
+    desaparecidas o menores siguen su flujo privado y de revisión humana.
+    """
+
+    __tablename__ = "incidents"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_incidents_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    category: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    severity: Mapped[str] = mapped_column(String(20), default="high", nullable=False, index=True)
+    label: Mapped[str] = mapped_column(String(240), nullable=False)
+    address_public: Mapped[str | None] = mapped_column(String(300))
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(30), default="reported", nullable=False, index=True)
+    situation_note: Mapped[str | None] = mapped_column(String(500))
+    source_name: Mapped[str | None] = mapped_column(String(160))
+    attribution: Mapped[str | None] = mapped_column(String(240))
+    in_region: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
 class MissingPersonReport(ReportMixin, db.Model):
     __tablename__ = "missing_person_reports"
 
