@@ -25,7 +25,7 @@
   </div>
 {% endmacro %}
 
-{% from "_ui.html" import hero with context %}
+{% from "_ui.html" import hero, icon with context %}
 {% block content %}
 <div class="rv-page">
 {% call hero('Reporte protegido', title, back_url=url_for('public.home'), back_label='Inicio') %}
@@ -35,7 +35,7 @@
   <div class="container report-intake-grid">
     <aside class="intake-context" aria-labelledby="intake-context-title">
       <div class="privacy-seal" role="note">
-        <span class="privacy-seal-mark" aria-hidden="true"></span>
+        <span class="privacy-seal-mark" aria-hidden="true">{{ icon('lock', 22) }}</span>
         <div>
           <strong>Privado hasta ser revisado</strong>
           <p>Tu contacto, dirección y detalles sensibles nunca aparecen en el sitio público.</p>

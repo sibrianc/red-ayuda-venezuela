@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
+{% from "_ui.html" import icon %}
 {% block content %}
 <div class="rv-page">
   <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -38,31 +39,31 @@
     <h2 class="rv-h2" id="rv-actions-title">¿Qué quieres reportar?</h2>
     <div class="rv-action-grid">
       <a class="rv-card rv-c-persona" href="{{ url_for('reports.missing_person') }}">
-        <span class="rv-ic" aria-hidden="true">P</span>
+        <span class="rv-ic" aria-hidden="true">{{ icon('user-search') }}</span>
         <h3>Persona sin contacto</h3>
         <p>Reporta a alguien con quien tu familia perdió comunicación.</p>
         <span class="rv-go">Comenzar →</span>
       </a>
       <a class="rv-card rv-c-ayuda" href="{{ url_for('reports.help_request') }}">
-        <span class="rv-ic" aria-hidden="true">A</span>
+        <span class="rv-ic" aria-hidden="true">{{ icon('life-buoy') }}</span>
         <h3>Solicitar ayuda</h3>
         <p>Pide agua, atención médica, alimentos, refugio o transporte.</p>
         <span class="rv-go">Comenzar →</span>
       </a>
       <a class="rv-card rv-c-recurso" href="{{ url_for('reports.resource_offer') }}">
-        <span class="rv-ic" aria-hidden="true">R</span>
+        <span class="rv-ic" aria-hidden="true">{{ icon('package') }}</span>
         <h3>Ofrecer recurso</h3>
         <p>Comparte albergue, transporte, víveres, equipos o tu tiempo.</p>
         <span class="rv-go">Comenzar →</span>
       </a>
       <a class="rv-card rv-c-zona" href="{{ url_for('reports.location_report') }}">
-        <span class="rv-ic" aria-hidden="true">Z</span>
+        <span class="rv-ic" aria-hidden="true">{{ icon('map-pin') }}</span>
         <h3>Reportar una zona</h3>
         <p>Informa daños, edificios colapsados o zonas de peligro.</p>
         <span class="rv-go">Comenzar →</span>
       </a>
       <a class="rv-card rv-c-comm" href="{{ url_for('reports.communication_signal') }}">
-        <span class="rv-ic" aria-hidden="true">C</span>
+        <span class="rv-ic" aria-hidden="true">{{ icon('wifi-off') }}</span>
         <h3>Zona sin comunicación</h3>
         <p>Alerta de posibles víctimas incomunicadas en un sector.</p>
         <span class="rv-go">Comenzar →</span>

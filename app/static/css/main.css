@@ -120,8 +120,8 @@ textarea.form-control { min-height:130px; }
 .intake-context h1 { max-width:11ch; margin:.35rem 0 1.1rem; font-size:clamp(2.2rem,4vw,4.1rem); line-height:1.02; }
 .intake-lead { max-width:38ch; color:var(--muted); font-size:1.08rem; }
 .privacy-seal { display:flex; gap:1rem; margin:2rem 0 1.2rem; padding:1.1rem; border:1px solid rgba(22,133,121,.25); border-radius:var(--radius); background:var(--glass); }
-.privacy-seal-mark { position:relative; flex:0 0 38px; width:38px; height:42px; border:2px solid var(--teal); border-radius:19px 19px 12px 12px; }
-.privacy-seal-mark::before { content:""; position:absolute; left:9px; top:-13px; width:16px; height:18px; border:2px solid var(--teal); border-bottom:0; border-radius:12px 12px 0 0; background:#eef4f3; }
+.privacy-seal-mark { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; color:var(--teal); border-radius:11px; background:rgba(22,133,121,.12); }
+.privacy-seal-mark svg { width:22px; height:22px; }
 .privacy-seal p { margin:.2rem 0 0; color:var(--muted); font-size:.9rem; }
 .intake-context .draft-tools { margin:1rem 0 0; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); box-shadow:var(--shadow-sm); }
 .draft-actions { display:flex; flex-wrap:wrap; gap:.35rem; }
@@ -1004,3 +1004,9 @@ html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,
 .rv-page .report-intake,
 .rv-page .contacts-page,
 .rv-page .coord-page{padding-top:2rem;}
+
+/* ===== Íconos SVG profesionales (Lucide-style) ===== */
+.rv-svg{display:inline-block;vertical-align:middle;flex:none;}
+.rv-ic svg{width:22px;height:22px;}
+.contact-phone{display:inline-flex;align-items:center;gap:.4rem;}
+.contact-phone svg{width:16px;height:16px;}
