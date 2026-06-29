@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Directorio · {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="directory-page">
+  <div class="container">
+    <header class="dir-header">
+      <p class="eyebrow">Directorio · Reunificación familiar</p>
+      <h1>Directorio del terremoto</h1>
+      <p class="lead">Personas reportadas, edificios colapsados, servicios y registros oficiales — en un solo lugar, para que <strong>familias y rescatistas</strong> encuentren lo que necesitan.</p>
+    </header>
+
+    {% if situation %}
+    <div class="dir-figures">
+      {% for m in situation %}
+      <div class="dir-figure metric-{{ m.key }}">
+        <strong>{{ "{:,}".format(m.value).replace(",", ".") }}</strong>
+        <span>{{ m.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="situation-disclaimer">Cifras reportadas por fuentes oficiales y <strong>en verificación</strong>; no son un conteo confirmado.</p>
+    {% endif %}
+
+    <section class="dir-section" id="personas">
+      <div class="dir-section-head">
+        <div>
+          <p class="eyebrow">Prioridad: las personas</p>
+          <h2>Buscar y reportar personas</h2>
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+      </div>
+
+      <form class="dir-search" method="get" action="{{ url_for('public.directory') }}#personas" role="search">
+        <input type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre o zona…" aria-label="Buscar persona desaparecida">
+        <button class="btn btn-primary" type="submit">Buscar</button>
+      </form>
+
+      {% if persons %}
+      <div class="dir-person-grid">
+        {% for p in persons %}
+        <article class="dir-person-card">
+          <h3>{{ p.first_name }} {{ p.last_name }}</h3>
+          <p class="dir-person-meta">
+            {% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.gender %} · {{ p.gender }}{% endif %}
+          </p>
+          <p class="dir-person-loc"><span>Última ubicación</span> {{ p.last_seen }}</p>
+          {% if p.last_contact_date %}<p class="dir-person-loc"><span>Último contacto</span> {{ p.last_contact_date }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="dir-empty">
+        <p>Aún no hay reportes públicos de personas{% if q %} para «{{ q }}»{% endif %}. Reporta un familiar arriba, o consulta los registros oficiales de búsqueda.</p>
+      </div>
+      {% endif %}
+
+      <div class="dir-registries">
+        <h3>Registros oficiales de búsqueda y reunificación</h3>
+        <ul>
+          {% for r in registries %}
+          <li><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.name }}</a> — {{ r.detail }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
+    </section>
+
+    <section class="dir-section" id="incidentes">
+      <h2>Incidentes de prioridad <span class="dir-count">{{ incident_total }}</span></h2>
+      <div class="dir-chips" role="group" aria-label="Filtrar incidentes por tipo">
+        <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory') }}#incidentes">Todos</a>
+        {% for g in incident_groups %}
+        <a class="dir-chip {{ 'is-active' if category == g.category }}" href="{{ url_for('public.directory', category=g.category) }}#incidentes">{{ g.label }} ({{ g.count }})</a>
+        {% endfor %}
+      </div>
+      <div class="dir-list">
+        {% for i in incidents %}
+        <article class="dir-item sev-{{ i.severity }}">
+          <span class="dir-item-tag">{{ i.category_label }}</span>
+          <h3>{{ i.label }}</h3>
+          {% if i.address %}<p class="dir-item-addr">{{ i.address }}</p>{% endif %}
+          {% if i.situation_note %}<p class="dir-item-note">{{ i.situation_note }}</p>{% endif %}
+        </article>
+        {% else %}
+        <p class="dir-empty">No hay incidentes para este filtro.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="dir-section" id="servicios">
+      <h2>Servicios disponibles</h2>
+      <div class="dir-chips" aria-label="Tipos de servicio">
+        {% for g in service_groups %}<span class="dir-chip is-static">{{ g.label }} ({{ g.count }})</span>{% endfor %}
+      </div>
+      <div class="dir-list">
+        {% for s in services %}
+        <article class="dir-item">
+          <span class="dir-item-tag">{{ s.category_label }}</span>
+          <h3>{{ s.name }}</h3>
+          {% if s.address %}<p class="dir-item-addr">{{ s.address }}</p>{% endif %}
+          {% if s.phone %}<p>{{ s.phone }}</p>{% endif %}
+        </article>
+        {% else %}
+        <p class="dir-empty">Aún no hay servicios cargados. Ejecuta la ingesta de OpenStreetMap.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -1,14 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Mapa operativo · {{ config.APP_NAME }}{% endblock %}
-{% block head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+{% endblock %}
 
 {% block content %}
 <section class="map-page">
   <div class="container map-heading">
     <div>
-      <p class="eyebrow">Panorama humanitario</p>
-      <h1>Mapa operativo de reportes revisados</h1>
-      <p>Explora necesidades, recursos y zonas afectadas sin exponer direcciones exactas ni información de contacto.</p>
+      <p class="eyebrow">Mapa vivo</p>
+      <h1>Mapa operativo del terremoto</h1>
+      <p>Sismos y réplicas (USGS / GDACS) y el directorio de servicios (OpenStreetMap), en tiempo casi real. Los reportes revisados se muestran sin exponer direcciones exactas ni contactos.</p>
     </div>
     <div class="map-privacy-note" role="note">
       <span aria-hidden="true"></span>
@@ -16,17 +20,29 @@
     </div>
   </div>
 
-  <div class="container map-metrics" aria-label="Resumen del mapa">
-    <div><span>Reportes visibles</span><strong data-map-total>—</strong></div>
-    <div><span>Atención prioritaria</span><strong data-map-priority>—</strong></div>
-    <div><span>Zonas representadas</span><strong data-map-zones>—</strong></div>
-    <div><span>Última actualización</span><strong data-map-updated>—</strong></div>
+  <div class="container situation-bar">
+    <div class="situation-metrics" data-situation-metrics role="list" aria-label="Cifras de situación reportadas">
+      <p class="situation-loading">Cargando cifras de situación…</p>
+    </div>
+    <p class="situation-disclaimer">
+      Cifras agregadas <strong>reportadas por fuentes públicas y en verificación</strong>;
+      no son un conteo oficial confirmado. Cada cifra muestra su fuente y fecha.
+    </p>
   </div>
 
   <div class="container map-workspace">
     <div class="map-toolbar" aria-label="Controles del mapa">
       <div class="map-control-group">
-        <span class="map-control-label">Mostrar</span>
+        <span class="map-control-label">Capas</span>
+        <div class="map-filter-buttons" role="group" aria-label="Mostrar u ocultar capas del mapa">
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="incidents" aria-pressed="true">Incidentes</button>
+          <button type="button" class="map-chip map-layer-chip" data-map-layer="events" aria-pressed="false">Sismos</button>
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="services" aria-pressed="true">Servicios</button>
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="reports" aria-pressed="true">Reportes</button>
+        </div>
+      </div>
+      <div class="map-control-group">
+        <span class="map-control-label">Reportes</span>
         <div class="map-filter-buttons" role="group" aria-label="Filtrar reportes por tipo">
           <button type="button" class="map-chip is-active" data-map-filter="all" aria-pressed="true">Todo</button>
           <button type="button" class="map-chip" data-map-filter="help_request" aria-pressed="false">Necesidades</button>
@@ -49,16 +65,19 @@
         <div
           id="report-map"
           data-map-endpoint="{{ url_for('map.data') }}"
+          data-live-endpoint="{{ url_for('map.live') }}"
           data-tile-url="{{ config.MAP_TILE_URL }}"
           role="region"
-          aria-label="Mapa de reportes humanitarios aprobados"
+          aria-label="Mapa vivo de sismos, servicios y reportes aprobados"
           tabindex="0"
         ></div>
         <div class="map-legend" aria-label="Leyenda del mapa">
-          <span><i class="legend-dot need"></i>Necesidad</span>
-          <span><i class="legend-dot resource"></i>Recurso</span>
-          <span><i class="legend-dot affected"></i>Zona afectada</span>
-          <span><i class="legend-dot missing"></i>Sin contacto</span>
+          <span><i class="legend-dot crit"></i>Crítico</span>
+          <span><i class="legend-dot high"></i>Alto</span>
+          <span><i class="legend-dot quake"></i>Sismo</span>
+          <span><i class="legend-dot hospital"></i>Hospital</span>
+          <span><i class="legend-dot shelter"></i>Refugio</span>
+          <span><i class="legend-dot water"></i>Agua</span>
         </div>
       </div>
 
@@ -76,8 +95,8 @@
     </div>
 
     <div class="map-method-note">
-      <strong>Cómo leer la concentración</strong>
-      <p>Los círculos agrupan reportes aproximados por sector. Una concentración alta indica más señales revisadas, no confirma por sí sola el número de víctimas ni sustituye una evaluación en terreno.</p>
+      <strong>Cómo leer el mapa</strong>
+      <p>El mapa de calor muestra la <strong>intensidad por zona afectada</strong> (más intenso donde el impacto fue mayor, como La Guaira); es un modelo, no un conteo de víctimas. Al acercar, el calor da paso a los <strong>incidentes específicos</strong> con su edificio y dirección exacta, y a los clusters. No sustituye una evaluación en terreno.</p>
     </div>
   </div>
 </section>
@@ -85,5 +104,7 @@
 
 {% block scripts %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" defer></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
   <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
 {% endblock %}

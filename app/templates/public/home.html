@@ -7,8 +7,9 @@
       <h1>Información útil para orientar ayuda, con evidencia y revisión humana.</h1>
       <p class="lead">Consulta necesidades, recursos, personas sin contacto y zonas afectadas. Cada dato público conserva contexto, frescura y límites claros.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="{{ url_for('map.index') }}">Explorar el mapa</a>
-        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('reports.index') }}">Ver información revisada</a>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('public.directory') }}">Directorio · personas y rescate</a>
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
+        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
       </div>
       <p class="hero-disclaimer">No es un servicio oficial de emergencias. La ausencia de registros no significa ausencia de daño.</p>
     </div>
