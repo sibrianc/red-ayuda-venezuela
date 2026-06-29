@@ -94,6 +94,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   let incidentsCluster = null;
   let incidentsHeat = null;
   let dangerLayer = null;
+  let userLayer = null;
   let applyIncidentLayers = () => {};
   if (mapAvailable) {
     map = L.map(element, { scrollWheelZoom: false, zoomControl: false, preferCanvas: true })
@@ -133,6 +134,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     servicesLayer = clusterGroup().addTo(map);
     incidentsCluster = clusterGroup();
     dangerLayer = L.layerGroup().addTo(map);  // zonas de peligro: SIEMPRE visibles (seguridad)
+    userLayer = L.layerGroup().addTo(map);    // "tú estás aquí" + radio de búsqueda
     pointLayer = L.layerGroup().addTo(map);
     densityLayer = L.layerGroup();
 
@@ -195,6 +197,55 @@ window.addEventListener("DOMContentLoaded", async () => {
   // datos de muestra, caen en el mar); siguen disponibles con su toggle.
   const layerVisible = { danger: true, incidents: true, events: false, services: true, reports: true };
   const filteredReports = () => reports.filter((report) => activeFilter === "all" || report.type === activeFilter);
+
+  // --- GPS del usuario + radio de búsqueda (10/25/50 km) --------------------
+  let userLocation = null;
+  let activeRadius = 0; // km; 0 = todo
+  const haversineKm = (aLat, aLng, bLat, bLng) => {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(bLat - aLat);
+    const dLng = toRad(bLng - aLng);
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  };
+  const fmtDist = (km) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
+  const servicesInRange = () =>
+    userLocation && activeRadius
+      ? services.filter((s) => haversineKm(userLocation.lat, userLocation.lng, s.latitude, s.longitude) <= activeRadius)
+      : services;
+  const drawUserLayer = () => {
+    if (!userLayer) return;
+    userLayer.clearLayers();
+    if (!userLocation) return;
+    L.marker([userLocation.lat, userLocation.lng], {
+      icon: L.divIcon({ className: "user-pin", html: "<span></span>", iconSize: [22, 22], iconAnchor: [11, 11] }),
+      zIndexOffset: 1200,
+    }).bindPopup("Tu ubicación").addTo(userLayer);
+    if (activeRadius) {
+      L.circle([userLocation.lat, userLocation.lng], {
+        radius: activeRadius * 1000, color: "#2a8fd6", weight: 1.4,
+        fillColor: "#2a8fd6", fillOpacity: 0.06, dashArray: "6 6", interactive: false,
+      }).addTo(userLayer);
+    }
+  };
+  const locateUser = (btn) => {
+    if (!navigator.geolocation) {
+      if (status) status.textContent = "Tu navegador no permite geolocalización.";
+      return;
+    }
+    if (status) status.textContent = "Obteniendo tu ubicación…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (btn) { btn.classList.add("is-active"); btn.setAttribute("aria-pressed", "true"); }
+        if (map) map.setView([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 12));
+        drawUserLayer();
+        render();
+      },
+      () => { if (status) status.textContent = "No pudimos obtener tu ubicación (permiso denegado o sin señal)."; },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const popupRow = (parent, text, className) => {
     if (!text) return;
@@ -308,7 +359,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (!servicesLayer) return;
     servicesLayer.clearLayers();
     if (!layerVisible.services) return;
-    services.forEach((service) => {
+    servicesInRange().forEach((service) => {
       const meta = serviceMeta[service.category] || serviceMeta.other;
       const marker = L.marker([service.latitude, service.longitude], {
         icon: serviceIcon(meta, service.category),
@@ -323,6 +374,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       popup.append(tag, heading);
       popupRow(popup, service.address);
       popupRow(popup, service.phone);
+      if (userLocation) {
+        const dist = haversineKm(userLocation.lat, userLocation.lng, service.latitude, service.longitude);
+        popupRow(popup, `A ${fmtDist(dist)} de ti`, "map-popup-dist");
+      }
       if (service.maps_url) {
         const link = document.createElement("a");
         link.className = "map-popup-maps";
@@ -528,6 +583,26 @@ window.addEventListener("DOMContentLoaded", async () => {
       layerVisible[layer] = !layerVisible[layer];
       button.classList.toggle("is-active", layerVisible[layer]);
       button.setAttribute("aria-pressed", layerVisible[layer] ? "true" : "false");
+      render();
+    });
+  });
+
+  document.querySelectorAll("[data-map-locate]").forEach((button) => {
+    button.addEventListener("click", () => locateUser(button));
+  });
+  document.querySelectorAll("[data-map-radius]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeRadius = Number(button.dataset.mapRadius) || 0;
+      document.querySelectorAll("[data-map-radius]").forEach((candidate) => {
+        const active = candidate === button;
+        candidate.classList.toggle("is-active", active);
+        candidate.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+      if (!userLocation && activeRadius) {
+        locateUser(document.querySelector("[data-map-locate]"));
+        return;
+      }
+      drawUserLayer();
       render();
     });
   });

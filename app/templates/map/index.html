@@ -52,6 +52,16 @@
           <button type="button" class="map-chip" data-map-filter="missing_person" aria-pressed="false">Sin contacto</button>
         </div>
       </div>
+      <div class="map-control-group map-near-control">
+        <span class="map-control-label">Cerca de mí</span>
+        <div class="map-filter-buttons" role="group" aria-label="Ubicación y radio de búsqueda">
+          <button type="button" class="map-chip map-locate-chip" data-map-locate aria-pressed="false">📍 Usar mi GPS</button>
+          <button type="button" class="map-chip map-radius-chip is-active" data-map-radius="0" aria-pressed="true">Todo</button>
+          <button type="button" class="map-chip map-radius-chip" data-map-radius="10" aria-pressed="false">10 km</button>
+          <button type="button" class="map-chip map-radius-chip" data-map-radius="25" aria-pressed="false">25 km</button>
+          <button type="button" class="map-chip map-radius-chip" data-map-radius="50" aria-pressed="false">50 km</button>
+        </div>
+      </div>
       <div class="map-control-group map-view-control">
         <span class="map-control-label">Vista</span>
         <div class="map-segmented" role="group" aria-label="Cambiar representación del mapa">

@@ -617,3 +617,11 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .map-chip.danger-chip.is-active { background:#e5253a; border-color:#e5253a; color:#fff; }
 .map-popup-danger { margin:.2rem 0 .4rem; font-weight:800; color:#e5253a; }
 .legend-danger { display:inline-block; width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:12px solid #e5253a; margin-right:.4rem; vertical-align:middle; }
+
+/* Mapa — GPS del usuario y radio de búsqueda */
+.user-pin { background:transparent; border:0; }
+.user-pin span { display:block; width:18px; height:18px; border-radius:50%; background:#2a8fd6; border:3px solid #fff; box-shadow:0 0 0 4px rgba(42,143,214,.35); animation:userPulse 1.9s ease-out infinite; }
+@keyframes userPulse { 0%{ box-shadow:0 0 0 0 rgba(42,143,214,.5);} 100%{ box-shadow:0 0 0 16px rgba(42,143,214,0);} }
+.map-popup-dist { font-weight:700; color:#2a8fd6; margin:.2rem 0; }
+.map-locate-chip.is-active { background:#2a8fd6; border-color:#2a8fd6; color:#fff; }
+.map-radius-chip.is-active { background:var(--brand); border-color:var(--brand); color:#04222e; }

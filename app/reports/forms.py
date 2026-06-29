@@ -34,7 +34,7 @@ class BaseReportForm(FlaskForm):
         "Información adicional solo para el equipo", validators=[Optional(), Length(max=3000)]
     )
     reporter_name_private = StringField(
-        "Tu nombre", validators=[DataRequired(), Length(max=120)]
+        "Tu nombre (de quien hace el reporte)", validators=[DataRequired(), Length(max=120)]
     )
     reporter_contact_private = StringField(
         "Teléfono o correo donde podamos contactarte",
@@ -49,15 +49,31 @@ class BaseReportForm(FlaskForm):
 
 
 class MissingPersonForm(BaseReportForm):
-    first_name = StringField("Nombre", validators=[DataRequired(), Length(max=100)])
-    last_name = StringField("Apellido", validators=[DataRequired(), Length(max=100)])
-    age = IntegerField("Edad aproximada", validators=[Optional(), NumberRange(min=0, max=120)])
+    first_name = StringField(
+        "Nombre de la persona desaparecida", validators=[DataRequired(), Length(max=100)]
+    )
+    last_name = StringField(
+        "Apellido de la persona desaparecida", validators=[DataRequired(), Length(max=100)]
+    )
+    age = IntegerField(
+        "Edad aproximada de la persona", validators=[Optional(), NumberRange(min=0, max=120)]
+    )
     gender = SelectField(
-        "Género (opcional)",
+        "Género de la persona (opcional)",
         choices=[("", "Prefiero no indicar"), ("female", "Femenino"), ("male", "Masculino"), ("other", "Otro")],
         validators=[Optional()],
     )
-    last_contact_date = DateField("Fecha aproximada del último contacto", validators=[Optional()])
+    last_contact_date = DateField(
+        "Fecha aproximada del último contacto con la persona", validators=[Optional()]
+    )
+    # Etiquetas específicas para reunificación (sobrescriben las genéricas de la base).
+    location_text = StringField(
+        "¿Dónde se le vio por última vez?", validators=[DataRequired(), Length(max=160)]
+    )
+    description_public = TextAreaField(
+        "Descripción de la persona (estatura, contextura, ropa, señas particulares)",
+        validators=[DataRequired(), Length(min=10, max=2000)],
+    )
     relationship_to_person_private = StringField(
         "Relación con la persona (privado)", validators=[Optional(), Length(max=100)]
     )
@@ -69,7 +85,7 @@ class MissingPersonForm(BaseReportForm):
 
 
 class HelpRequestForm(BaseReportForm):
-    title = StringField("Título breve", validators=[DataRequired(), Length(max=160)])
+    title = StringField("Resumen de la necesidad", validators=[DataRequired(), Length(max=160)])
     request_type = SelectField(
         "Necesidad principal",
         choices=[
@@ -98,7 +114,7 @@ class HelpRequestForm(BaseReportForm):
 
 
 class ResourceOfferForm(BaseReportForm):
-    title = StringField("Título breve", validators=[DataRequired(), Length(max=160)])
+    title = StringField("Resumen del recurso que ofreces", validators=[DataRequired(), Length(max=160)])
     resource_type = SelectField(
         "Tipo de recurso",
         choices=[
@@ -117,7 +133,9 @@ class ResourceOfferForm(BaseReportForm):
 
 
 class LocationReportForm(BaseReportForm):
-    title = StringField("Título breve", validators=[DataRequired(), Length(max=160)])
+    title = StringField(
+        "Edificio o lugar afectado que quieres reportar", validators=[DataRequired(), Length(max=160)]
+    )
     damage_level = SelectField(
         "Nivel aparente de daño",
         choices=[
