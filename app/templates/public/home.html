@@ -12,95 +12,95 @@
 
   <section class="rv-hero">
     <div class="container rv-hero-inner">
-      <span class="rv-badge"><i aria-hidden="true"></i> Panorama humanitario público</span>
-      <h1>Ayuda coordinada para Venezuela</h1>
-      <p class="rv-lead">Consulta y reporta personas sin contacto, solicitudes de ayuda, recursos y zonas afectadas. Cada dato público conserva fuente, frescura y límites de privacidad claros.</p>
+      <span class="rv-badge"><i aria-hidden="true"></i> {{ _('Panorama humanitario público') }}</span>
+      <h1>{{ _('Ayuda coordinada para Venezuela') }}</h1>
+      <p class="rv-lead">{{ _('Consulta y reporta personas sin contacto, solicitudes de ayuda, recursos y zonas afectadas. Cada dato público conserva fuente, frescura y límites de privacidad claros.') }}</p>
       <div class="rv-hero-actions">
-        <a class="rv-btn rv-btn-light rv-btn-lg" href="{{ url_for('public.directory_people') }}">Buscar personas →</a>
-        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">Emergencia · 911</a>
+        <a class="rv-btn rv-btn-light rv-btn-lg" href="{{ url_for('public.directory_people') }}">{{ _('Buscar personas →') }}</a>
+        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">{{ _('Emergencia · 911') }}</a>
       </div>
-      <nav class="rv-hero-sub" aria-label="Accesos del directorio">
-        <a href="{{ url_for('public.directory') }}">Directorio de incidentes y servicios</a>
-        <a href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
-        <a href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
+      <nav class="rv-hero-sub" aria-label="{{ _('Directorio de incidentes y servicios') }}">
+        <a href="{{ url_for('public.directory') }}">{{ _('Directorio de incidentes y servicios') }}</a>
+        <a href="{{ url_for('reports.missing_person') }}">{{ _('Reportar un familiar') }}</a>
+        <a href="{{ url_for('map.index') }}">{{ _('Ver el mapa vivo') }}</a>
       </nav>
       <dl class="rv-stats">
-        <div><dd data-summary-total>{{ summary.total }}</dd><dt>Registros visibles</dt></div>
-        <div><dd data-summary-priority>{{ summary.attention_priority }}</dd><dt>Atención prioritaria</dt></div>
-        <div><dd>{{ summary.people_without_contact }}</dd><dt>Personas sin contacto</dt></div>
-        <div><dd data-summary-zones>{{ summary.represented_zones }}</dd><dt>Zonas representadas</dt></div>
+        <div><dd data-summary-total>{{ summary.total }}</dd><dt>{{ _('Registros visibles') }}</dt></div>
+        <div><dd data-summary-priority>{{ summary.attention_priority }}</dd><dt>{{ _('Atención prioritaria') }}</dt></div>
+        <div><dd>{{ summary.people_without_contact }}</dd><dt>{{ _('Personas sin contacto') }}</dt></div>
+        <div><dd data-summary-zones>{{ summary.represented_zones }}</dd><dt>{{ _('Zonas representadas') }}</dt></div>
       </dl>
-      <p class="rv-hero-note">No es un servicio oficial de emergencia. La ausencia de registros no significa ausencia de daño.</p>
+      <p class="rv-hero-note">{{ _('No es un servicio oficial de emergencia. La ausencia de registros no significa ausencia de daño.') }}</p>
     </div>
   </section>
 
   <section class="container rv-section" aria-labelledby="rv-actions-title">
-    <p class="rv-kicker">Reportar</p>
-    <h2 class="rv-h2" id="rv-actions-title">¿Qué quieres reportar?</h2>
+    <p class="rv-kicker">{{ _('Reportar') }}</p>
+    <h2 class="rv-h2" id="rv-actions-title">{{ _('¿Qué quieres reportar?') }}</h2>
     <div class="rv-action-grid">
       <a class="rv-card rv-c-persona" href="{{ url_for('reports.missing_person') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('user-search') }}</span>
-        <h3>Persona sin contacto</h3>
-        <p>Reporta a alguien con quien tu familia perdió comunicación.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Persona sin contacto') }}</h3>
+        <p>{{ _('Reporta a alguien con quien tu familia perdió comunicación.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
       <a class="rv-card rv-c-ayuda" href="{{ url_for('reports.help_request') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('life-buoy') }}</span>
-        <h3>Solicitar ayuda</h3>
-        <p>Pide agua, atención médica, alimentos, refugio o transporte.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Solicitar ayuda') }}</h3>
+        <p>{{ _('Pide agua, atención médica, alimentos, refugio o transporte.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
       <a class="rv-card rv-c-recurso" href="{{ url_for('reports.resource_offer') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('package') }}</span>
-        <h3>Ofrecer recurso</h3>
-        <p>Comparte albergue, transporte, víveres, equipos o tu tiempo.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Ofrecer recurso') }}</h3>
+        <p>{{ _('Comparte albergue, transporte, víveres, equipos o tu tiempo.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
       <a class="rv-card rv-c-zona" href="{{ url_for('reports.location_report') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('map-pin') }}</span>
-        <h3>Reportar una zona</h3>
-        <p>Informa daños, edificios colapsados o zonas de peligro.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Reportar una zona') }}</h3>
+        <p>{{ _('Informa daños, edificios colapsados o zonas de peligro.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
       <a class="rv-card rv-c-comm" href="{{ url_for('reports.communication_signal') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('wifi-off') }}</span>
-        <h3>Zona sin comunicación</h3>
-        <p>Alerta de posibles víctimas incomunicadas en un sector.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Zona sin comunicación') }}</h3>
+        <p>{{ _('Alerta de posibles víctimas incomunicadas en un sector.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
       <a class="rv-card rv-c-pet" href="{{ url_for('reports.lost_pet') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('paw') }}</span>
-        <h3>Mascota desaparecida</h3>
-        <p>Reporta una mascota perdida tras el sismo.</p>
-        <span class="rv-go">Comenzar →</span>
+        <h3>{{ _('Mascota desaparecida') }}</h3>
+        <p>{{ _('Reporta una mascota perdida tras el sismo.') }}</p>
+        <span class="rv-go">{{ _('Comenzar →') }}</span>
       </a>
     </div>
   </section>
 
   <section class="container rv-section rv-two">
     <div>
-      <p class="rv-kicker">Cómo funciona</p>
-      <h2 class="rv-h2">Tres pasos, con verificación automática</h2>
+      <p class="rv-kicker">{{ _('Cómo funciona') }}</p>
+      <h2 class="rv-h2">{{ _('Tres pasos, con verificación automática') }}</h2>
       <div class="rv-steps">
-        <div class="rv-step"><span>1</span><div><h3>Envías tu reporte</h3><p>Completas un formulario simple. Tus datos de contacto quedan privados desde el inicio.</p></div></div>
-        <div class="rv-step"><span>2</span><div><h3>Limpieza y verificación automática</h3><p>El sistema limpia y valida cada reporte al instante, sin esperar a nadie. Lo que no pasa los controles se resguarda en cola, no se pierde.</p></div></div>
-        <div class="rv-step"><span>3</span><div><h3>Publicación segura</h3><p>Solo aparece lo apto, sin direcciones exactas ni contactos visibles. Los menores nunca se publican.</p></div></div>
+        <div class="rv-step"><span>1</span><div><h3>{{ _('Envías tu reporte') }}</h3><p>{{ _('Completas un formulario simple. Tus datos de contacto quedan privados desde el inicio.') }}</p></div></div>
+        <div class="rv-step"><span>2</span><div><h3>{{ _('Limpieza y verificación automática') }}</h3><p>{{ _('El sistema limpia y valida cada reporte al instante, sin esperar a nadie. Lo que no pasa los controles se resguarda en cola, no se pierde.') }}</p></div></div>
+        <div class="rv-step"><span>3</span><div><h3>{{ _('Publicación segura') }}</h3><p>{{ _('Solo aparece lo apto, sin direcciones exactas ni contactos visibles. Los menores nunca se publican.') }}</p></div></div>
       </div>
     </div>
     <aside class="rv-trust" aria-labelledby="rv-trust-title">
-      <h3 id="rv-trust-title">Tu privacidad, protegida</h3>
+      <h3 id="rv-trust-title">{{ _('Tu privacidad, protegida') }}</h3>
       <ul>
-        <li>Los contactos, direcciones exactas y notas médicas nunca son públicos.</li>
-        <li>Los reportes que involucran a un menor nunca se publican de forma automática.</li>
-        <li>Lo que no pasa la verificación automática se resguarda para revisión; nada se descarta.</li>
+        <li>{{ _('Los contactos, direcciones exactas y notas médicas nunca son públicos.') }}</li>
+        <li>{{ _('Los reportes que involucran a un menor nunca se publican de forma automática.') }}</li>
+        <li>{{ _('Lo que no pasa la verificación automática se resguarda para revisión; nada se descarta.') }}</li>
       </ul>
-      <p class="rv-note">No es un servicio oficial de emergencia. Ante peligro inmediato, marca el <strong>9-1-1</strong>.</p>
+      <p class="rv-note">{{ _('No es un servicio oficial de emergencia. Ante peligro inmediato, marca el 9-1-1.') }}</p>
     </aside>
   </section>
 
   <section class="container rv-section" id="situacion" aria-labelledby="rv-recent-title">
-    <p class="rv-kicker">Actualizaciones</p>
-    <h2 class="rv-h2" id="rv-recent-title">Información pública reciente</h2>
+    <p class="rv-kicker">{{ _('Actualizaciones') }}</p>
+    <h2 class="rv-h2" id="rv-recent-title">{{ _('Información pública reciente') }}</h2>
     <div class="rv-recent">
       {% for item in recent_items %}
         <article class="rv-recent-card">
@@ -114,24 +114,24 @@
         </article>
       {% else %}
         <div class="rv-empty">
-          <p class="rv-kicker">Sin registros publicados</p>
-          <h3>La estructura está lista; no mostramos datos no verificados.</h3>
-          <p>Cuando exista información apta aparecerá aquí, con fuente, fecha y ubicación segura.</p>
+          <p class="rv-kicker">{{ _('Sin registros publicados') }}</p>
+          <h3>{{ _('La estructura está lista; no mostramos datos no verificados.') }}</h3>
+          <p>{{ _('Cuando exista información apta aparecerá aquí, con fuente, fecha y ubicación segura.') }}</p>
         </div>
       {% endfor %}
     </div>
-    {% if recent_items %}<a class="rv-textlink" href="{{ url_for('reports.index') }}">Consultar todo el listado →</a>{% endif %}
+    {% if recent_items %}<a class="rv-textlink" href="{{ url_for('reports.index') }}">{{ _('Consultar todo el listado →') }}</a>{% endif %}
   </section>
 
   <section class="container">
     <div class="rv-cta">
       <div>
-        <h2>Cada reporte ayuda a coordinar mejor la respuesta</h2>
-        <p>Explora el directorio y el mapa, busca a un familiar o registra un reporte en minutos.</p>
+        <h2>{{ _('Cada reporte ayuda a coordinar mejor la respuesta') }}</h2>
+        <p>{{ _('Explora el directorio y el mapa, busca a un familiar o registra un reporte en minutos.') }}</p>
       </div>
       <div class="rv-cta-actions">
-        <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory') }}">Ver directorio</a>
-        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">Contactos · 911</a>
+        <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory') }}">{{ _('Ver directorio') }}</a>
+        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">{{ _('Contactos · 911') }}</a>
       </div>
     </div>
   </section>

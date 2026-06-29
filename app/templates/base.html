@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-bandwidth="standard" data-theme="dark">
+<html lang="{{ current_locale }}" data-bandwidth="standard" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,9 +15,9 @@
   {% block head %}{% endblock %}
 </head>
 <body>
-  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <a class="skip-link" href="#contenido">{{ _('Saltar al contenido') }}</a>
   <div class="official-warning" role="note">
-    Esta plataforma no es un servicio oficial de emergencia. Si hay peligro inmediato, busca ayuda local disponible.
+    {{ _('Esta plataforma no es un servicio oficial de emergencia. Si hay peligro inmediato, busca ayuda local disponible.') }}
   </div>
   <nav class="navbar navbar-expand-lg site-nav" aria-label="Navegación principal">
     <div class="container">
@@ -30,33 +30,36 @@
       </button>
       <div class="collapse navbar-collapse" id="navPrincipal">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.home') }}#situacion">Situación</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('reports.index') }}">Información</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('map.index') }}">Mapa</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.directory') }}">Directorio</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.coordination') }}">Coordinación</a></li>
-          <li class="nav-item"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">Emergencia</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.home') }}#situacion">{{ _('Situación') }}</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('reports.index') }}">{{ _('Información') }}</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('map.index') }}">{{ _('Mapa') }}</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.directory') }}">{{ _('Directorio') }}</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('public.coordination') }}">{{ _('Coordinación') }}</a></li>
+          <li class="nav-item"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">{{ _('Emergencia') }}</a></li>
           <li class="nav-item">
-            <button class="btn btn-sm theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="Cambiar entre modo oscuro y modo para luz solar">
-              <span class="theme-toggle-dot" aria-hidden="true"></span><span data-theme-label>Modo sol</span>
+            <button class="btn btn-sm theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="{{ _('Cambiar entre modo oscuro y modo para luz solar') }}">
+              <span class="theme-toggle-dot" aria-hidden="true"></span><span data-theme-label>{{ _('Modo sol') }}</span>
             </button>
           </li>
           <li class="nav-item">
             <button class="btn btn-sm bandwidth-toggle" type="button" data-bandwidth-toggle aria-pressed="false">
-              Modo ligero
+              {{ _('Modo ligero') }}
             </button>
           </li>
-          <li class="nav-item"><a class="btn btn-sm btn-primary nav-report-button" href="{{ url_for('reports.help_request') }}">Crear reporte</a></li>
+          <li class="nav-item lang-switch" aria-label="{{ _('Idioma') }}">
+            {% for code, label in LANGUAGES.items() %}<a class="lang-link{{ ' is-active' if current_locale == code }}" href="{{ set_lang_link(code) }}" hreflang="{{ code }}" rel="nofollow">{{ code|upper }}</a>{% endfor %}
+          </li>
+          <li class="nav-item"><a class="btn btn-sm btn-primary nav-report-button" href="{{ url_for('reports.help_request') }}">{{ _('Crear reporte') }}</a></li>
           {% if current_user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Administración</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">{{ _('Administración') }}</a></li>
             <li class="nav-item">
               <form method="post" action="{{ url_for('auth.logout') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-outline-secondary" type="submit">Salir</button>
+                <button class="btn btn-sm btn-outline-secondary" type="submit">{{ _('Salir') }}</button>
               </form>
             </li>
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Acceso interno</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">{{ _('Acceso interno') }}</a></li>
           {% endif %}
         </ul>
       </div>
@@ -76,12 +79,12 @@
     <div class="container site-footer-grid">
       <div>
         <strong>Red de Ayuda Venezuela</strong>
-        <p>Información humanitaria revisada por personas. Ausencia de reportes no significa ausencia de daño.</p>
+        <p>{{ _('Información humanitaria revisada por personas. Ausencia de reportes no significa ausencia de daño.') }}</p>
       </div>
       <div class="footer-links">
-        <a href="{{ url_for('reports.index') }}">Reportes revisados</a>
-        <a href="{{ url_for('map.index') }}">Mapa operativo</a>
-        <a href="{{ url_for('public.privacy') }}">Privacidad y uso responsable</a>
+        <a href="{{ url_for('reports.index') }}">{{ _('Reportes revisados') }}</a>
+        <a href="{{ url_for('map.index') }}">{{ _('Mapa operativo') }}</a>
+        <a href="{{ url_for('public.privacy') }}">{{ _('Privacidad y uso responsable') }}</a>
       </div>
     </div>
   </footer>

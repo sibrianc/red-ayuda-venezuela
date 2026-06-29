@@ -40,6 +40,9 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(map_bp)
     app.register_blueprint(errors_bp)
 
+    from app import i18n
+    i18n.init_app(app)
+
     register_cli(app)
     register_template_helpers(app)
     register_security_headers(app)
