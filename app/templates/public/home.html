@@ -1,117 +1,129 @@
 {% extends "base.html" %}
+{% block title %}{{ config.APP_NAME }} · Ayuda coordinada{% endblock %}
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
 {% block content %}
-<section class="situation-hero">
-  <div class="container situation-hero-grid">
-    <div class="situation-intro">
-      <p class="eyebrow">Panorama humanitario público</p>
-      <h1>Información útil para orientar ayuda, con evidencia y revisión humana.</h1>
-      <p class="lead">Consulta necesidades, recursos, personas sin contacto y zonas afectadas. Cada dato público conserva contexto, frescura y límites claros.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="{{ url_for('public.directory') }}#personas">Buscar a un familiar</a>
-        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
-        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
-        <a class="btn btn-danger btn-lg" href="{{ url_for('public.contacts') }}">Emergencia · 911</a>
+<div class="rv-page">
+  <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <section class="rv-hero">
+    <div class="container rv-hero-inner">
+      <span class="rv-badge"><i aria-hidden="true"></i> Panorama humanitario público</span>
+      <h1>Ayuda coordinada para Venezuela</h1>
+      <p class="rv-lead">Consulta y reporta personas sin contacto, solicitudes de ayuda, recursos y zonas afectadas. Cada dato público conserva fuente, frescura y límites de privacidad claros.</p>
+      <div class="rv-hero-actions">
+        <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory') }}#personas">Buscar a un familiar →</a>
+        <a class="rv-btn rv-btn-ghost" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+        <a class="rv-btn rv-btn-ghost" href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
+        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">Emergencia · 911</a>
       </div>
-      <p class="hero-disclaimer">No es un servicio oficial de emergencias. La ausencia de registros no significa ausencia de daño.</p>
-    </div>
-    <aside class="situation-brief" aria-labelledby="brief-title">
-      <div class="brief-heading">
-        <div>
-          <p class="eyebrow">Estado del sistema</p>
-          <h2 id="brief-title">Datos públicos revisados</h2>
-        </div>
-        <span class="system-status"><i aria-hidden="true"></i> Operativo</span>
-      </div>
-      <dl class="brief-metrics">
-        <div><dt>Registros visibles</dt><dd data-summary-total>{{ summary.total }}</dd></div>
-        <div><dt>Atención prioritaria</dt><dd data-summary-priority>{{ summary.attention_priority }}</dd></div>
-        <div><dt>Zonas representadas</dt><dd data-summary-zones>{{ summary.represented_zones }}</dd></div>
-        <div><dt>Actualización</dt><dd>{% if summary.updated_at %}{{ summary.updated_at|venezuela_time('%d %b · %H:%M') }}{% else %}Sin datos aprobados{% endif %}</dd></div>
+      <dl class="rv-stats">
+        <div><dd data-summary-total>{{ summary.total }}</dd><dt>Registros visibles</dt></div>
+        <div><dd data-summary-priority>{{ summary.attention_priority }}</dd><dt>Atención prioritaria</dt></div>
+        <div><dd>{{ summary.people_without_contact }}</dd><dt>Personas sin contacto</dt></div>
+        <div><dd data-summary-zones>{{ summary.represented_zones }}</dd><dt>Zonas representadas</dt></div>
       </dl>
-      <p class="brief-note">Las cifras incluyen exclusivamente reportes aprobados y marcados como públicos.</p>
-    </aside>
-  </div>
-</section>
-
-<section class="container public-dashboard" id="situacion" aria-labelledby="situation-title">
-  <div class="dashboard-heading">
-    <div>
-      <p class="eyebrow">Situación revisada</p>
-      <h2 id="situation-title">¿Qué información está disponible?</h2>
+      <p class="rv-hero-note">No es un servicio oficial de emergencia. La ausencia de registros no significa ausencia de daño.</p>
     </div>
-    <p>Los números describen registros publicados en esta plataforma; no equivalen al total real de personas o necesidades.</p>
-  </div>
-  <div class="signal-grid">
-    <a class="signal-card signal-people" href="{{ url_for('reports.index', type='missing_person') }}">
-      <span class="signal-code" aria-hidden="true">P</span>
-      <div><strong>{{ summary.people_without_contact }}</strong><h3>Personas sin contacto</h3><p>Casos sanitizados que requieren consulta o seguimiento responsable.</p></div>
-    </a>
-    <a class="signal-card signal-needs" href="{{ url_for('reports.index', type='help_request') }}">
-      <span class="signal-code" aria-hidden="true">N</span>
-      <div><strong>{{ summary.needs }}</strong><h3>Necesidades reportadas</h3><p>Agua, alimentos, salud, refugio, transporte y otras solicitudes revisadas.</p></div>
-    </a>
-    <a class="signal-card signal-resources" href="{{ url_for('reports.index', type='resource_offer') }}">
-      <span class="signal-code" aria-hidden="true">R</span>
-      <div><strong>{{ summary.resources }}</strong><h3>Recursos disponibles</h3><p>Ofertas publicadas sin exponer el contacto privado del responsable.</p></div>
-    </a>
-    <a class="signal-card signal-areas" href="{{ url_for('reports.index', type='location_report') }}">
-      <span class="signal-code" aria-hidden="true">Z</span>
-      <div><strong>{{ summary.affected_zones }}</strong><h3>Zonas afectadas</h3><p>Señales territoriales aproximadas; no confirman por sí solas víctimas.</p></div>
-    </a>
-  </div>
-</section>
+  </section>
 
-<section class="public-workspace">
-  <div class="container public-workspace-grid">
+  <section class="container rv-section" aria-labelledby="rv-actions-title">
+    <p class="rv-kicker">¿Qué necesitas hacer?</p>
+    <h2 class="rv-h2" id="rv-actions-title">Elige cómo participar</h2>
+    <div class="rv-action-grid">
+      <a class="rv-card rv-c-persona" href="{{ url_for('reports.missing_person') }}">
+        <span class="rv-ic" aria-hidden="true">P</span>
+        <h3>Persona sin contacto</h3>
+        <p>Reporta a alguien con quien tu familia perdió comunicación.</p>
+        <span class="rv-go">Comenzar →</span>
+      </a>
+      <a class="rv-card rv-c-ayuda" href="{{ url_for('reports.help_request') }}">
+        <span class="rv-ic" aria-hidden="true">A</span>
+        <h3>Solicitar ayuda</h3>
+        <p>Pide agua, atención médica, alimentos, refugio o transporte.</p>
+        <span class="rv-go">Comenzar →</span>
+      </a>
+      <a class="rv-card rv-c-recurso" href="{{ url_for('reports.resource_offer') }}">
+        <span class="rv-ic" aria-hidden="true">R</span>
+        <h3>Ofrecer recurso</h3>
+        <p>Comparte albergue, transporte, víveres, equipos o tu tiempo.</p>
+        <span class="rv-go">Comenzar →</span>
+      </a>
+      <a class="rv-card rv-c-zona" href="{{ url_for('reports.location_report') }}">
+        <span class="rv-ic" aria-hidden="true">Z</span>
+        <h3>Reportar una zona</h3>
+        <p>Informa daños, edificios colapsados o zonas de peligro.</p>
+        <span class="rv-go">Comenzar →</span>
+      </a>
+      <a class="rv-card rv-c-comm" href="{{ url_for('reports.communication_signal') }}">
+        <span class="rv-ic" aria-hidden="true">C</span>
+        <h3>Zona sin comunicación</h3>
+        <p>Alerta de posibles víctimas incomunicadas en un sector.</p>
+        <span class="rv-go">Comenzar →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="container rv-section rv-two">
     <div>
-      <div class="section-heading compact-heading">
-        <p class="eyebrow">Actualizaciones</p>
-        <h2>Información pública reciente</h2>
+      <p class="rv-kicker">Cómo funciona</p>
+      <h2 class="rv-h2">Tres pasos, con verificación automática</h2>
+      <div class="rv-steps">
+        <div class="rv-step"><span>1</span><div><h3>Envías tu reporte</h3><p>Completas un formulario simple. Tus datos de contacto quedan privados desde el inicio.</p></div></div>
+        <div class="rv-step"><span>2</span><div><h3>Limpieza y verificación automática</h3><p>El sistema limpia y valida cada reporte al instante, sin esperar a nadie. Lo que no pasa los controles se resguarda en cola, no se pierde.</p></div></div>
+        <div class="rv-step"><span>3</span><div><h3>Publicación segura</h3><p>Solo aparece lo apto, sin direcciones exactas ni contactos visibles. Los menores nunca se publican.</p></div></div>
       </div>
-      <div class="home-update-list">
-        {% for item in recent_items %}
-          <article class="home-update-card">
-            <div class="home-update-meta">
-              <span>{{ report_type_labels[item.report_type] }}</span>
-              <time datetime="{{ item.report.updated_at.isoformat() }}">{{ item.report.updated_at|venezuela_time('%d/%m · %H:%M') }}</time>
-            </div>
-            <h3><a href="{{ url_for('reports.detail', report_type=item.report_type.value, public_id=item.report.public_id) }}">{% if item.report_type.value == 'missing_person' %}{{ item.report.first_name }} {{ item.report.last_name }}{% else %}{{ item.report.title }}{% endif %}</a></h3>
-            <p>{{ item.report.description_public|truncate(180) }}</p>
-            <span class="home-update-location">{{ item.report.location_text }}</span>
-          </article>
-        {% else %}
-          <div class="operational-empty-state">
-            <p class="eyebrow">Sin registros publicados</p>
-            <h3>La estructura está lista; todavía no mostraremos datos no verificados.</h3>
-            <p>Cuando exista información aprobada aparecerá aquí, con fuente, fecha y ubicación segura.</p>
+    </div>
+    <aside class="rv-trust" aria-labelledby="rv-trust-title">
+      <h3 id="rv-trust-title">Tu privacidad, protegida</h3>
+      <ul>
+        <li>Los contactos, direcciones exactas y notas médicas nunca son públicos.</li>
+        <li>Los reportes que involucran a un menor nunca se publican de forma automática.</li>
+        <li>Lo que no pasa la verificación automática se resguarda para revisión; nada se descarta.</li>
+      </ul>
+      <p class="rv-note">No es un servicio oficial de emergencia. Ante peligro inmediato, marca el <strong>9-1-1</strong>.</p>
+    </aside>
+  </section>
+
+  <section class="container rv-section" id="situacion" aria-labelledby="rv-recent-title">
+    <p class="rv-kicker">Actualizaciones</p>
+    <h2 class="rv-h2" id="rv-recent-title">Información pública reciente</h2>
+    <div class="rv-recent">
+      {% for item in recent_items %}
+        <article class="rv-recent-card">
+          <div class="rv-recent-meta">
+            <span>{{ report_type_labels[item.report_type] }}</span>
+            <time datetime="{{ item.report.updated_at.isoformat() }}">{{ item.report.updated_at|venezuela_time('%d/%m · %H:%M') }}</time>
           </div>
-        {% endfor %}
-      </div>
-      {% if recent_items %}<a class="text-link" href="{{ url_for('reports.index') }}">Consultar todo el listado</a>{% endif %}
+          <h3><a href="{{ url_for('reports.detail', report_type=item.report_type.value, public_id=item.report.public_id) }}">{% if item.report_type.value == 'missing_person' %}{{ item.report.first_name }} {{ item.report.last_name }}{% else %}{{ item.report.title }}{% endif %}</a></h3>
+          <p>{{ item.report.description_public|truncate(160) }}</p>
+          <span class="rv-recent-loc">{{ item.report.location_text }}</span>
+        </article>
+      {% else %}
+        <div class="rv-empty">
+          <p class="rv-kicker">Sin registros publicados</p>
+          <h3>La estructura está lista; no mostramos datos no verificados.</h3>
+          <p>Cuando exista información apta aparecerá aquí, con fuente, fecha y ubicación segura.</p>
+        </div>
+      {% endfor %}
     </div>
-    <aside class="source-readiness" aria-labelledby="source-title">
-      <p class="eyebrow">Procedencia</p>
-      <h2 id="source-title">Fuentes públicas, sin ruido ni cifras decorativas</h2>
-      <div class="source-status-row"><span>USGS</span><strong>Preparada para staging</strong></div>
-      <div class="source-status-row"><span>GDACS</span><strong>Preparada para staging</strong></div>
-      <div class="source-status-row"><span>ReliefWeb</span><strong>Diferida sin costo</strong></div>
-      <p>Cada fuente externa tendrá licencia, atribución, frecuencia y estado visibles. Preparada no significa conectada ni verificada.</p>
-      <a href="{{ url_for('public.privacy') }}">Cómo protegemos y revisamos los datos</a>
-    </aside>
-  </div>
-</section>
+    {% if recent_items %}<a class="rv-textlink" href="{{ url_for('reports.index') }}">Consultar todo el listado →</a>{% endif %}
+  </section>
 
-<section class="container action-section" aria-labelledby="actions-title">
-  <div class="dashboard-heading">
-    <div><p class="eyebrow">Aportar información</p><h2 id="actions-title">Reportar en pocos pasos</h2></div>
-    <p>Los formularios son secundarios al índice público, pero permiten cubrir vacíos sin publicar datos automáticamente.</p>
-  </div>
-  <div class="action-grid compact-actions">
-    <a class="action-card" href="{{ url_for('reports.missing_person') }}"><span aria-hidden="true">01</span><h3>Persona sin contacto</h3><p>Registra un caso para revisión privada.</p></a>
-    <a class="action-card" href="{{ url_for('reports.help_request') }}"><span aria-hidden="true">02</span><h3>Solicitar ayuda</h3><p>Describe una necesidad concreta y su zona.</p></a>
-    <a class="action-card" href="{{ url_for('reports.resource_offer') }}"><span aria-hidden="true">03</span><h3>Ofrecer recursos</h3><p>Indica capacidad y disponibilidad.</p></a>
-    <a class="action-card" href="{{ url_for('reports.location_report') }}"><span aria-hidden="true">04</span><h3>Reportar una zona</h3><p>Comparte daños o falta de servicios.</p></a>
-    <a class="action-card" href="{{ url_for('reports.communication_signal') }}"><span aria-hidden="true">05</span><h3>Zona sin comunicación</h3><p>Alerta de posibles víctimas incomunicadas.</p></a>
-  </div>
-</section>
+  <section class="container">
+    <div class="rv-cta">
+      <div>
+        <h2>Cada reporte ayuda a coordinar mejor la respuesta</h2>
+        <p>Explora el directorio y el mapa, busca a un familiar o registra un reporte en minutos.</p>
+      </div>
+      <div class="rv-cta-actions">
+        <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory') }}">Ver directorio</a>
+        <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">Contactos · 911</a>
+      </div>
+    </div>
+  </section>
+</div>
 {% endblock %}
