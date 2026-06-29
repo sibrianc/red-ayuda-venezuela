@@ -40,6 +40,7 @@ documento).
   - `3bdf6d6`, `38079af`, `e684a22` — E4: datos operativos, rediseño visual, mapa y
     directorio global.
   - `245f7e5` — base del importador PFIF y registro canónico de personas.
+  - `c873da4` — cierre PFIF: integración nominal en directorio, pruebas y QA de mapa/CSP.
 
 ## 3. Estado actual: ¿en qué fase estamos?
 
@@ -269,6 +270,7 @@ Objetivo: importar personas desaparecidas/fallecidas **ya publicadas** en PFIF o
 oficiales, preservando procedencia y privacidad, para reunificación familiar.
 
 **Implementado:**
+- Commit de cierre funcional: `c873da4`.
 - Modelo `PersonRecord` (`app/models.py`): personas publicadas con nombre, edad, última
   ubicación, `person_status` (missing/found/deceased), fuente, e `is_minor` (los menores
   se excluyen del público). Migración `f6a7b8c9d0e1`.
