@@ -34,7 +34,17 @@ Por supuesto, respetaremos cualquier término que indiquen (frecuencia, campos, 
 retiro de registros). Si prefieren, podemos también enviarles nuestros reportes para que
 los integren. Gracias por lo que hacen.
 
-[Tu nombre] · [contacto] · [URL del proyecto]
+Carlos Sibrián · carlosssibrian@gmail.com · Red de Ayuda Venezuela
+
+---
+
+### Cómo enviarlo (lo haces tú; yo no puedo enviar correos)
+
+1. Encuentra el contacto de la plataforma (en su web suelen tener correo, formulario o
+   redes; p. ej. el pie de página o "Contacto" de venezuelatebusca.com).
+2. Copia el mensaje de arriba, pégalo en Gmail desde **carlosssibrian@gmail.com** y envíalo.
+3. Cuando respondan con un archivo o enlace de exportación, córrelo con
+   `flask import-persons-json` o `flask import-pfif` y entran los nombres.
 
 ## Cómo ingerir su respuesta
 
