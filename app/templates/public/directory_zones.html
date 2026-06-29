@@ -8,31 +8,30 @@
 {% from "public/_dir_macros.html" import chrome with context %}
 {% block content %}
 <div class="rv-page directory-page">
-  {{ chrome('zonas', 'Alertas', 'Zonas sin comunicación',
-            'Posibles víctimas que no pueden pedir ayuda. Son alertas sin verificar para que los equipos prioricen evaluar la zona.',
+  {{ chrome('zonas', _('Alertas'), _('Zonas sin comunicación'),
+            _('Posibles víctimas que no pueden pedir ayuda. Son alertas sin verificar para que los equipos prioricen evaluar la zona.'),
             q, url_for('public.directory_zones')) }}
 
   <div class="container">
     <section class="dir-section" id="comunicacion">
       <div class="dir-section-head">
         <div>
-          <h2>Zonas sin comunicación{% if comms_total %} <span class="dir-count">{{ comms_total }}</span>{% endif %}</h2>
+          <h2>{{ _('Zonas sin comunicación') }}{% if comms_total %} <span class="dir-count">{{ comms_total }}</span>{% endif %}</h2>
         </div>
-        <a class="btn btn-primary" href="{{ url_for('reports.communication_signal') }}">Reportar zona sin comunicación</a>
+        <a class="btn btn-primary" href="{{ url_for('reports.communication_signal') }}">{{ _('Reportar zona sin comunicación') }}</a>
       </div>
-      {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ comms_total }} zonas.</p>{% endif %}
       {% if comms %}
       <div class="dir-list">
         {% for z in comms %}
         <article class="dir-item dir-comms sev-{{ 'high' if z.status == 'advisory' else 'medium' }}">
-          <span class="dir-item-tag">Sin comunicación · {{ z.status }}</span>
+          <span class="dir-item-tag">{{ _('Zonas sin comunicación') }} · {{ z.status }}</span>
           <h3>{{ z.zone_label }}</h3>
           {% if z.public_note %}<p class="dir-item-note">{{ z.public_note }}</p>{% endif %}
         </article>
         {% endfor %}
       </div>
       {% else %}
-      <div class="dir-empty"><p>No hay zonas sin comunicación reportadas{% if q %} para «{{ q }}»{% endif %}. Si conoces una, repórtala con el botón de arriba.</p></div>
+      <div class="dir-empty"><p>{{ _('No hay zonas sin comunicación reportadas.') }}{% if q %} («{{ q }}»){% endif %} {{ _('Si conoces una, repórtala con el botón de arriba.') }}</p></div>
       {% endif %}
     </section>
   </div>

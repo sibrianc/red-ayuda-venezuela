@@ -7,16 +7,16 @@
 {% endblock %}
 {% from "public/_dir_macros.html" import chrome, pager with context %}
 {% block content %}
-{% set args = {} %}{% if q %}{% set _ = args.update({'q': q}) %}{% endif %}{% if category %}{% set _ = args.update({'category': category}) %}{% endif %}
+{% set args = {} %}{% if q %}{% set _x = args.update({'q': q}) %}{% endif %}{% if category %}{% set _x = args.update({'category': category}) %}{% endif %}
 <div class="rv-page directory-page">
-  {{ chrome('incidentes', 'Edificios e incidentes', 'Incidentes y evaluación estructural',
-            'Colapsos corroborados y evaluaciones satelitales pendientes. Un edificio dañado nunca implica automáticamente que haya personas atrapadas.',
+  {{ chrome('incidentes', _('Edificios e incidentes'), _('Incidentes y evaluación estructural'),
+            _('Colapsos corroborados y evaluaciones satelitales pendientes. Un edificio dañado nunca implica automáticamente que haya personas atrapadas.'),
             q, url_for('public.directory_incidents')) }}
 
   <div class="container">
     <section class="dir-section" id="incidentes">
-      <div class="dir-chips" role="group" aria-label="Filtrar incidentes por tipo">
-        <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory_incidents', q=q or none) }}">Todos ({{ total if not category else '' }})</a>
+      <div class="dir-chips" role="group" aria-label="{{ _('Edificios e incidentes') }}">
+        <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory_incidents', q=q or none) }}">{{ _('Todos') }} ({{ total if not category else '' }})</a>
         {% for g in incident_groups %}
         <a class="dir-chip {{ 'is-active' if category == g.category }}" href="{{ url_for('public.directory_incidents', q=q or none, category=g.category) }}">{{ g.label }} ({{ g.count }})</a>
         {% endfor %}
@@ -36,7 +36,7 @@
           {% if i.source_date %}<time class="dir-source-date" datetime="{{ i.source_date }}">Publicado {{ i.source_date[:10] }}</time>{% endif %}
         </article>
         {% else %}
-        <p class="dir-empty">No hay incidentes{% if q %} para «{{ q }}»{% endif %}{% if category %} en esta categoría{% endif %}.</p>
+        <p class="dir-empty">{{ _('No hay incidentes para los filtros actuales.') }}{% if q %} («{{ q }}»){% endif %}</p>
         {% endfor %}
       </div>
       {{ pager(page, pages, 'public.directory_incidents', args) }}

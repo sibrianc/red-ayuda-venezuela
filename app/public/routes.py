@@ -101,10 +101,11 @@ def directory_people():
     community = public_missing_persons(q or None) if (estado == "missing" and page == 1) else []
     situation = public_situation()
     figures = {metric["key"]: metric for metric in situation}
-    tabs = [{"key": key, "label": label, "count": count_person_records(key, q or None)} for key, label in PERSON_STATES.items()]
+    tabs = [{"key": key, "label": _(label), "count": count_person_records(key, q or None)} for key, label in PERSON_STATES.items()]
+    headings = {"missing": "Personas desaparecidas", "found": "Personas localizadas", "deceased": "Personas fallecidas"}
     return render_template(
         "public/directory_people.html",
-        estado=estado, estado_label=PERSON_STATES[estado], tabs=tabs,
+        estado=estado, estado_label=_(PERSON_STATES[estado]), estado_heading=_(headings[estado]), tabs=tabs,
         community=community, records=records, total=total, page=page, pages=pages,
         figure_missing=figures.get("missing"), figure_dead=figures.get("dead"),
         registries=OFFICIAL_REGISTRIES, q=q,

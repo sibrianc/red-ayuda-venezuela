@@ -51,9 +51,9 @@
 {% macro pager(page, pages, endpoint, args) %}
 {% if pages > 1 %}
 <nav class="rv-pager" aria-label="Paginación">
-  {% if page > 1 %}<a class="rv-pager-btn" href="{{ url_for(endpoint, page=page - 1, **args) }}">← Anterior</a>{% else %}<span class="rv-pager-btn is-disabled">← Anterior</span>{% endif %}
-  <span class="rv-pager-info">Página {{ page }} de {{ pages }}</span>
-  {% if page < pages %}<a class="rv-pager-btn" href="{{ url_for(endpoint, page=page + 1, **args) }}">Siguiente →</a>{% else %}<span class="rv-pager-btn is-disabled">Siguiente →</span>{% endif %}
+  {% if page > 1 %}<a class="rv-pager-btn" href="{{ url_for(endpoint, page=page - 1, **args) }}">{{ _('← Anterior') }}</a>{% else %}<span class="rv-pager-btn is-disabled">{{ _('← Anterior') }}</span>{% endif %}
+  <span class="rv-pager-info">{{ _('Página') }} {{ page }} {{ _('de') }} {{ pages }}</span>
+  {% if page < pages %}<a class="rv-pager-btn" href="{{ url_for(endpoint, page=page + 1, **args) }}">{{ _('Siguiente →') }}</a>{% else %}<span class="rv-pager-btn is-disabled">{{ _('Siguiente →') }}</span>{% endif %}
 </nav>
 {% endif %}
 {% endmacro %}

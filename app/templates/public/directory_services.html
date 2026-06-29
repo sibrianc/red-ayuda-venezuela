@@ -7,16 +7,16 @@
 {% endblock %}
 {% from "public/_dir_macros.html" import chrome, svc_icon, pager, CAT_COLORS with context %}
 {% block content %}
-{% set args = {} %}{% if q %}{% set _ = args.update({'q': q}) %}{% endif %}{% if service_category %}{% set _ = args.update({'scat': service_category}) %}{% endif %}
+{% set args = {} %}{% if q %}{% set _x = args.update({'q': q}) %}{% endif %}{% if service_category %}{% set _x = args.update({'scat': service_category}) %}{% endif %}
 <div class="rv-page directory-page">
-  {{ chrome('servicios', 'Servicios y recursos', 'Servicios disponibles',
-            'Hospitales, refugios, agua, farmacias, combustible y víveres (OpenStreetMap). Filtra por tipo y abre cómo llegar en Google Maps.',
+  {{ chrome('servicios', _('Servicios y recursos'), _('Servicios disponibles'),
+            _('Hospitales, refugios, agua, farmacias, combustible y víveres (OpenStreetMap). Filtra por tipo y abre cómo llegar en Google Maps.'),
             q, url_for('public.directory_services')) }}
 
   <div class="container">
     <section class="dir-section" id="servicios">
-      <div class="dir-chips dir-chips-svc" aria-label="Filtrar servicios por tipo">
-        <a class="dir-chip {{ 'is-active' if not service_category }}" href="{{ url_for('public.directory_services', q=q or none) }}">Todos</a>
+      <div class="dir-chips dir-chips-svc" aria-label="{{ _('Servicios') }}">
+        <a class="dir-chip {{ 'is-active' if not service_category }}" href="{{ url_for('public.directory_services', q=q or none) }}">{{ _('Todos') }}</a>
         {% for g in service_groups %}
         <a class="dir-chip svc-chip {{ 'is-active' if service_category == g.category }}" style="--cat:{{ CAT_COLORS.get(g.category, CAT_COLORS['other']) }}"
            href="{{ url_for('public.directory_services', q=q or none, scat=g.category) }}">
@@ -34,12 +34,12 @@
             <h3>{{ s.name }}</h3>
             {% if s.address %}<p class="dir-item-addr">{{ s.address }}</p>{% endif %}
             {% if s.phone %}<p class="dir-item-phone"><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
-            {% if s.maps_url %}<a class="dir-maps-link" href="{{ s.maps_url }}" target="_blank" rel="noopener noreferrer">Cómo llegar</a>{% endif %}
-            {% if s.url or s.attribution %}<div class="dir-record-provenance">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">Ver fuente</a>{% endif %}{% if s.attribution %}<span>{{ s.attribution }}</span>{% endif %}</div>{% endif %}
+            {% if s.maps_url %}<a class="dir-maps-link" href="{{ s.maps_url }}" target="_blank" rel="noopener noreferrer">{{ _('Cómo llegar') }}</a>{% endif %}
+            {% if s.url or s.attribution %}<div class="dir-record-provenance">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">{{ _('Ver fuente') }}</a>{% endif %}{% if s.attribution %}<span>{{ s.attribution }}</span>{% endif %}</div>{% endif %}
           </div>
         </article>
         {% else %}
-        <p class="dir-empty">No hay servicios{% if q %} para «{{ q }}»{% endif %}{% if service_category %} en esta categoría{% endif %}.</p>
+        <p class="dir-empty">{{ _('No hay servicios para los filtros actuales.') }}{% if q %} («{{ q }}»){% endif %}</p>
         {% endfor %}
       </div>
       {{ pager(page, pages, 'public.directory_services', args) }}
