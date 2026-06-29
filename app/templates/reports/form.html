@@ -25,15 +25,15 @@
   </div>
 {% endmacro %}
 
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero('Reporte protegido', title, back_url=url_for('public.home'), back_label='Inicio') %}
+  <p class="rv-lead">Te guiaremos paso a paso. Solo pedimos la información necesaria para que una persona pueda revisar el caso.</p>
+{% endcall %}
 <section class="report-intake">
   <div class="container report-intake-grid">
     <aside class="intake-context" aria-labelledby="intake-context-title">
-      <a class="back-link" href="{{ url_for('public.home') }}">Volver al inicio</a>
-      <p class="eyebrow">Reporte protegido</p>
-      <h1 id="intake-context-title">{{ title }}</h1>
-      <p class="intake-lead">Te guiaremos paso a paso. Solo pedimos la información necesaria para que una persona pueda revisar el caso.</p>
-
       <div class="privacy-seal" role="note">
         <span class="privacy-seal-mark" aria-hidden="true"></span>
         <div>
@@ -205,6 +205,7 @@
     </div>
   </div>
 </section>
+</div>
 {% endblock %}
 
 {% block scripts %}

@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero(report_type_labels[report_type], title, back_url=url_for('reports.index'), back_label='Volver a reportes') %}
+  <p class="rv-lead">{{ report.description_public }}</p>
+{% endcall %}
 <article class="container narrow section-space report-detail">
-  <a class="back-link" href="{{ url_for('reports.index') }}">← Volver a reportes</a>
   <div class="report-meta"><span>{{ report_type_labels[report_type] }}</span><span class="priority priority-{{ report.priority.value }}">{{ priority_labels[report.priority] }}</span></div>
-  <h1>{{ title }}</h1>
-  <p class="lead">{{ report.description_public }}</p>
   <dl class="detail-grid">
     <div><dt>Zona general</dt><dd>{{ report.location_text }}</dd></div>
     <div><dt>Estado</dt><dd>{{ status_labels[report.status] }}</dd></div>
@@ -19,4 +21,5 @@
   <div class="privacy-callout">No se muestran teléfonos, direcciones exactas, información médica ni datos del reportante.</div>
   <a class="btn btn-sm btn-outline-danger" href="{{ url_for('reports.report_abuse', report_type=report_type.value, public_id=report.public_id) }}">Reportar un problema</a>
 </article>
+</div>
 {% endblock %}

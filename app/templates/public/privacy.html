@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Privacidad · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero('Privacidad', 'Publicar menos puede proteger más.') %}{% endcall %}
 <article class="container narrow section-space prose">
-  <p class="eyebrow">Privacidad</p>
-  <h1>Publicar menos puede proteger más.</h1>
   <p>Los reportes empiezan privados. Teléfonos, correos, direcciones exactas, notas médicas y datos del reportante no se muestran públicamente.</p>
   <h2>Revisión humana</h2>
   <p>Un administrador autorizado decide si el contenido puede publicarse y puede editar la descripción pública para reducir riesgos.</p>
   <h2>Correcciones y retiro</h2>
   <p>Usa la opción “Reportar un problema” en un reporte publicado para solicitar revisión, corrección u ocultamiento.</p>
 </article>
+</div>
 {% endblock %}

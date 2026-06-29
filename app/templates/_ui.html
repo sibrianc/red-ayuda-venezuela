@@ -1,0 +1,18 @@
+{# Hero reutilizable para unificar la jerarquía visual en todas las rutas (excepto mapa).
+   Uso:
+   {% call hero('Eyebrow', 'Título', back_url=url_for(...), back_label='Volver') %}
+     <p class="rv-lead">…</p>
+     <div class="rv-hero-actions">…</div>
+   {% endcall %}
+#}
+{% macro hero(badge, h1, back_url='', back_label='Volver', compact=true) %}
+  <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
+  <section class="rv-hero{{ ' rv-hero-compact' if compact }}">
+    <div class="container rv-hero-inner">
+      {% if back_url %}<a class="rv-back" href="{{ back_url }}">← {{ back_label }}</a>{% endif %}
+      <span class="rv-badge"><i aria-hidden="true"></i> {{ badge }}</span>
+      <h1>{{ h1 }}</h1>
+      {{ caller() }}
+    </div>
+  </section>
+{% endmacro %}

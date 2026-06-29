@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Acceso interno · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
 {% block content %}
-<section class="container login-panel section-space"><p class="eyebrow">Acceso restringido</p><h1>Área administrativa</h1><p>Solo para personal autorizado.</p>
+<div class="rv-page">
+{% call hero('Acceso restringido', 'Área administrativa') %}
+  <p class="rv-lead">Solo para personal autorizado.</p>
+{% endcall %}
+<section class="container login-panel section-space">
   <form method="post" novalidate>{{ form.hidden_tag() }}
     <div class="mb-3">{{ form.email.label(class="form-label") }}{{ form.email(class="form-control", autocomplete="username") }}</div>
     <div class="mb-3">{{ form.password.label(class="form-label") }}{{ form.password(class="form-control", autocomplete="current-password") }}</div>
     {{ form.submit(class="btn btn-primary w-100") }}
   </form>
 </section>
+</div>
 {% endblock %}

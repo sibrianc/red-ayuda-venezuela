@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Reportes revisados · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero('Información pública revisada', 'Reportes aprobados') %}
+  <p class="rv-lead">La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.</p>
+{% endcall %}
 <section class="container section-space">
-  <p class="eyebrow">Información pública revisada</p>
-  <h1>Reportes aprobados</h1>
-  <p class="text-secondary">La información puede estar incompleta o cambiar. No se muestran contactos ni direcciones exactas.</p>
   <form class="filter-panel" method="get" role="search">
     <div><label for="q">Buscar</label><input class="form-control" id="q" name="q" value="{{ filters.q }}"></div>
     <div><label for="zone">Zona</label><input class="form-control" id="zone" name="zone" value="{{ filters.zone }}"></div>
@@ -26,4 +28,5 @@
   </div>
   {% if total_pages > 1 %}<nav aria-label="Paginación"><div class="pagination-simple">{% if page > 1 %}<a href="{{ url_for('reports.index', page=page-1, **filters) }}">← Anterior</a>{% endif %}<span>Página {{ page }} de {{ total_pages }}</span>{% if page < total_pages %}<a href="{{ url_for('reports.index', page=page+1, **filters) }}">Siguiente →</a>{% endif %}</div></nav>{% endif %}
 </section>
+</div>
 {% endblock %}

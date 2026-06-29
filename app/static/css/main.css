@@ -995,3 +995,12 @@ html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,
 .rv-pager-btn.is-disabled{color:var(--muted);opacity:.5;pointer-events:none;}
 .rv-pager-info{color:var(--muted);font-size:.9rem;font-weight:600;}
 .dir-registries-section{border-top:1px solid var(--border);}
+
+/* ===== Hero compacto reutilizable (formularios y páginas internas) ===== */
+.rv-hero-compact .rv-hero-inner{padding:clamp(1.8rem,4vw,2.9rem) 1rem;}
+.rv-hero-compact h1{font-size:clamp(1.6rem,3.5vw,2.5rem);margin:.65rem 0 .5rem;}
+.rv-back{display:inline-block;color:#bccbe6;font-weight:600;font-size:.9rem;text-decoration:none;margin-bottom:.8rem;}
+.rv-back:hover{color:#fff;}
+.rv-page .report-intake,
+.rv-page .contacts-page,
+.rv-page .coord-page{padding-top:2rem;}

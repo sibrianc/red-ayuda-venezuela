@@ -1,20 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Contactos de emergencia · {{ config.APP_NAME }}{% endblock %}
 
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero('Red de contacto verificada', 'Contactos de emergencia e instituciones') %}
+  <p class="rv-lead">Llama o escribe a canales oficiales y colectivos de búsqueda verificados. Esta plataforma <strong>no es</strong> un servicio oficial de emergencia: ante peligro inmediato, marca el <strong>9-1-1</strong>.</p>
+  <div class="rv-hero-actions">
+    <a class="rv-btn rv-btn-emergency" href="tel:911">Llamar al 9-1-1</a>
+    <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory_people') }}">Buscar a un familiar</a>
+    <a class="rv-btn rv-btn-ghost" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+  </div>
+{% endcall %}
 <section class="contacts-page">
   <div class="container">
-    <header class="coord-head">
-      <p class="eyebrow">Red de contacto verificada</p>
-      <h1>Contactos de emergencia e instituciones</h1>
-      <p class="lead">Llama o escribe a canales oficiales y colectivos de búsqueda verificados. Esta plataforma <strong>no es</strong> un servicio oficial de emergencia: ante peligro inmediato, marca el <strong>9-1-1</strong>.</p>
-      <div class="coord-actions">
-        <a class="btn btn-danger" href="tel:911">Llamar al 9-1-1</a>
-        <a class="btn btn-primary" href="{{ url_for('public.directory_people') }}">Buscar a un familiar</a>
-        <a class="btn btn-outline-secondary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
-      </div>
-    </header>
-
     {% for group in groups %}
     <section class="coord-section" id="{{ group.id }}">
       <h2>{{ group.title }}</h2>
@@ -38,4 +37,5 @@
     <p class="contacts-disclaimer">Los números y enlaces pueden cambiar durante la emergencia; confírmalos localmente. ¿Tienes el contacto verificado de una unidad de rescate o institución que llegó? <a href="{{ url_for('reports.help_request') }}">Háznoslo saber</a> para sumarlo con su fuente.</p>
   </div>
 </section>
+</div>
 {% endblock %}

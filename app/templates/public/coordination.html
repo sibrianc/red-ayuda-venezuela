@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Coordinación · {{ config.APP_NAME }}{% endblock %}
 
+{% from "_ui.html" import hero with context %}
 {% block content %}
+<div class="rv-page">
+{% call hero('Red de coordinación', 'Centro de coordinación') %}
+  <p class="rv-lead">Un solo lugar que conecta a <strong>familias</strong>, <strong>rescatistas</strong> y a <strong>quienes ofrecen recursos</strong>. Las familias reportan y buscan; los equipos ven dónde se necesita ayuda; los recursos se enlazan con las necesidades.</p>
+{% endcall %}
 <section class="coord-page">
   <div class="container">
-    <header class="coord-head">
-      <p class="eyebrow">Red de coordinación</p>
-      <h1>Centro de coordinación</h1>
-      <p class="lead">Un solo lugar que conecta a <strong>familias</strong>, <strong>rescatistas</strong> y a <strong>quienes ofrecen recursos</strong>. Las familias reportan y buscan; los equipos ven dónde se necesita ayuda; los recursos se enlazan con las necesidades.</p>
-    </header>
-
     <div class="coord-roles">
       <article class="coord-role role-familias">
         <h2>Familias</h2>
@@ -125,4 +124,5 @@
     </section>
   </div>
 </section>
+</div>
 {% endblock %}
