@@ -102,6 +102,7 @@
           {{ loc('Última ubicación', p.last_seen, p.maps_url) }}
           {% if p.last_contact_date %}<p class="dir-person-loc"><span>Último contacto</span> {{ p.last_contact_date }}</p>{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          <div class="dir-record-provenance"><span>Fuente: reporte recibido y revisado por esta plataforma</span></div>
         </article>
         {% endfor %}
         {% for p in published_missing %}
@@ -267,6 +268,7 @@
             {% if s.address %}<p class="dir-item-addr">{{ s.address }}</p>{% endif %}
             {% if s.phone %}<p class="dir-item-phone"><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
             {% if s.maps_url %}<a class="dir-maps-link" href="{{ s.maps_url }}" target="_blank" rel="noopener noreferrer">Cómo llegar</a>{% endif %}
+            {% if s.url or s.attribution %}<div class="dir-record-provenance">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">Ver fuente</a>{% endif %}{% if s.attribution %}<span>{{ s.attribution }}</span>{% endif %}</div>{% endif %}
           </div>
         </article>
         {% else %}

@@ -213,10 +213,20 @@ window.addEventListener("DOMContentLoaded", async () => {
     const h = document.createElement("strong"); h.textContent = it.title;
     pop.append(tag, h);
     if (it.address) { const p = document.createElement("p"); p.className = "mapc-pop-addr"; p.textContent = it.address; pop.append(p); }
+    if (it.verificationLabel) { const v = document.createElement("p"); v.className = "mapc-pop-verif"; v.textContent = it.verificationLabel; pop.append(v); }
     const actions = document.createElement("div");
     if (it.mapsUrl) { const a = document.createElement("a"); a.className = "mapc-pop-a"; a.href = it.mapsUrl; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = "Cómo llegar"; actions.append(a); }
     if (it.detailUrl) { const a = document.createElement("a"); a.className = "mapc-pop-a"; a.href = it.detailUrl; a.textContent = "Ver detalle"; actions.append(a); }
     if (actions.childNodes.length) pop.append(actions);
+    // Fuente real (transparencia)
+    if (it.sourceName || it.attribution || it.sourceUrl) {
+      const src = document.createElement("p"); src.className = "mapc-pop-src";
+      const txt = "Fuente: " + (it.sourceName || it.attribution || "registro");
+      if (it.sourceUrl) { const a = document.createElement("a"); a.href = it.sourceUrl; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = txt; src.append(a); }
+      else { src.textContent = txt; }
+      if (it.sourceDate) { const t = document.createElement("span"); t.textContent = " · " + String(it.sourceDate).slice(0, 10); src.append(t); }
+      pop.append(src);
+    }
     return pop;
   };
   const inRadius = () => items.filter((it) => it.dist <= radiusKm && layers[it.cat] !== false);
@@ -261,6 +271,11 @@ window.addEventListener("DOMContentLoaded", async () => {
       const meta = document.createElement("span"); meta.className = "mapc-card-meta";
       meta.textContent = it.address || cat.label;       // dirección en texto
       body.append(title, meta);
+      if (it.sourceName || it.attribution) {            // fuente real (transparencia)
+        const src = document.createElement("span"); src.className = "mapc-card-src";
+        src.textContent = "Fuente: " + (it.sourceName || it.attribution);
+        body.append(src);
+      }
       const dist = document.createElement("span"); dist.className = "mapc-card-dist"; dist.textContent = fmtDist(it.dist);
       card.append(code, body, dist);
       card.addEventListener("click", () => focus(it));
@@ -327,14 +342,17 @@ window.addEventListener("DOMContentLoaded", async () => {
       const sev = priorityOf(i.severity);
       out.push({ id: "inc-" + i.public_id, cat: "zona", lat: i.latitude, lng: i.longitude,
         title: i.label || i.category_label || "Zona afectada", address: i.address || i.category_label || "",
-        priorityLabel: PRI[sev], mapsUrl: i.maps_url });
+        priorityLabel: PRI[sev], mapsUrl: i.maps_url,
+        sourceName: i.source_name, sourceUrl: i.source_url, attribution: i.attribution,
+        sourceDate: i.source_date, verificationLabel: i.verification_label });
     });
     (live.services || []).forEach((s) => {
       if (s.latitude == null || s.longitude == null) return;
       const cat = CATS[s.category] ? s.category : "other";
       out.push({ id: "svc-" + s.public_id, cat, lat: s.latitude, lng: s.longitude,
         title: s.name || s.category_label || "Servicio", address: s.address || s.category_label || "",
-        priorityLabel: s.emergency ? "PRIORITARIO" : "", mapsUrl: s.maps_url });
+        priorityLabel: s.emergency ? "PRIORITARIO" : "", mapsUrl: s.maps_url,
+        sourceName: "OpenStreetMap", sourceUrl: s.url, attribution: s.attribution });
     });
     (reports || []).forEach((r) => {
       const loc = r.location || {};
@@ -343,7 +361,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       const sev = priorityOf(r.priority);
       out.push({ id: "rep-" + (r.id || r.public_id || Math.random().toString(36).slice(2)), cat,
         lat: loc.latitude, lng: loc.longitude, title: r.title || CATS[cat].label,
-        address: loc.label || "", priorityLabel: PRI[sev], detailUrl: r.url });
+        address: loc.label || "", priorityLabel: PRI[sev], detailUrl: r.url,
+        sourceName: "Reporte ciudadano (revisado)", attribution: "Recibido y revisado por la plataforma" });
     });
     return out;
   };
