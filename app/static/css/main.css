@@ -625,3 +625,6 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .map-popup-dist { font-weight:700; color:#2a8fd6; margin:.2rem 0; }
 .map-locate-chip.is-active { background:#2a8fd6; border-color:#2a8fd6; color:#fff; }
 .map-radius-chip.is-active { background:var(--brand); border-color:var(--brand); color:#04222e; }
+
+/* Directorio — sello de corroboración (verificación cruzada entre fuentes) */
+.dir-corroborated { display:inline-block; margin:.1rem 0 .35rem; padding:.12rem .5rem; border-radius:99px; background:rgba(70,192,138,.16); color:#46c08a; font-size:.7rem; font-weight:800; letter-spacing:.02em; }

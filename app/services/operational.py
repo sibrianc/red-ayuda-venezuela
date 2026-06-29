@@ -227,6 +227,7 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
             ),
             "source_date": person.source_date.isoformat() if person.source_date else None,
             "attribution": person.attribution,
+            "corroboration": person.corroboration,
         }
         for person in query.all()
     ]

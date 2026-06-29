@@ -20,6 +20,7 @@ from app.ingestion.connectors import (
     ParsedEvent,
     in_venezuela_region,
 )
+from app.ingestion.normalize import match_key
 from app.ingestion.pfif import ParsedPerson
 from app.models import DirectoryEntry, IngestedEvent, PersonRecord, SourceRecord
 
@@ -303,6 +304,7 @@ def _apply_person_fields(target: PersonRecord, person: ParsedPerson) -> None:
     target.source_date = person.source_date
     target.is_minor = person.is_minor
     target.attribution = person.attribution
+    target.match_key = match_key(person.full_name) or None
 
 
 def ingest_persons(people: list[ParsedPerson], *, commit: bool = True) -> IngestStats:
@@ -336,6 +338,28 @@ def ingest_persons(people: list[ParsedPerson], *, commit: bool = True) -> Ingest
     if commit:
         db.session.commit()
     return stats
+
+
+def recompute_corroboration() -> int:
+    """Recalcula la verificación cruzada: corroboration = nº de FUENTES distintas que
+    comparten cada match_key. Una persona reportada por 2+ plataformas sube de confianza.
+    Devuelve cuántas claves quedaron corroboradas (>= 2 fuentes)."""
+    db.session.query(PersonRecord).update({PersonRecord.corroboration: 1}, synchronize_session=False)
+    rows = (
+        db.session.query(
+            PersonRecord.match_key, func.count(func.distinct(PersonRecord.source_slug))
+        )
+        .filter(PersonRecord.match_key.isnot(None), PersonRecord.match_key != "")
+        .group_by(PersonRecord.match_key)
+        .having(func.count(func.distinct(PersonRecord.source_slug)) > 1)
+        .all()
+    )
+    for key, sources in rows:
+        db.session.query(PersonRecord).filter(PersonRecord.match_key == key).update(
+            {PersonRecord.corroboration: sources}, synchronize_session=False
+        )
+    db.session.commit()
+    return len(rows)
 
 
 def directory_overview() -> dict:

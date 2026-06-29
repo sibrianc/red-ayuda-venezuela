@@ -22,6 +22,7 @@
 } %}
 {% macro svc_icon(cat) %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ CAT_GLYPHS.get(cat, CAT_GLYPHS['other']) }}"/></svg>{% endmacro %}
 {% macro loc(label, text, url) %}<p class="dir-person-loc"><span>{{ label }}</span> {% if url %}<a class="dir-loc-link" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ text }}</a>{% else %}{{ text }}{% endif %}</p>{% endmacro %}
+{% macro corrob(p) %}{% if p.corroboration and p.corroboration >= 2 %}<span class="dir-corroborated" title="Reportado por varias fuentes independientes">✓ Corroborado · {{ p.corroboration }} fuentes</span>{% endif %}{% endmacro %}
 <section class="directory-page">
   <div class="container">
     <header class="dir-header">
@@ -106,7 +107,7 @@
         {% for p in published_missing %}
         <article class="dir-person-card dir-person-published">
           <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>
+          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
           <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
           {% if p.last_seen %}{{ loc('Última ubicación', p.last_seen, p.maps_url) }}{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
@@ -147,7 +148,7 @@
         {% for p in localized %}
         <article class="dir-person-card dir-person-found">
           <div class="dir-person-source">Localizada{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>
+          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
           {% if p.last_seen %}{{ loc('Lugar', p.last_seen, p.maps_url) }}{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
           {% if p.source_url %}<div class="dir-record-provenance"><a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Ver ficha</a></div>{% endif %}
@@ -173,7 +174,7 @@
         {% for p in deceased %}
         <article class="dir-person-card dir-person-deceased">
           <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>
+          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
           <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
           {% if p.last_seen %}{{ loc('Ubicación asociada', p.last_seen, p.maps_url) }}{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}

@@ -288,6 +288,10 @@ class PersonRecord(TimestampMixin, db.Model):
     source_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_minor: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     attribution: Mapped[str | None] = mapped_column(String(240))
+    # Clave conservadora para deduplicar/verificar entre fuentes (ver ingestion/normalize).
+    match_key: Mapped[str | None] = mapped_column(String(160), index=True)
+    # Número de FUENTES independientes que comparten la clave (1 = sin corroborar aún).
+    corroboration: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
 
 class SituationMetric(TimestampMixin, db.Model):

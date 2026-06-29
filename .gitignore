@@ -9,3 +9,6 @@ htmlcov/
 instance/
 *.sqlite3
 *.db
+
+# Exports generados (contienen datos de personas)
+data/exports/

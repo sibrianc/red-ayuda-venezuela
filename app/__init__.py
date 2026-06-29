@@ -351,6 +351,10 @@ def register_cli(app: Flask) -> None:
         step("Localizados Venezuela — personas localizadas", _localizados)
         step("Venezuela Reporta — desaparecidos",
              lambda: ingest_persons(parse_reporta(fetch_reporta())))
+
+        from app.ingestion.pipeline import recompute_corroboration
+
+        step("Verificación cruzada (corroboración entre fuentes)", recompute_corroboration)
         if pfif:
             from app.ingestion.pfif import fetch_pfif, parse_pfif
             from app.ingestion.pipeline import ingest_persons
@@ -364,6 +368,60 @@ def register_cli(app: Flask) -> None:
         click.echo(f"  servicios: {directory['total']}")
         click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
 
+    @app.cli.command("export-contributions")
+    @click.option("--target", default="venezuela-reporta",
+                  help="Fuente a enriquecer; NO se duplica lo que ya tiene.")
+    @click.option("--out", default=None, help="Ruta del JSON de salida.")
+    def export_contributions_cmd(target: str, out: str | None):
+        """Genera el export de personas que NOSOTROS tenemos y la fuente objetivo NO,
+        para compartírselo (somos intermediarios/conectores). Dedup conservador por
+        match_key; excluye menores; nunca incluye contactos privados."""
+        import json
+        import os
+
+        from app.ingestion.pipeline import recompute_corroboration
+        from app.models import PersonRecord
+
+        recompute_corroboration()
+        target_keys = {
+            key for (key,) in db.session.query(PersonRecord.match_key)
+            .filter(PersonRecord.source_slug == target, PersonRecord.match_key.isnot(None))
+            .distinct()
+        }
+        candidates = (
+            PersonRecord.query.filter(
+                PersonRecord.source_slug != target,
+                PersonRecord.is_minor.is_(False),
+                PersonRecord.match_key.isnot(None),
+                PersonRecord.match_key != "",
+            ).all()
+        )
+        seen: set[str] = set()
+        rows = []
+        for person in candidates:
+            if person.match_key in target_keys or person.match_key in seen:
+                continue
+            seen.add(person.match_key)
+            rows.append({
+                "full_name": person.full_name,
+                "status": person.person_status,
+                "last_known_location": person.last_known_location,
+                "home_location": person.home_location,
+                "age": person.age,
+                "sex": person.sex,
+                "description": person.description,
+                "source_name": person.source_name,
+                "source_url": person.source_url,
+                "source_slug": person.source_slug,
+            })
+        out = out or os.path.join("data", "exports", f"contribuciones-{target}.json")
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        with open(out, "w", encoding="utf-8") as handle:
+            json.dump({"target": target, "count": len(rows), "records": rows},
+                      handle, ensure_ascii=False, indent=2)
+        click.echo(f"Export listo: {len(rows)} personas que «{target}» no tiene → {out}")
+        click.echo("Compártelo con ellos por su canal; no escribimos en su base directamente.")
+
     @app.cli.command("import-reporta")
     def import_reporta_cmd():
         """Importa personas de venezuelareporta.org (páginas públicas server-rendered, robots-OK)."""
@@ -376,9 +434,13 @@ def register_cli(app: Flask) -> None:
             raise click.ClickException(f"No se pudo descargar ({type(exc).__name__}: {exc}).") from exc
         people = parse_reporta(html)
         stats = ingest_persons(people)
+        from app.ingestion.pipeline import recompute_corroboration
+
+        corroborated = recompute_corroboration()
         click.echo(f"Venezuela Reporta: {stats.new} nuevos, {stats.unchanged} sin cambios.")
         minors = sum(1 for person in people if person.is_minor)
         click.echo(f"Menores detectados (excluidos del público): {minors}")
+        click.echo(f"Verificación cruzada: {corroborated} personas con 2+ fuentes.")
 
     @app.cli.command("import-localizados")
     @click.option("--max-pages", type=int, default=200, help="Tope de páginas por seguridad.")
@@ -414,10 +476,14 @@ def register_cli(app: Flask) -> None:
                 break
             page += 1
             time.sleep(0.2)  # cortesía con su servidor
+        from app.ingestion.pipeline import recompute_corroboration
+
+        corroborated = recompute_corroboration()
         click.echo(
             f"Listo. Personas localizadas nuevas: {total_new}. "
             f"Menores detectados (excluidos del público): {total_minors}."
         )
+        click.echo(f"Verificación cruzada: {corroborated} personas con 2+ fuentes.")
 
     @app.cli.command("import-persons-json")
     @click.argument("source")
