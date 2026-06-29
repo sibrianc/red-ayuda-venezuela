@@ -4,10 +4,18 @@ from flask import abort, flash, redirect, render_template, request, url_for
 
 from app.constants import Priority, ReportStatus, ReportType, SourceChannel
 from app.extensions import db
-from app.models import AbuseReport, HelpRequest, LocationReport, MissingPersonReport, ResourceOffer
+from app.models import (
+    AbuseReport,
+    CommunicationSignal,
+    HelpRequest,
+    LocationReport,
+    MissingPersonReport,
+    ResourceOffer,
+)
 from app.reports import bp
 from app.reports.forms import (
     AbuseForm,
+    CommunicationSignalForm,
     HelpRequestForm,
     LocationReportForm,
     MissingPersonForm,
@@ -61,6 +69,31 @@ def save_report(report_type: ReportType, report):
             public_id=report.public_id,
             draft_key=f"rav-draft-{report_type.value}",
         )
+    )
+
+
+@bp.route("/sin-comunicacion", methods=["GET", "POST"])
+def communication_signal():
+    form = CommunicationSignalForm()
+    if form.validate_on_submit():
+        signal = CommunicationSignal(
+            zone_label=form.zone_label.data.strip(),
+            latitude=float(form.latitude.data) if form.latitude.data is not None else None,
+            longitude=float(form.longitude.data) if form.longitude.data is not None else None,
+            public_note=(form.public_note.data or "").strip() or None,
+            reporter_contact_private=(form.reporter_contact_private.data or "").strip() or None,
+            status="advisory",
+            source="community",
+        )
+        db.session.add(signal)
+        db.session.commit()
+        flash(
+            "Gracias. Tu reporte de zona sin comunicación fue recibido como alerta sin verificar.",
+            "success",
+        )
+        return redirect(url_for("public.directory") + "#comunicacion")
+    return render_template(
+        "reports/communication.html", form=form, title="Reportar zona sin comunicación"
     )
 
 

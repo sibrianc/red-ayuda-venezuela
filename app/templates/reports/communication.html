@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="report-intake">
+  <div class="container narrow">
+    <a class="back-link" href="{{ url_for('public.directory') }}#comunicacion">← Volver al directorio</a>
+    <p class="eyebrow">Alerta comunitaria</p>
+    <h1>Reportar zona sin comunicación</h1>
+    <p class="intake-lead">Si una zona quedó incomunicada (sin teléfono, internet o radio), repórtala para que los equipos prioricen evaluar a posibles víctimas que no pueden pedir ayuda. <strong>No incluyas nombres ni datos personales</strong>: este reporte es público y sin verificar.</p>
+
+    <form method="post" class="intake-card report-wizard">
+      {{ form.csrf_token }}
+      <div class="honeypot" aria-hidden="true">{{ form.website.label }} {{ form.website() }}</div>
+
+      {% if form.errors %}
+      <div class="form-error-summary"><p>Revisa los campos marcados.</p></div>
+      {% endif %}
+
+      <div class="form-field">
+        {{ form.zone_label.label(class="form-label") }}
+        {{ form.zone_label(class="form-control", placeholder="Ej.: Sector La Cruz, Petare") }}
+        {% for e in form.zone_label.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-field">
+        {{ form.public_note.label(class="form-label") }}
+        {{ form.public_note(class="form-control", rows="4", placeholder="Desde cuándo, qué se observó, si hay acceso bloqueado…") }}
+        {% for e in form.public_note.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div class="form-field">
+        {{ form.reporter_contact_private.label(class="form-label") }}
+        <span class="private-badge">Privado</span>
+        {{ form.reporter_contact_private(class="form-control", placeholder="Teléfono o correo (no se publica)") }}
+        {% for e in form.reporter_contact_private.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+      </div>
+
+      {{ form.latitude(type="hidden") }}{{ form.longitude(type="hidden") }}
+
+      <div class="choice-field">
+        {{ form.privacy_consent(class="form-check-input") }}
+        {{ form.privacy_consent.label(class="form-check-label") }}
+      </div>
+      {% for e in form.privacy_consent.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+
+      <div class="submission-note">
+        <span>Esto crea una <strong>alerta sin verificar</strong> para orientar a los equipos. Si alguien corre peligro inmediato, busca ayuda local de autoridades o rescatistas.</span>
+      </div>
+
+      <div class="wizard-actions wizard-actions-end">
+        {{ form.submit(class="btn btn-primary btn-lg") }}
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

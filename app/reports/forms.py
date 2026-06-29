@@ -136,6 +136,32 @@ class LocationReportForm(BaseReportForm):
     needs_transport = BooleanField("Necesita transporte")
 
 
+class CommunicationSignalForm(FlaskForm):
+    zone_label = StringField(
+        "¿Qué zona está sin comunicación?", validators=[DataRequired(), Length(max=160)]
+    )
+    latitude = DecimalField(
+        "Latitud aproximada (opcional)", validators=[Optional(), NumberRange(min=-90, max=90)]
+    )
+    longitude = DecimalField(
+        "Longitud aproximada (opcional)", validators=[Optional(), NumberRange(min=-180, max=180)]
+    )
+    public_note = TextAreaField(
+        "¿Qué se sabe? (sin nombres ni datos personales)",
+        validators=[Optional(), Length(max=1000)],
+    )
+    reporter_contact_private = StringField(
+        "Tu contacto (privado y opcional, por si necesitamos corroborar)",
+        validators=[Optional(), Length(max=160)],
+    )
+    privacy_consent = BooleanField(
+        "Entiendo que es un reporte sin verificar y que no debo incluir datos personales públicos.",
+        validators=[DataRequired()],
+    )
+    website = StringField("Dejar vacío", validators=[Optional(), Length(max=0)])
+    submit = SubmitField("Reportar zona sin comunicación")
+
+
 class AbuseForm(FlaskForm):
     reason = SelectField(
         "Motivo",

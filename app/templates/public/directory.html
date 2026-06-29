@@ -31,6 +31,7 @@
       <nav class="dir-tabs" aria-label="Secciones del directorio">
         <a href="#personas">Desaparecidos <span>{{ person_total }}</span></a>
         <a href="#fallecidos">Fallecidos <span>{{ deceased_total }}</span></a>
+        <a href="#comunicacion">Sin comunicación <span>{{ comms_total }}</span></a>
         <a href="#incidentes">Incidentes <span>{{ incident_total }}</span></a>
         <a href="#servicios">Servicios <span>{{ service_total }}</span></a>
       </nav>
@@ -114,6 +115,30 @@
       </div>
       {% else %}
       <div class="dir-empty"><p>No hay registros nominales publicados{% if q %} para «{{ q }}»{% endif %}. Una cifra general de fallecidos no se usa para inventar nombres.</p></div>
+      {% endif %}
+    </section>
+
+    <section class="dir-section" id="comunicacion">
+      <div class="dir-section-head">
+        <div>
+          <p class="eyebrow">Alertas</p>
+          <h2>Zonas sin comunicación <span class="dir-count">{{ comms_total }}</span></h2>
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('reports.communication_signal') }}">Reportar zona sin comunicación</a>
+      </div>
+      <p class="dir-note">Posibles víctimas que no pueden pedir ayuda. Son <strong>alertas sin verificar</strong> para que los equipos prioricen evaluar la zona.</p>
+      {% if comms %}
+      <div class="dir-list">
+        {% for z in comms %}
+        <article class="dir-item dir-comms sev-{{ 'high' if z.status == 'advisory' else 'medium' }}">
+          <span class="dir-item-tag">Sin comunicación · {{ z.status }}</span>
+          <h3>{{ z.zone_label }}</h3>
+          {% if z.public_note %}<p class="dir-item-note">{{ z.public_note }}</p>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="dir-empty"><p>No hay zonas sin comunicación reportadas{% if q %} para «{{ q }}»{% endif %}. Si conoces una, repórtala con el botón de arriba.</p></div>
       {% endif %}
     </section>
 

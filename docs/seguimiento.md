@@ -326,6 +326,24 @@ vacíos.
   propietario); (3) `SECRET_KEY`/`DATABASE_URL` de producción + `flask create-admin`;
   (4) cron para el refresco automático; (5) prueba de humo final + fusionar las ramas
   apiladas (e2 → e3 → e4) o abrir PRs en orden. El código y la experiencia están listos.
+
+### Checkpoint fase #4 — Zonas sin comunicación (alertas)
+
+Feature pedida por el propietario: reportar zonas incomunicadas para alertar sobre
+posibles víctimas que no pueden pedir ayuda (sirve a rescatistas y familias).
+
+- Modelo `CommunicationSignal` (`app/models.py`): situacional, sin datos personales
+  públicos; `status` advisory/corroborated/resolved, `source` community/ioda, contacto del
+  reportante **privado**. Migración `a7b8c9d0e1f2` (ciclo upgrade/downgrade verificado).
+- Reporte público en `/reportes/sin-comunicacion` (`CommunicationSignalForm` + ruta +
+  plantilla simple oscura), con honeypot y consentimiento; crea una alerta `advisory`
+  (sin verificar) — coherente con `data-routing.md`.
+- Proyección `public_comms_zones(q)` (`app/services/operational.py`): **nunca expone el
+  contacto privado** y oculta las resueltas. Sección **"Zonas sin comunicación"** en el
+  directorio (pestaña + lista + CTA de reporte) y acceso desde el inicio.
+- Pendiente (follow-up): capa en el mapa y conector **IODA** (cortes de internet) cuando
+  haya red; corroboración/resolución desde el panel admin.
+- Validación: 72/72 pruebas (4 nuevas), `compileall`, migración sin deriva.
 Esperar la revisión visual del propietario antes de iniciar otra fase. El servidor local
 de revisión usa `instance/demo_review.sqlite3` y el puerto 5015; el comando completo está
 en la sección 5 y en el resumen de cierre entregado al propietario.

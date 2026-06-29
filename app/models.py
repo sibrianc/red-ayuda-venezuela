@@ -346,6 +346,32 @@ class Incident(TimestampMixin, db.Model):
     occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
 
+class CommunicationSignal(TimestampMixin, db.Model):
+    """Zona sin comunicación reportada (alerta de posibles víctimas incomunicadas).
+
+    Es situacional, no contiene datos personales públicos (solo la zona). Sirve para
+    que rescatistas prioricen evaluación donde la gente no puede comunicarse. Empieza
+    como `advisory` (sin verificar); una persona la corrobora o resuelve. El contacto
+    de quien reporta es privado. Puede provenir de la comunidad o de señales técnicas
+    de conectividad (p. ej. IODA) en una fase futura.
+    """
+
+    __tablename__ = "communication_signals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    zone_label: Mapped[str] = mapped_column(String(160), nullable=False)
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(20), default="advisory", nullable=False, index=True)
+    public_note: Mapped[str | None] = mapped_column(Text)
+    reporter_contact_private: Mapped[str | None] = mapped_column(String(160))
+    source: Mapped[str] = mapped_column(String(40), default="community", nullable=False, index=True)
+    reported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
 class MissingPersonReport(ReportMixin, db.Model):
     __tablename__ = "missing_person_reports"
 

@@ -5,6 +5,7 @@ from flask import render_template, request
 from app.public import bp
 from app.services.operational import (
     OFFICIAL_REGISTRIES,
+    public_comms_zones,
     public_directory,
     public_incidents,
     public_missing_persons,
@@ -44,6 +45,7 @@ def directory():
     all_incidents = public_incidents(q=q or None)
     incidents = [i for i in all_incidents if not category or i["category"] == category]
     services = public_directory(q=q or None)
+    comms = public_comms_zones(q or None)
     return render_template(
         "public/directory.html",
         situation=public_situation(),
@@ -52,6 +54,8 @@ def directory():
         person_total=len(persons) + len(published_missing),
         deceased=deceased,
         deceased_total=len(deceased),
+        comms=comms,
+        comms_total=len(comms),
         incidents=incidents[:80],
         incident_groups=_grouped(all_incidents),
         incident_total=len(incidents),

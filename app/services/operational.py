@@ -11,6 +11,7 @@ from sqlalchemy import or_
 
 from app.constants import ReportStatus
 from app.models import (
+    CommunicationSignal,
     DirectoryEntry,
     IngestedEvent,
     Incident,
@@ -201,6 +202,33 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
             "attribution": person.attribution,
         }
         for person in query.all()
+    ]
+
+
+def public_comms_zones(q: str | None = None, limit: int = 200) -> list[dict]:
+    """Zonas sin comunicación reportadas (alertas). Nunca expone el contacto privado."""
+    query = CommunicationSignal.query.filter(CommunicationSignal.status != "resolved")
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                CommunicationSignal.zone_label.ilike(term),
+                CommunicationSignal.public_note.ilike(term),
+            )
+        )
+    query = query.order_by(CommunicationSignal.reported_at.desc()).limit(limit)
+    return [
+        {
+            "public_id": signal.public_id,
+            "zone_label": signal.zone_label,
+            "status": signal.status,
+            "public_note": signal.public_note,
+            "source": signal.source,
+            "latitude": signal.latitude,
+            "longitude": signal.longitude,
+            "reported_at": signal.reported_at.isoformat() if signal.reported_at else None,
+        }
+        for signal in query.all()
     ]
 
 
