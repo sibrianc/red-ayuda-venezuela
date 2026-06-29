@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Directorio · {{ config.APP_NAME }}{% endblock %}
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 {% set CAT_GLYPHS = {
@@ -23,13 +28,25 @@
 {% macro svc_icon(cat) %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ CAT_GLYPHS.get(cat, CAT_GLYPHS['other']) }}"/></svg>{% endmacro %}
 {% macro loc(label, text, url) %}<p class="dir-person-loc"><span>{{ label }}</span> {% if url %}<a class="dir-loc-link" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ text }}</a>{% else %}{{ text }}{% endif %}</p>{% endmacro %}
 {% macro corrob(p) %}{% if p.corroboration and p.corroboration >= 2 %}<span class="dir-corroborated" title="Reportado por varias fuentes independientes">✓ Corroborado · {{ p.corroboration }} fuentes</span>{% endif %}{% endmacro %}
-<section class="directory-page">
+<div class="rv-page directory-page">
+  <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
+  <section class="rv-dir-hero">
+    <div class="container">
+      <p class="rv-badge"><i aria-hidden="true"></i> Directorio · Reunificación familiar</p>
+      <h1>Encuentra reportes verificados</h1>
+      <p class="rv-dir-lead">Personas reportadas, edificios colapsados, servicios y registros oficiales — para que <strong>familias y rescatistas</strong> encuentren lo que necesitan.</p>
+      <form class="rv-dir-search" method="get" action="{{ url_for('public.directory') }}" role="search">
+        <input type="search" name="q" value="{{ q }}" placeholder="Buscar persona, edificio, dirección o servicio…" aria-label="Buscar en el directorio">
+        <button type="submit">Buscar</button>
+        {% if q %}<a class="rv-dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
+      </form>
+      <nav class="rv-chipnav" aria-label="Secciones del directorio">
+        <a href="#personas">Personas</a><a href="#localizadas">Localizadas</a><a href="#fallecidos">Fallecidos</a><a href="#incidentes">Incidentes</a><a href="#servicios">Servicios</a><a href="#comunicacion">Sin comunicación</a>
+      </nav>
+    </div>
+  </section>
   <div class="container">
-    <header class="dir-header">
-      <p class="eyebrow">Directorio · Reunificación familiar</p>
-      <h1>Directorio del terremoto</h1>
-      <p class="lead">Personas reportadas, edificios colapsados, servicios y registros oficiales — para que <strong>familias y rescatistas</strong> encuentren lo que necesitan.</p>
-    </header>
+
 
     {% if situation %}
     <div class="dir-figures">
@@ -42,14 +59,6 @@
     </div>
     <p class="situation-disclaimer">Cifras reportadas por fuentes oficiales y <strong>en verificación</strong>; no son un conteo confirmado.</p>
     {% endif %}
-
-    <div class="dir-toolbar">
-      <form class="dir-search" method="get" action="{{ url_for('public.directory') }}" role="search">
-        <input type="search" name="q" value="{{ q }}" placeholder="Buscar persona, edificio, dirección o servicio…" aria-label="Buscar en el directorio">
-        <button class="btn btn-primary" type="submit">Buscar</button>
-        {% if q %}<a class="dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
-      </form>
-    </div>
 
     <nav class="dir-overview" aria-label="Resumen y secciones del directorio">
       <section class="dir-ov-group">
@@ -278,5 +287,5 @@
       {% if service_total > services|length %}<p class="dir-more-note">Mostrando {{ services|length }} de {{ "{:,}".format(service_total).replace(",", ".") }}. Usa el buscador o filtra por tipo para acercarte.</p>{% endif %}
     </section>
   </div>
-</section>
+</div>
 {% endblock %}

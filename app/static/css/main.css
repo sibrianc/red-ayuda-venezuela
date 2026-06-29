@@ -954,3 +954,29 @@ html[data-theme="light"] .rv-cta{background:linear-gradient(120deg,#00247D,#0a3a
 .rv-cta p{color:#bccbe6;margin:0;max-width:46ch;font-size:.95rem;}
 .rv-cta-actions{display:flex;gap:.7rem;flex-wrap:wrap;}
 @media (max-width:760px){.rv-two{grid-template-columns:1fr;}}
+
+/* ===== Directorio: hero elite + reskin de tarjetas ===== */
+.rv-dir-hero{background:linear-gradient(120deg,#0a1838,#102a5e);padding:clamp(2.2rem,5vw,3.6rem) 0;}
+html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,#0a3aa0);}
+.rv-dir-hero .rv-badge{margin-bottom:.85rem;}
+.rv-dir-hero h1{color:#fff;font-weight:800;font-size:clamp(1.8rem,4vw,2.8rem);margin:0 0 .5rem;}
+.rv-dir-lead{color:#bccbe6;max-width:62ch;margin:0 0 1.4rem;font-size:1rem;line-height:1.5;}
+.rv-dir-search{display:flex;gap:.5rem;max-width:680px;margin:0 0 1.1rem;flex-wrap:wrap;}
+.rv-dir-search input{flex:1;min-width:200px;height:54px;border:none;border-radius:12px;padding:0 1rem;font-size:1rem;font-family:inherit;color:#1a2330;background:#fff;box-shadow:0 12px 30px rgba(4,18,46,.28);}
+.rv-dir-search button{height:54px;padding:0 1.4rem;border:none;border-radius:12px;background:#FCD116;color:#0d2040;font-weight:800;cursor:pointer;font-family:inherit;}
+.rv-dir-search button:hover{filter:brightness(1.05);}
+.rv-dir-clear{align-self:center;color:#dbe4f5;font-weight:600;text-decoration:none;padding:0 .4rem;}
+.rv-chipnav{display:flex;flex-wrap:wrap;gap:.5rem;}
+.rv-chipnav a{font-size:.82rem;font-weight:700;color:#dbe4f5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:.4rem .85rem;border-radius:99px;text-decoration:none;}
+.rv-chipnav a:hover{background:rgba(255,255,255,.18);color:#fff;}
+.directory-page .dir-section{padding:2.4rem 0;border-top:1px solid var(--border);}
+.directory-page .dir-figures{display:flex;flex-wrap:wrap;gap:1rem;margin:1.6rem 0 .4rem;}
+.directory-page .dir-figure{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.9rem 1.3rem;min-width:140px;}
+.directory-page .dir-figure strong{font-family:'Sora','Inter',sans-serif;font-size:1.7rem;display:block;color:var(--text);}
+.directory-page .dir-figure span{color:var(--muted);font-size:.82rem;}
+.directory-page .dir-person-card,
+.directory-page .dir-item,
+.directory-page .dir-service-card{border-radius:14px;transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease;}
+.directory-page .dir-person-card:hover,
+.directory-page .dir-item:hover,
+.directory-page .dir-service-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--brand);}
