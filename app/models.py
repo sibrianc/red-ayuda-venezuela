@@ -343,9 +343,23 @@ class Incident(TimestampMixin, db.Model):
     latitude: Mapped[float | None] = mapped_column(Float)
     longitude: Mapped[float | None] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(30), default="reported", nullable=False, index=True)
+    verification_status: Mapped[str] = mapped_column(
+        String(30), default="unverified", nullable=False, index=True
+    )
     situation_note: Mapped[str | None] = mapped_column(String(500))
     source_name: Mapped[str | None] = mapped_column(String(160))
+    source_url: Mapped[str | None] = mapped_column(String(500))
+    source_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     attribution: Mapped[str | None] = mapped_column(String(240))
+    confidence: Mapped[float | None] = mapped_column(Float)
+    location_precision: Mapped[str] = mapped_column(
+        String(30), default="approximate", nullable=False
+    )
+    area_radius_m: Mapped[int | None] = mapped_column(Integer)
+    people_trapped_status: Mapped[str] = mapped_column(
+        String(30), default="unknown", nullable=False, index=True
+    )
+    people_trapped_count: Mapped[int | None] = mapped_column(Integer)
     in_region: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     occurred_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 

@@ -10,9 +10,7 @@ def test_live_endpoint_empty(client):
     assert payload["incidents"] == []
     assert payload["events"] == []
     assert payload["services"] == []
-    # La capa de intensidad de zonas afectadas es un modelo fijo, siempre presente.
-    assert len(payload["intensity"]) > 100
-    assert all(len(point) == 3 for point in payload["intensity"])
+    assert payload["intensity"] == []
 
 
 def test_live_endpoint_returns_events_and_services(app, client):
@@ -31,10 +29,12 @@ def test_live_endpoint_returns_events_and_services(app, client):
             service_status="unknown", attribution="© OpenStreetMap contributors",
         ))
         db.session.add(Incident(
-            public_id="inc-1", source_slug="sample", external_id="inc-1", content_hash="h",
+            public_id="inc-1", source_slug="official-test", external_id="inc-1", content_hash="h",
             category="collapsed_structure", severity="critical", label="Edificio X",
             address_public="Av. Principal", latitude=10.49, longitude=-66.85,
-            status="reported", situation_note="Personas atrapadas", in_region=True,
+            status="active", verification_status="verified",
+            people_trapped_status="unknown",
+            situation_note="Colapso confirmado; ocupación sin determinar", in_region=True,
         ))
         db.session.commit()
 
@@ -49,6 +49,9 @@ def test_live_endpoint_returns_events_and_services(app, client):
     assert incident["severity"] == "critical"
     assert incident["weight"] == 1.0
     assert incident["label"] == "Edificio X"
+    assert incident["verification_status"] == "verified"
+    assert incident["people_trapped_status"] == "unknown"
+    assert len(payload["intensity"]) == 1
 
     event = payload["events"][0]
     assert event["magnitude"] == 4.6

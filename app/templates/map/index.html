@@ -12,7 +12,7 @@
     <div>
       <p class="eyebrow">Mapa vivo</p>
       <h1>Mapa operativo del terremoto</h1>
-      <p>Sismos y réplicas (USGS / GDACS) y el directorio de servicios (OpenStreetMap), en tiempo casi real. Los reportes revisados se muestran sin exponer direcciones exactas ni contactos.</p>
+      <p>Daño estructural trazable, sismos y servicios en un solo espacio. El mapa separa hechos corroborados de evaluaciones satelitales pendientes y nunca infiere personas atrapadas a partir de un edificio dañado.</p>
     </div>
     <div class="map-privacy-note" role="note">
       <span aria-hidden="true"></span>
@@ -35,11 +35,11 @@
       <div class="map-control-group">
         <span class="map-control-label">Capas</span>
         <div class="map-filter-buttons" role="group" aria-label="Mostrar u ocultar capas del mapa">
-          <button type="button" class="map-chip map-layer-chip danger-chip is-active" data-map-layer="danger" aria-pressed="true">⚠ Zonas de peligro</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="incidents" aria-pressed="true">Incidentes</button>
-          <button type="button" class="map-chip map-layer-chip" data-map-layer="events" aria-pressed="false">Sismos</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="services" aria-pressed="true">Servicios</button>
-          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="reports" aria-pressed="true">Reportes</button>
+          <button type="button" class="map-chip map-layer-chip danger-chip is-active" data-map-layer="danger" aria-pressed="true"><i class="chip-dot" style="--dot:#e5253a"></i>Colapsos</button>
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="assessments" aria-pressed="true"><i class="chip-dot" style="--dot:#ef7d2e"></i>Daño satelital</button>
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="services" aria-pressed="true"><i class="chip-dot" style="--dot:#2a8fd6"></i>Servicios</button>
+          <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="reports" aria-pressed="true"><i class="chip-dot" style="--dot:#8a7de0"></i>Reportes</button>
+          <button type="button" class="map-chip map-layer-chip" data-map-layer="events" aria-pressed="false"><i class="chip-dot" style="--dot:#9aa6ad"></i>Sismos</button>
         </div>
       </div>
       <div class="map-control-group">
@@ -55,8 +55,9 @@
       <div class="map-control-group map-near-control">
         <span class="map-control-label">Cerca de mí</span>
         <div class="map-filter-buttons" role="group" aria-label="Ubicación y radio de búsqueda">
-          <button type="button" class="map-chip map-locate-chip" data-map-locate aria-pressed="false">📍 Usar mi GPS</button>
+          <button type="button" class="map-chip map-locate-chip" data-map-locate aria-pressed="false">Usar mi ubicación</button>
           <button type="button" class="map-chip map-radius-chip is-active" data-map-radius="0" aria-pressed="true">Todo</button>
+          <button type="button" class="map-chip map-radius-chip" data-map-radius="5" aria-pressed="false">5 km</button>
           <button type="button" class="map-chip map-radius-chip" data-map-radius="10" aria-pressed="false">10 km</button>
           <button type="button" class="map-chip map-radius-chip" data-map-radius="25" aria-pressed="false">25 km</button>
           <button type="button" class="map-chip map-radius-chip" data-map-radius="50" aria-pressed="false">50 km</button>
@@ -83,7 +84,8 @@
           tabindex="0"
         ></div>
         <div class="map-legend" aria-label="Leyenda del mapa">
-          <span><i class="legend-danger"></i>Peligro / colapso (evitar)</span>
+          <span><i class="legend-danger"></i>Colapso corroborado</span>
+          <span><i class="legend-assessment"></i>Daño satelital por validar</span>
           <span><i class="legend-dot crit"></i>Crítico</span>
           <span><i class="legend-dot high"></i>Alto</span>
           <span><i class="legend-dot quake"></i>Sismo</span>
@@ -97,18 +99,19 @@
         <div class="map-results-heading">
           <div>
             <p class="eyebrow">Vista accesible</p>
-            <h2 id="map-results-title">Reportes en el mapa</h2>
+            <h2 id="map-results-title">Evidencia en el mapa</h2>
           </div>
           <a href="{{ url_for('reports.index') }}">Ver listado completo</a>
         </div>
         <p id="map-status" class="map-status" role="status" aria-live="polite">Cargando información revisada…</p>
+        {% if unlocated_structures %}<p class="map-unlocated-note"><strong>{{ unlocated_structures }} estructuras publicadas</strong> aún no tienen coordenada suficientemente precisa para mostrarlas como pin. <a href="{{ url_for('public.directory', category='collapsed_structure') }}#incidentes">Ver lista nominal y fuentes</a>.</p>{% endif %}
         <div class="map-result-list" data-map-results></div>
       </aside>
     </div>
 
     <div class="map-method-note">
       <strong>Cómo leer el mapa</strong>
-      <p>El mapa de calor muestra la <strong>intensidad por zona afectada</strong> (más intenso donde el impacto fue mayor, como La Guaira); es un modelo, no un conteo de víctimas. Al acercar, el calor da paso a los <strong>incidentes específicos</strong> con su edificio y dirección exacta, y a los clusters. No sustituye una evaluación en terreno.</p>
+      <p>El calor se calcula únicamente desde registros estructurales con fuente. Los puntos naranjas y amarillos son <strong>predicciones satelitales pendientes de validación</strong>; no confirman colapso ni ocupantes. Los colapsos corroborados muestran fuente y fecha. Ninguna capa sustituye una evaluación en terreno.</p>
     </div>
   </div>
 </section>

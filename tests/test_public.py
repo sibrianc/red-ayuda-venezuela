@@ -94,6 +94,12 @@ def test_map_page_has_operational_filters_and_density_view(client):
     assert 'data-map-filter="resource_offer"' in html
     assert 'data-map-mode="density"' in html
     assert "Concentración" in html
+    assert 'data-map-layer="assessments"' in html
+    assert 'data-map-radius="10"' in html
+    assert 'data-map-radius="25"' in html
+    assert 'data-map-radius="50"' in html
+    assert "Usar mi ubicación" in html
+    assert "⚠" not in html and "📍" not in html
 
 
 @pytest.mark.parametrize(

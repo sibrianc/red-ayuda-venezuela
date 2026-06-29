@@ -5,7 +5,6 @@ Estos datos provienen de fuentes públicas autoritativas (USGS, GDACS) y abierta
 publicación de reportes de personas sigue su propia puerta de revisión humana.
 """
 
-import random
 import urllib.parse
 
 from sqlalchemy import func, or_
@@ -64,46 +63,41 @@ INCIDENT_LABELS = {
     "medical": "Emergencia médica",
     "blocked_road": "Vía bloqueada",
     "no_comms": "Zona sin comunicación",
+    "destroyed_structure_candidate": "Posible estructura destruida",
+    "major_damage_candidate": "Posible daño estructural mayor",
+    "minor_damage_candidate": "Posible daño estructural menor",
     "other": "Incidente",
+}
+
+INCIDENT_VERIFICATION_LABELS = {
+    "candidate": "Evaluación satelital · pendiente de validación",
+    "reported": "Reporte publicado · pendiente de verificación",
+    "corroborated": "Corroborado por fuentes públicas",
+    "verified": "Verificado en terreno",
+}
+
+DAMAGE_CANDIDATE_CATEGORIES = {
+    "destroyed_structure_candidate",
+    "major_damage_candidate",
+    "minor_damage_candidate",
 }
 
 SEVERITY_WEIGHT = {"critical": 1.0, "high": 0.7, "medium": 0.45, "low": 0.25}
 
-# Intensidad de zona afectada (modelo para el mapa de calor), posicionada en las
-# zonas REALES más golpeadas del terremoto del 24 jun 2026 y ponderada por su
-# severidad relativa: La Guaira fue la más devastada (~1.400 edificios), luego
-# Caracas, y la región del epicentro en Yaracuy (San Felipe / Yumare). Esto NO son
-# incidentes individuales; es una capa de intensidad agregada, separada del directorio.
-AFFECTED_ZONES = [
-    ("La Guaira", 10.600, -66.930, 1.00, 90, 0.045),
-    ("Caracas", 10.490, -66.880, 0.92, 95, 0.060),
-    ("San Felipe (epicentro)", 10.340, -68.740, 0.82, 60, 0.060),
-    ("Yumare (epicentro)", 10.620, -68.690, 0.78, 40, 0.050),
-    ("Maracay", 10.250, -67.600, 0.62, 45, 0.060),
-    ("Valencia", 10.160, -68.000, 0.60, 45, 0.060),
-    ("Los Teques", 10.340, -67.040, 0.52, 35, 0.050),
-]
-
-
-def _build_affected_intensity() -> list[list[float]]:
-    rng = random.Random(7)  # determinista: misma intensidad en cada arranque
-    points: list[list[float]] = []
-    for _name, lat, lon, weight, count, spread in AFFECTED_ZONES:
-        for _ in range(count):
-            points.append([
-                round(rng.gauss(lat, spread), 4),
-                round(rng.gauss(lon, spread), 4),
-                round(weight * rng.uniform(0.55, 1.0), 3),
-            ])
-    return points
-
-
-AFFECTED_INTENSITY = _build_affected_intensity()
-
-
 def affected_intensity() -> list[list[float]]:
-    """Campo de intensidad [[lat, lon, peso], ...] para el mapa de calor (zonas afectadas)."""
-    return AFFECTED_INTENSITY
+    """Calor basado solo en registros estructurales trazables, nunca puntos inventados."""
+    points = []
+    for incident in public_incidents(require_coordinates=True):
+        confidence = incident.get("confidence")
+        weight = SEVERITY_WEIGHT.get(incident["severity"], 0.35)
+        if confidence is not None:
+            weight *= max(0.2, confidence)
+        points.append([
+            incident["latitude"],
+            incident["longitude"],
+            round(weight, 3),
+        ])
+    return points
 
 CATEGORY_LABELS = {
     "hospital": "Hospital",
@@ -194,6 +188,11 @@ def maps_url(latitude=None, longitude=None, text: str | None = None) -> str | No
     return None
 
 
+def safe_public_url(value: str | None) -> str | None:
+    """Solo permite enlaces web explícitos en proyecciones públicas."""
+    return value if value and value.startswith(("https://", "http://")) else None
+
+
 def public_person_records(status: str | None = None, q: str | None = None, limit: int = 500) -> list[dict]:
     """Personas publicadas (PFIF / listas oficiales) por estado. Excluye menores."""
     query = PersonRecord.query.filter(PersonRecord.is_minor.is_(False))
@@ -220,11 +219,7 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
             "person_status": person.person_status,
             "summary": person.description,
             "source_name": person.source_name,
-            "source_url": (
-                person.source_url
-                if person.source_url and person.source_url.startswith(("https://", "http://"))
-                else None
-            ),
+            "source_url": safe_public_url(person.source_url),
             "source_date": person.source_date.isoformat() if person.source_date else None,
             "attribution": person.attribution,
             "corroboration": person.corroboration,
@@ -318,12 +313,38 @@ def public_situation() -> list[dict]:
     return headline
 
 
-def public_incidents(q: str | None = None, limit: int = 5000) -> list[dict]:
+def public_incidents(
+    q: str | None = None,
+    limit: int = 5000,
+    *,
+    require_coordinates: bool = False,
+) -> list[dict]:
+    """Incidentes públicos con una puerta explícita de evidencia.
+
+    Las muestras y reportes no verificados quedan fuera. Una categoría de personas
+    atrapadas requiere corroboración/validación y confirmación específica de ocupantes.
+    Las predicciones satelitales solo se admiten en categorías *_candidate.
+    """
     severity_order = sa_case_severity()
-    query = Incident.query.filter(
-        Incident.latitude.isnot(None),
-        Incident.longitude.isnot(None),
+    operational_evidence = Incident.verification_status.in_(("corroborated", "verified"))
+    published_collapse = (
+        (Incident.category == "collapsed_structure")
+        & (Incident.verification_status == "reported")
     )
+    trapped_evidence = or_(
+        ~Incident.category.in_(("trapped_persons", "buried_persons")),
+        Incident.people_trapped_status == "confirmed",
+    )
+    satellite_candidate = (
+        Incident.category.in_(DAMAGE_CANDIDATE_CATEGORIES)
+        & (Incident.verification_status == "candidate")
+    )
+    query = Incident.query.filter(
+        Incident.source_slug != "sample",
+        or_(operational_evidence & trapped_evidence, published_collapse, satellite_candidate),
+    )
+    if require_coordinates:
+        query = query.filter(Incident.latitude.isnot(None), Incident.longitude.isnot(None))
     if q:
         term = f"%{q}%"
         query = query.filter(
@@ -331,9 +352,15 @@ def public_incidents(q: str | None = None, limit: int = 5000) -> list[dict]:
                 Incident.label.ilike(term),
                 Incident.address_public.ilike(term),
                 Incident.situation_note.ilike(term),
+                Incident.source_name.ilike(term),
             )
         )
-    query = query.order_by(severity_order, Incident.occurred_at.desc().nullslast()).limit(limit)
+    verification_order = sa_case_incident_verification()
+    query = query.order_by(
+        verification_order,
+        severity_order,
+        Incident.source_date.desc().nullslast(),
+    ).limit(limit)
     return [
         {
             "public_id": incident.public_id,
@@ -347,9 +374,25 @@ def public_incidents(q: str | None = None, limit: int = 5000) -> list[dict]:
             "address": incident.address_public,
             "maps_url": maps_url(incident.latitude, incident.longitude, incident.address_public),
             "status": incident.status,
+            "verification_status": incident.verification_status,
+            "verification_label": INCIDENT_VERIFICATION_LABELS.get(
+                incident.verification_status, "Pendiente de verificación"
+            ),
             "situation_note": incident.situation_note,
             "source_name": incident.source_name,
+            "source_url": safe_public_url(incident.source_url),
+            "source_date": incident.source_date.isoformat() if incident.source_date else None,
             "attribution": incident.attribution,
+            "confidence": incident.confidence,
+            "location_precision": incident.location_precision,
+            "area_radius_m": incident.area_radius_m,
+            "people_trapped_status": incident.people_trapped_status,
+            "people_trapped_count": incident.people_trapped_count,
+            "is_damage_candidate": incident.category in DAMAGE_CANDIDATE_CATEGORIES,
+            "is_verified_danger": (
+                incident.category not in DAMAGE_CANDIDATE_CATEGORIES
+                and incident.verification_status in {"corroborated", "verified"}
+            ),
             "occurred_at": incident.occurred_at.isoformat() if incident.occurred_at else None,
         }
         for incident in query.all()
@@ -364,6 +407,17 @@ def sa_case_severity():
         {"critical": 0, "high": 1, "medium": 2, "low": 3},
         value=Incident.severity,
         else_=4,
+    )
+
+
+def sa_case_incident_verification():
+    """Ordena evidencia verificada/corroborada antes de predicciones candidatas."""
+    from sqlalchemy import case
+
+    return case(
+        {"verified": 0, "corroborated": 1, "candidate": 2},
+        value=Incident.verification_status,
+        else_=3,
     )
 
 

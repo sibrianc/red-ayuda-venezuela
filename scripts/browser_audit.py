@@ -50,7 +50,7 @@ def run() -> None:
 
         page.goto(f"{BASE_URL}/reportes/ayuda", wait_until="domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-help-form.png", full_page=True)
-        page.get_by_label("Título breve").fill(report_title)
+        page.get_by_label("Resumen de la necesidad").fill(report_title)
         page.get_by_label("Necesidad principal").select_option("water")
         page.get_by_label("Personas afectadas").fill("3")
         page.get_by_role("button", name="Continuar a ubicación").click()

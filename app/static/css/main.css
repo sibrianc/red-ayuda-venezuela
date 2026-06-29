@@ -525,6 +525,10 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-item.sev-medium { border-left-color:#f3c534; }
 .dir-item.sev-low { border-left-color:#46b06a; }
 .dir-item-tag { display:inline-block; margin-bottom:.4rem; font-size:.66rem; font-weight:850; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+.dir-incident-verification { margin:.7rem 0 .25rem; padding:.35rem .55rem; border-left:3px solid var(--brand); background:var(--surface-2); color:var(--text-soft); font-size:.76rem; font-weight:750; }
+.dir-incident-people { margin:.35rem 0; color:#ef8b83; font-size:.78rem; font-weight:750; }
+.dir-source-link,.dir-source-date { display:block; margin-top:.45rem; color:var(--brand-strong); font-size:.74rem; }
+.dir-source-date { color:var(--muted); }
 .dir-item h3 { margin:0 0 .3rem; font-size:1.05rem; }
 .dir-item-addr { margin:.15rem 0; color:var(--text-soft); font-size:.88rem; }
 .dir-item-note { margin:.35rem 0 0; color:var(--muted); font-size:.84rem; }
@@ -616,7 +620,17 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .map-chip.danger-chip { border-color:#e5253a; color:#ff6b61; font-weight:800; }
 .map-chip.danger-chip.is-active { background:#e5253a; border-color:#e5253a; color:#fff; }
 .map-popup-danger { margin:.2rem 0 .4rem; font-weight:800; color:#e5253a; }
+.map-popup-assessment { margin:.2rem 0 .4rem; font-weight:800; color:#e0a02a; }
+.map-popup-verification { margin:.45rem 0 .2rem; padding:.35rem .5rem; border-left:3px solid var(--brand); color:var(--text-soft); background:var(--surface-2); font-size:.78rem; font-weight:750; }
+.map-popup-people { color:#ef6a60; font-weight:800; }
+.map-popup-source-link { display:block; margin-top:.55rem; color:var(--brand-strong); font-size:.78rem; font-weight:750; }
+.map-result-verification { color:var(--brand-strong); font-size:.76rem; font-weight:750; }
+.map-result-source { color:var(--muted); font-size:.72rem; }
+.map-unlocated-note { margin:.6rem 0; padding:.7rem .8rem; border:1px solid var(--border); border-radius:.65rem; background:var(--surface-2); color:var(--text-soft); font-size:.78rem; line-height:1.45; }
+.map-unlocated-note a { color:var(--brand-strong); font-weight:750; }
 .legend-danger { display:inline-block; width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:12px solid #e5253a; margin-right:.4rem; vertical-align:middle; }
+.legend-assessment { display:inline-block; width:10px; height:10px; margin-right:.4rem; border:2px solid #e0a02a; background:#ef7d2e; transform:rotate(45deg); vertical-align:middle; }
+.assessment-marker { filter:drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
 
 /* Mapa — GPS del usuario y radio de búsqueda */
 .user-pin { background:transparent; border:0; }
@@ -628,3 +642,18 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 
 /* Directorio — sello de corroboración (verificación cruzada entre fuentes) */
 .dir-corroborated { display:inline-block; margin:.1rem 0 .35rem; padding:.12rem .5rem; border-radius:99px; background:rgba(70,192,138,.16); color:#46c08a; font-size:.7rem; font-weight:800; letter-spacing:.02em; }
+
+/* Mapa — toolbar más limpio (dot de color por capa) */
+.chip-dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--dot,#9aa6ad); margin-right:.45rem; vertical-align:middle; }
+.map-layer-chip { display:inline-flex; align-items:center; }
+.map-layer-chip:not(.is-active) { opacity:.6; }
+
+/* Barra lateral: tarjetas clicables (vuelan al punto) + acciones */
+.map-result-card.is-clickable { cursor:pointer; transition:background .12s ease, box-shadow .12s ease; }
+.map-result-card.is-clickable:hover,
+.map-result-card.is-clickable:focus-visible { background:var(--surface-2); outline:none; box-shadow:inset 3px 0 0 #2a8fd6; }
+.map-result-actions { display:flex; gap:.5rem; margin-top:.6rem; flex-wrap:wrap; }
+.map-result-action { font-size:.78rem; font-weight:700; padding:.32rem .7rem; border-radius:8px; border:1px solid var(--border-strong); background:var(--surface); color:var(--text-soft); text-decoration:none; cursor:pointer; }
+.map-result-action.focus { background:#2a8fd6; border-color:#2a8fd6; color:#fff; }
+.map-result-action:hover { border-color:#2a8fd6; color:#2a8fd6; }
+.map-result-action.focus:hover { color:#fff; }

@@ -57,6 +57,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   const DANGER_CATEGORIES = new Set([
     "collapsed_structure", "trapped_persons", "buried_persons", "fire", "blocked_road",
   ]);
+  const DAMAGE_CANDIDATE_CATEGORIES = new Set([
+    "destroyed_structure_candidate", "major_damage_candidate", "minor_damage_candidate",
+  ]);
   const dangerColor = (sev) =>
     ({ critical: "#e5253a", high: "#ef5f2e", medium: "#f0a23a", low: "#f0c93a" }[sev] || "#ef5f2e");
   const dangerRadiusM = (sev) =>
@@ -94,11 +97,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   let incidentsCluster = null;
   let incidentsHeat = null;
   let dangerLayer = null;
+  let assessmentLayer = null;
   let userLayer = null;
   let applyIncidentLayers = () => {};
   if (mapAvailable) {
+    // Encuadre inicial en la ZONA AFECTADA (La Guaira / Caracas), no todo el país,
+    // para que el mapa se vea concentrado donde están los daños.
     map = L.map(element, { scrollWheelZoom: false, zoomControl: false, preferCanvas: true })
-      .setView([10.5, -66.9], 7);
+      .setView([10.58, -66.93], 11);
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
     // Mapa base profesional CARTO (oscuro por defecto; "voyager" claro en modo sol).
@@ -120,8 +126,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     setBasemap();
     window.addEventListener("rav:themechange", setBasemap);
 
+    // Clustering más agresivo: agrupa los puntos en burbujas por zona en vez de
+    // dispersarlos. Así se ve "concentrado en zonas afectadas", no un reguero de pines.
     const clusterGroup = () => (typeof L.markerClusterGroup === "function"
-      ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 46, spiderfyOnMaxZoom: true, chunkedLoading: true })
+      ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 80, spiderfyOnMaxZoom: true, chunkedLoading: true })
       : L.layerGroup());
 
     // Mapa de calor (KDE) para el zoom-out: muchos kernels gaussianos que se suman
@@ -133,7 +141,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     eventsLayer = L.layerGroup().addTo(map);
     servicesLayer = clusterGroup().addTo(map);
     incidentsCluster = clusterGroup();
-    dangerLayer = L.layerGroup().addTo(map);  // zonas de peligro: SIEMPRE visibles (seguridad)
+    dangerLayer = L.layerGroup().addTo(map);
+    assessmentLayer = clusterGroup().addTo(map);
     userLayer = L.layerGroup().addTo(map);    // "tú estás aquí" + radio de búsqueda
     pointLayer = L.layerGroup().addTo(map);
     densityLayer = L.layerGroup();
@@ -144,7 +153,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     applyIncidentLayers = () => {
       if (!map) return;
       const zoomedIn = map.getZoom() >= HEAT_MAX_ZOOM;
-      const showHeat = layerVisible.incidents && !zoomedIn;
+      const showHeat = layerVisible.assessments && !zoomedIn;
       const showCluster = layerVisible.incidents && zoomedIn;
       if (incidentsHeat && showHeat && !map.hasLayer(incidentsHeat)) {
         incidentsHeat.addTo(map);
@@ -166,6 +175,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (dangerLayer) {
         if (layerVisible.danger && !map.hasLayer(dangerLayer)) dangerLayer.addTo(map);
         else if (!layerVisible.danger && map.hasLayer(dangerLayer)) map.removeLayer(dangerLayer);
+      }
+      if (assessmentLayer) {
+        if (layerVisible.assessments && !map.hasLayer(assessmentLayer)) assessmentLayer.addTo(map);
+        else if (!layerVisible.assessments && map.hasLayer(assessmentLayer)) map.removeLayer(assessmentLayer);
       }
     };
     map.on("zoomend", applyIncidentLayers);
@@ -195,10 +208,13 @@ window.addEventListener("DOMContentLoaded", async () => {
   let activeMode = "points";
   // Prioridad: los afectados. Los sismos quedan apagados por defecto (estorban y, con
   // datos de muestra, caen en el mar); siguen disponibles con su toggle.
-  const layerVisible = { danger: true, incidents: true, events: false, services: true, reports: true };
+  const layerVisible = {
+    danger: true, assessments: true, incidents: true,
+    events: false, services: true, reports: true,
+  };
   const filteredReports = () => reports.filter((report) => activeFilter === "all" || report.type === activeFilter);
 
-  // --- GPS del usuario + radio de búsqueda (10/25/50 km) --------------------
+  // --- GPS del usuario + radio de búsqueda configurable ---------------------
   let userLocation = null;
   let activeRadius = 0; // km; 0 = todo
   const haversineKm = (aLat, aLng, bLat, bLng) => {
@@ -265,31 +281,85 @@ window.addEventListener("DOMContentLoaded", async () => {
     const heading = document.createElement("strong");
     heading.textContent = incident.label;
     popup.append(badge, heading);
-    if (DANGER_CATEGORIES.has(incident.category)) {
-      popupRow(popup, "⚠ Zona de peligro — evita acercarte", "map-popup-danger");
+    if (incident.is_damage_candidate) {
+      popupRow(
+        popup,
+        "Evaluación satelital: requiere validación en terreno.",
+        "map-popup-assessment"
+      );
+    } else if (incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category)) {
+      popupRow(popup, "Zona de riesgo documentada — evita ingresar.", "map-popup-danger");
     }
     popupRow(popup, incident.address);
     popupRow(popup, incident.situation_note);
+    if (incident.people_trapped_status === "confirmed") {
+      const count = incident.people_trapped_count;
+      popupRow(
+        popup,
+        count ? `Personas atrapadas confirmadas: ${count}` : "Personas atrapadas: confirmación activa",
+        "map-popup-people"
+      );
+    } else if (incident.category === "collapsed_structure") {
+      popupRow(popup, "Personas atrapadas: sin confirmación individual.", "map-popup-source");
+    }
+    if (incident.verification_label) {
+      popupRow(popup, incident.verification_label, "map-popup-verification");
+    }
+    if (incident.confidence != null) {
+      popupRow(
+        popup,
+        `Confianza del modelo: ${Math.round(incident.confidence * 100)}%`,
+        "map-popup-source"
+      );
+    }
     if (incident.maps_url) {
       const link = document.createElement("a");
       link.className = "map-popup-maps";
       link.href = incident.maps_url; link.target = "_blank"; link.rel = "noopener noreferrer";
-      link.textContent = "Ver ubicación (Google Maps)";
+      link.textContent = "Abrir ubicación";
       popup.appendChild(link);
     }
-    if (incident.status) popupRow(popup, `Estado: ${incident.status}`, "map-popup-source");
-    popupRow(popup, incident.source_name || incident.attribution, "map-popup-source");
+    if (incident.source_url) {
+      const source = document.createElement("a");
+      source.className = "map-popup-source-link";
+      source.href = incident.source_url;
+      source.target = "_blank";
+      source.rel = "noopener noreferrer";
+      source.textContent = incident.source_name ? `Fuente: ${incident.source_name}` : "Consultar fuente";
+      popup.append(source);
+    } else {
+      popupRow(popup, incident.source_name || incident.attribution, "map-popup-source");
+    }
+    if (incident.source_date) {
+      const date = new Intl.DateTimeFormat("es-VE", {
+        day: "2-digit", month: "short", year: "numeric",
+      }).format(new Date(incident.source_date));
+      popupRow(popup, `Información publicada: ${date}`, "map-popup-source");
+    }
     return popup;
   };
   const renderIncidents = () => {
     if (incidentsCluster) incidentsCluster.clearLayers();
     if (dangerLayer) dangerLayer.clearLayers();
+    if (assessmentLayer) assessmentLayer.clearLayers();
     incidents.forEach((incident) => {
-      const isDanger = DANGER_CATEGORIES.has(incident.category);
-      if (isDanger && dangerLayer) {
-        // Círculo del área a EVITAR + marcador de advertencia (visible en todo zoom).
+      const isDanger = incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category);
+      if (DAMAGE_CANDIDATE_CATEGORIES.has(incident.category) && assessmentLayer) {
+        const marker = L.circleMarker([incident.latitude, incident.longitude], {
+          radius: incident.category === "destroyed_structure_candidate" ? 8 : 6,
+          weight: 2,
+          color: incident.category === "destroyed_structure_candidate" ? "#ef6a60" : "#e0a02a",
+          fillColor: incident.category === "minor_damage_candidate" ? "#f0c93a" : "#ef7d2e",
+          fillOpacity: 0.72,
+          className: "assessment-marker",
+        });
+        marker.bindPopup(incidentPopup(incident), { minWidth: 270 });
+        assessmentLayer.addLayer(marker);
+      } else if (isDanger && dangerLayer) {
+        // Solo evidencia corroborada o verificada llega a esta capa pública.
         L.circle([incident.latitude, incident.longitude], {
-          radius: dangerRadiusM(incident.severity), color: dangerColor(incident.severity),
+          radius: incident.area_radius_m || dangerRadiusM(incident.severity),
+          color: dangerColor(incident.severity),
           weight: 1.2, fillColor: dangerColor(incident.severity), fillOpacity: 0.14,
           dashArray: "5 4", interactive: false,
         }).addTo(dangerLayer);
@@ -461,37 +531,92 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
+  // Vuela al punto exacto y abre su ficha (independiente del clustering).
+  const focusOnPoint = (lat, lng, popupContent) => {
+    if (!map || lat == null || lng == null) return;
+    map.flyTo([lat, lng], 16, { duration: 0.7 });
+    L.popup({ minWidth: 248, autoPan: true })
+      .setLatLng([lat, lng])
+      .setContent(popupContent)
+      .openOn(map);
+  };
+
+  const listActions = (article, focusFn, externalUrl, externalLabel) => {
+    const actions = document.createElement("div");
+    actions.className = "map-result-actions";
+    const focusBtn = document.createElement("button");
+    focusBtn.type = "button";
+    focusBtn.className = "map-result-action focus";
+    focusBtn.textContent = "Ver en el mapa";
+    focusBtn.addEventListener("click", (event) => { event.stopPropagation(); focusFn(); });
+    actions.append(focusBtn);
+    if (externalUrl) {
+      const link = document.createElement("a");
+      link.className = "map-result-action gmaps";
+      link.href = externalUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = externalLabel;
+      link.addEventListener("click", (event) => event.stopPropagation());
+      actions.append(link);
+    }
+    article.append(actions);
+  };
+
   const renderList = (visibleReports) => {
     if (!resultList) return;
     resultList.replaceChildren();
-    const cards = incidents.slice(0, 14);
+    const cards = incidents.slice(0, 16);
     cards.forEach((incident) => {
       const article = document.createElement("article");
-      article.className = "map-result-card incident";
+      article.className = "map-result-card incident is-clickable";
+      article.tabIndex = 0;
+      article.setAttribute("role", "button");
+      article.setAttribute("aria-label", `Ver ${incident.label} en el mapa`);
       const label = document.createElement("span");
       label.className = `map-result-type sev-${incident.severity}`;
-      label.textContent = `${incident.category_label} · ${severityLabel(incident.severity)}`;
+      label.textContent = incident.is_damage_candidate
+        ? `${incident.category_label} · por validar`
+        : `${incident.category_label} · ${severityLabel(incident.severity)}`;
       const heading = document.createElement("h3");
       heading.textContent = incident.label;
       article.append(label, heading);
-      popupRow(article, incident.address);
+      if (incident.address) popupRow(article, incident.address);
+      // Una sola línea de estado, sin repetir.
+      const statusLine = incident.is_damage_candidate
+        ? (incident.confidence != null
+            ? `Daño satelital · confianza ${Math.round(incident.confidence * 100)}%`
+            : "Daño satelital por validar")
+        : (incident.verification_label || incident.source_name || "");
+      if (statusLine) popupRow(article, statusLine, "map-result-source");
+      const focus = () => focusOnPoint(incident.latitude, incident.longitude, incidentPopup(incident));
+      listActions(article, focus, incident.maps_url, "Google Maps");
+      article.addEventListener("click", focus);
+      article.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); focus(); }
+      });
       resultList.append(article);
     });
     if (!cards.length) {
       visibleReports.slice(0, 12).forEach((report) => {
         const meta = typeMeta[report.type] || typeMeta.help_request;
         const article = document.createElement("article");
-        article.className = "map-result-card";
+        article.className = "map-result-card is-clickable";
+        article.tabIndex = 0;
+        article.setAttribute("role", "button");
         const label = document.createElement("span");
         label.className = `map-result-type ${meta.className}`;
         label.textContent = meta.label;
         const heading = document.createElement("h3");
-        const link = document.createElement("a");
-        link.href = report.url;
-        link.textContent = report.title;
-        heading.append(link);
+        heading.textContent = report.title;
         article.append(label, heading);
         popupRow(article, report.location.label);
+        const focus = () => focusOnPoint(report.location.latitude, report.location.longitude, popupFor(report));
+        listActions(article, focus, report.url, "Ver detalle");
+        article.addEventListener("click", focus);
+        article.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); focus(); }
+        });
         resultList.append(article);
       });
     }
@@ -545,8 +670,19 @@ window.addEventListener("DOMContentLoaded", async () => {
   };
 
   const allPoints = () => {
+    const structuralPoints = [];
+    incidents.forEach((incident) => {
+      const visible = incident.is_damage_candidate
+        ? layerVisible.assessments
+        : (incident.is_verified_danger && DANGER_CATEGORIES.has(incident.category)
+          ? layerVisible.danger
+          : layerVisible.incidents);
+      if (visible) structuralPoints.push([incident.latitude, incident.longitude]);
+    });
+    // La prioridad visual son víctimas y daño. Los miles de servicios no deben
+    // alejar el encuadre hasta mostrar todo el país cuando ya hay evidencia estructural.
+    if (structuralPoints.length) return structuralPoints;
     const points = [];
-    if (layerVisible.incidents) incidents.forEach((i) => points.push([i.latitude, i.longitude]));
     if (layerVisible.events) events.forEach((e) => points.push([e.latitude, e.longitude]));
     if (layerVisible.services) services.forEach((s) => points.push([s.latitude, s.longitude]));
     if (layerVisible.reports) filteredReports().forEach((r) => points.push([r.location.latitude, r.location.longitude]));
@@ -573,7 +709,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       pointLayer.addTo(map);
     }
     if (status) {
-      status.textContent = `${incidents.length} incidentes · ${events.length} sismos · ${services.length} servicios.`;
+      const candidates = incidents.filter((incident) => incident.is_damage_candidate).length;
+      const documented = incidents.length - candidates;
+      status.textContent = `${documented} incidentes documentados · ${candidates} evaluaciones por validar · ${services.length} servicios.`;
     }
   };
 

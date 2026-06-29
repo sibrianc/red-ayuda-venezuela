@@ -83,13 +83,25 @@ def test_public_staging_catalog_has_official_and_humanitarian_sources():
     assert {source.source_kind for source in sources} == {
         DataSourceKind.AUTHORITATIVE,
         DataSourceKind.HUMANITARIAN,
+        DataSourceKind.COMMUNITY,
     }
+
+
+def test_damage_sources_document_candidate_and_no_victim_inference():
+    sources = {source.slug: source for source in build_public_staging_sources()}
+    assert "CC BY" in sources["hot-fair-damage"].license_or_permission
+    assert "candidate" in sources["hot-fair-damage"].categories
+    assert "Do not fabricate coordinates" in sources["el-estimulo-collapse-list"].authorization_notes
 
 
 def test_public_staging_catalog_is_p0_and_passes_authorization_gate():
     for source in build_public_staging_sources():
         assert source.authorization_status == DataSourceStatus.STAGING
-        assert source.maximum_data_class == DataClassification.PUBLIC_AGGREGATE
+        # Solo datos PÚBLICOS: P0 (agregado) o P1 (saneado sin PII). Nunca PII ni secretos.
+        assert source.maximum_data_class in {
+            DataClassification.PUBLIC_AGGREGATE,
+            DataClassification.PUBLIC_SANITIZED,
+        }
         assert source.contains_personal_data is False
         assert source.secret_env_var is None
         require_staging_authorization(source)

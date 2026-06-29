@@ -28,7 +28,7 @@ def test_directory_page_renders(client):
     assert response.status_code == 200
     html = response.text
     assert "Reportar un familiar" in html
-    assert "Incidentes de prioridad" in html
+    assert "Incidentes y evaluación estructural" in html
     assert "Registros oficiales" in html
     assert "Personas fallecidas" in html
 
@@ -63,6 +63,7 @@ def _incident(label, address, **overrides):
         "source_slug": "test", "external_id": label, "content_hash": "h",
         "category": "collapsed_structure", "severity": "high", "label": label,
         "address_public": address, "latitude": 10.5, "longitude": -66.9, "in_region": True,
+        "verification_status": "corroborated", "people_trapped_status": "unknown",
     }
     values.update(overrides)
     return Incident(**values)
@@ -77,6 +78,45 @@ def test_public_incidents_search(app):
     assert len(public_incidents(q="catia")) == 1
     assert len(public_incidents(q="Av.")) == 2  # ambos por dirección
     assert len(public_incidents(q="zzz")) == 0
+
+
+def test_public_incidents_hide_samples_and_unverified_trapped_claims(app):
+    with app.app_context():
+        db.session.add(_incident("Muestra peligrosa", "Caracas", source_slug="sample"))
+        db.session.add(_incident(
+            "Atrapamiento sin verificar",
+            "Caracas",
+            category="trapped_persons",
+            verification_status="unverified",
+            people_trapped_status="reported",
+        ))
+        db.session.add(_incident(
+            "Atrapamiento confirmado",
+            "La Guaira",
+            category="trapped_persons",
+            verification_status="verified",
+            people_trapped_status="confirmed",
+            people_trapped_count=2,
+        ))
+        db.session.commit()
+
+    incidents = public_incidents()
+    assert [incident["label"] for incident in incidents] == ["Atrapamiento confirmado"]
+    assert incidents[0]["people_trapped_count"] == 2
+
+
+def test_public_incidents_can_list_unlocated_but_map_requires_coordinates(app):
+    with app.app_context():
+        db.session.add(_incident(
+            "Edificio publicado",
+            "La Guaira · ubicación pendiente",
+            latitude=None,
+            longitude=None,
+        ))
+        db.session.commit()
+
+    assert len(public_incidents()) == 1
+    assert public_incidents(require_coordinates=True) == []
 
 
 def test_public_directory_search(app):

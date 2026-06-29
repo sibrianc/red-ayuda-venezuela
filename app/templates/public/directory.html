@@ -215,7 +215,8 @@
     </section>
 
     <section class="dir-section" id="incidentes">
-      <h2>Incidentes de prioridad <span class="dir-count">{{ incident_total }}</span></h2>
+      <h2>Incidentes y evaluación estructural <span class="dir-count">{{ incident_total }}</span></h2>
+      <p class="dir-section-intro">Los colapsos corroborados y las evaluaciones satelitales pendientes se muestran por separado. Un edificio dañado nunca implica automáticamente que haya personas atrapadas.</p>
       <div class="dir-chips" role="group" aria-label="Filtrar incidentes por tipo">
         <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory', q=q) }}#incidentes">Todos</a>
         {% for g in incident_groups %}
@@ -229,6 +230,11 @@
           <h3>{{ i.label }}</h3>
           {% if i.address %}<p class="dir-item-addr">{{ i.address }}</p>{% endif %}
           {% if i.situation_note %}<p class="dir-item-note">{{ i.situation_note }}</p>{% endif %}
+          <p class="dir-incident-verification">{{ i.verification_label }}</p>
+          {% if i.category == 'collapsed_structure' and i.people_trapped_status != 'confirmed' %}<p class="dir-incident-people">Personas atrapadas: sin confirmación individual.</p>{% endif %}
+          {% if i.confidence is not none %}<p class="dir-item-note">Confianza del modelo: {{ (i.confidence * 100)|round|int }}%</p>{% endif %}
+          {% if i.source_url %}<a class="dir-source-link" href="{{ i.source_url }}" target="_blank" rel="noopener noreferrer">Fuente: {{ i.source_name or 'consultar registro' }}</a>{% elif i.source_name %}<p class="dir-item-note">Fuente: {{ i.source_name }}</p>{% endif %}
+          {% if i.source_date %}<time class="dir-source-date" datetime="{{ i.source_date }}">Publicado {{ i.source_date[:10] }}</time>{% endif %}
         </article>
         {% else %}
         <p class="dir-empty">No hay incidentes{% if q %} para «{{ q }}»{% endif %}{% if category %} en esta categoría{% endif %}.</p>

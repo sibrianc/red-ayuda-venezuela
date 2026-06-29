@@ -13,7 +13,17 @@ from app.services.reporting import public_items, public_report_dict
 
 @bp.get("")
 def index():
-    return render_template("map/index.html")
+    all_incidents = public_incidents()
+    unlocated_structures = sum(
+        1
+        for incident in all_incidents
+        if incident["category"] == "collapsed_structure"
+        and (incident["latitude"] is None or incident["longitude"] is None)
+    )
+    return render_template(
+        "map/index.html",
+        unlocated_structures=unlocated_structures,
+    )
 
 
 @bp.get("/data")
@@ -40,7 +50,7 @@ def live():
     response = jsonify({
         "situation": public_situation(),
         "intensity": affected_intensity(),
-        "incidents": public_incidents(),
+        "incidents": public_incidents(require_coordinates=True),
         "events": public_events(),
         "services": public_directory_balanced(),
     })

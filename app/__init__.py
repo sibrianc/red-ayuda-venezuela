@@ -183,6 +183,45 @@ def register_cli(app: Flask) -> None:
         click.echo(f"Total en directorio: {overview['total']}")
         click.echo(f"por categoría: {overview['por_categoria']}")
 
+    @app.cli.command("ingest-building-damage")
+    def ingest_building_damage():
+        """Carga daño satelital candidato y la lista nominal trazable de colapsos."""
+        from app.ingestion.catalog import build_public_staging_sources
+        from app.ingestion.incidents import (
+            curated_collapsed_structures,
+            fetch_hdx_damage,
+            parse_hdx_damage_geojson,
+        )
+        from app.ingestion.pipeline import ingest_incidents
+        from app.ingestion.registry import require_staging_authorization
+
+        sources = {source.slug: source for source in build_public_staging_sources()}
+        require_staging_authorization(sources["hot-fair-damage"])
+        require_staging_authorization(sources["el-estimulo-collapse-list"])
+
+        click.echo("Cargando lista nominal de estructuras colapsadas...")
+        listed = ingest_incidents(curated_collapsed_structures())
+        click.echo(
+            f"  lista: {listed.new} nuevos, {listed.updated} actualizados, "
+            f"{listed.unchanged} sin cambios"
+        )
+        click.echo("Descargando evaluación satelital HOT/OCHA HDX...")
+        try:
+            payload = fetch_hdx_damage()
+        except Exception as exc:  # noqa: BLE001 — error legible de fuente externa
+            raise click.ClickException(
+                f"No se pudo descargar HOT/OCHA HDX ({type(exc).__name__}: {exc})."
+            ) from exc
+        assessed = ingest_incidents(parse_hdx_damage_geojson(payload))
+        click.echo(
+            f"  satélite: {assessed.new} nuevos, {assessed.updated} actualizados, "
+            f"{assessed.unchanged} sin cambios"
+        )
+        click.echo(
+            "Las predicciones satelitales permanecen como candidatas; "
+            "no confirman ocupantes ni personas atrapadas."
+        )
+
     @app.cli.command("seed-sample")
     def seed_sample():
         """Siembra datos de MUESTRA para previsualizar el mapa (no son datos reales)."""
@@ -312,10 +351,20 @@ def register_cli(app: Flask) -> None:
         import time
 
         from app.ingestion.localizados import fetch_localizados, parse_localizados
+        from app.ingestion.catalog import build_public_staging_sources
+        from app.ingestion.incidents import (
+            curated_collapsed_structures, fetch_hdx_damage, parse_hdx_damage_geojson,
+        )
         from app.ingestion.pipeline import (
-            directory_overview, event_overview, ingest_directory, ingest_events, ingest_persons,
+            directory_overview, event_overview, ingest_directory, ingest_events,
+            ingest_incidents, ingest_persons,
         )
         from app.ingestion.venezuelareporta import fetch_reporta, parse_reporta
+        from app.ingestion.registry import require_staging_authorization
+
+        registered_sources = {
+            source.slug: source for source in build_public_staging_sources()
+        }
 
         def step(name, action):
             try:
@@ -333,6 +382,23 @@ def register_cli(app: Flask) -> None:
                                    region_only=True, event_types={"earthquake"}))
         step("OpenStreetMap — directorio de servicios",
              lambda: ingest_directory(parse_overpass(fetch_overpass()), region_only=True))
+
+        def _hdx_damage():
+            require_staging_authorization(registered_sources["hot-fair-damage"])
+            return ingest_incidents(parse_hdx_damage_geojson(fetch_hdx_damage()))
+
+        def _collapsed_list():
+            require_staging_authorization(registered_sources["el-estimulo-collapse-list"])
+            return ingest_incidents(curated_collapsed_structures())
+
+        step(
+            "HOT/OCHA HDX — evaluación de daños estructurales",
+            _hdx_damage,
+        )
+        step(
+            "Lista nominal — estructuras colapsadas publicadas",
+            _collapsed_list,
+        )
 
         def _localizados():
             page = 1

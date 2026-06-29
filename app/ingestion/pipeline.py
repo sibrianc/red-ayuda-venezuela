@@ -21,8 +21,9 @@ from app.ingestion.connectors import (
     in_venezuela_region,
 )
 from app.ingestion.normalize import match_key
+from app.ingestion.incidents import ParsedIncident
 from app.ingestion.pfif import ParsedPerson
-from app.models import DirectoryEntry, IngestedEvent, PersonRecord, SourceRecord
+from app.models import DirectoryEntry, Incident, IngestedEvent, PersonRecord, SourceRecord
 
 
 @dataclass
@@ -281,6 +282,72 @@ def ingest_directory(
             stats.updated += 1
         _apply_directory_fields(existing, entry, is_region)
         if is_region:
+            stats.in_region += 1
+
+    if commit:
+        db.session.commit()
+    return stats
+
+
+def _apply_incident_fields(target: Incident, incident: ParsedIncident) -> None:
+    target.source_slug = incident.source_slug
+    target.external_id = incident.external_id
+    target.content_hash = incident.content_hash
+    target.category = incident.category
+    target.severity = incident.severity
+    target.label = incident.label
+    target.address_public = incident.address_public
+    target.latitude = incident.latitude
+    target.longitude = incident.longitude
+    target.status = incident.status
+    target.verification_status = incident.verification_status
+    target.situation_note = incident.situation_note
+    target.source_name = incident.source_name
+    target.source_url = incident.source_url
+    target.source_date = incident.source_date
+    target.attribution = incident.attribution
+    target.confidence = incident.confidence
+    target.location_precision = incident.location_precision
+    target.area_radius_m = incident.area_radius_m
+    target.people_trapped_status = incident.people_trapped_status
+    target.people_trapped_count = incident.people_trapped_count
+    target.in_region = bool(
+        incident.latitude is not None
+        and incident.longitude is not None
+        and in_venezuela_region(incident.latitude, incident.longitude)
+    )
+    target.occurred_at = incident.source_date
+
+
+def ingest_incidents(incidents: list[ParsedIncident], *, commit: bool = True) -> IngestStats:
+    """Persiste incidentes trazables, idempotentes por fuente e identificador."""
+    stats = IngestStats(received=len(incidents))
+    deduped: dict[tuple[str, str], ParsedIncident] = {}
+    for incident in incidents:
+        if not incident.external_id:
+            stats.invalid += 1
+            continue
+        deduped[(incident.source_slug, incident.external_id)] = incident
+
+    for (source_slug, external_id), incident in deduped.items():
+        existing = (
+            db.session.query(Incident)
+            .filter_by(source_slug=source_slug, external_id=external_id)
+            .one_or_none()
+        )
+        if existing is not None and existing.content_hash == incident.content_hash:
+            stats.unchanged += 1
+            if existing.in_region:
+                stats.in_region += 1
+            continue
+        if existing is None:
+            existing = Incident(source_slug=source_slug, external_id=external_id)
+            db.session.add(existing)
+            stats.new += 1
+        else:
+            stats.updated += 1
+        _apply_incident_fields(existing, incident)
+        if existing.in_region:
             stats.in_region += 1
 
     if commit:

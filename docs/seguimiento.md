@@ -339,6 +339,28 @@ Entregado:
   tarjetas con icono, badge de emergencia, teléfono y "Cómo llegar"; vista "Todos" equilibrada.
   80 pruebas.
 
+### Fase E6 — seguridad en el mapa, motor de datos e intercambio, deploy doc
+
+- **CRÍTICO — zonas de peligro:** capa "⚠ Zonas de peligro" SIEMPRE visible (todo zoom):
+  marcador de advertencia + círculo de área a EVITAR para edificios colapsados, atrapados,
+  sepultados, incendio y vía bloqueada. Popup "evita acercarte" + Google Maps. (10 incidentes
+  de muestra rotulados; en producción se llenan con reportes/feed real.)
+- **CRÍTICO — directorio legible:** los pills apretados → tarjetas-resumen clicables (número
+  grande + color por tipo).
+- **Formulario específico:** "Nombre/Apellido de la persona desaparecida", "¿Dónde se le vio
+  por última vez?", "Edificio o lugar afectado", "Tu nombre (de quien hace el reporte)".
+- **Mapa GPS + radio:** botón de geolocalización + radio 10/25/50 km que filtra servicios y
+  muestra la distancia real a cada uno.
+- **Motor de datos (dedup/verificación):** `normalize.match_key` conservador; columnas
+  `match_key`+`corroboration` (migración `b8c9d0e1f2a3`); `recompute_corroboration` tras cada
+  ingesta; badge "✓ Corroborado · N fuentes" en el directorio. **Intercambio:**
+  `flask export-contributions` genera el JSON de personas que venezuelareporta NO tiene
+  (dedup por clave, sin menores ni contactos) para compartírselo (somos intermediarios).
+- **Deploy:** `docs/deploy-paso-a-paso.md` (GitHub → Render → dominio, con costos y checklist);
+  `render.yaml` con `FLASK_APP`. 84 pruebas.
+- **Pendiente (último):** red interactiva rescate ↔ víctimas ↔ familias (roles, claim de
+  incidentes, hilos familia↔equipo) — diseño propio en la siguiente fase.
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y
