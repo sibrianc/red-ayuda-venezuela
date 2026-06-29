@@ -37,18 +37,21 @@ def directory():
     q = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
 
-    all_incidents = public_incidents()
+    persons = public_missing_persons(q or None)
+    all_incidents = public_incidents(q=q or None)
     incidents = [i for i in all_incidents if not category or i["category"] == category]
-    services = public_directory()
+    services = public_directory(q=q or None)
     return render_template(
         "public/directory.html",
         situation=public_situation(),
-        persons=public_missing_persons(q or None),
-        incidents=incidents[:60],
+        persons=persons,
+        person_total=len(persons),
+        incidents=incidents[:80],
         incident_groups=_grouped(all_incidents),
         incident_total=len(incidents),
-        services=services[:60],
+        services=services[:80],
         service_groups=_grouped(services),
+        service_total=len(services),
         registries=OFFICIAL_REGISTRIES,
         q=q,
         category=category,

@@ -100,8 +100,10 @@ El propietario aprobó E1 y autorizó iniciar E2. También decidió continuar si
 dominio, correo, Cloudflare, ReliefWeb autenticado, Render y cualquier compra quedan
 diferidos hasta contar con un demo/staging y revisar presupuesto.
 
-**Fase en curso:** E2 — Sistema visual y UX pública, rama
-`phase/e2-public-experience`.
+**Fase en curso:** E4 — Experiencia de élite (tema oscuro, mapa vivo estilo Weather,
+directorio y datos operativos del terremoto), rama `phase/e4-elite-experience` (apilada
+sobre `phase/e3-data-engine` y `phase/e2-public-experience`). Ver el checkpoint Fase B/E4
+más abajo y la hoja de ruta al deploy.
 
 ### Checkpoint E2.1 — tablero público y modo ligero
 
@@ -185,6 +187,60 @@ flask ingest-stats
 > Nota macOS: si ves un error de certificado SSL al descargar, ejecuta el
 > `Install Certificates.command` que viene con tu instalación de Python. Es un ajuste
 > local de certificados, no un cambio del proyecto.
+
+### Checkpoint Fase B / E4 — experiencia de élite (rama `phase/e4-elite-experience`)
+
+Rediseño completo orientado al evento real: **terremotos de Venezuela del 24 jun 2026**
+(Mw 7,2 + 7,5; La Guaira la zona más devastada). El propietario pidió calidad de élite,
+no genérica, y datos reales verificados.
+
+- **Tema oscuro en todo el sitio** por defecto + **modo "sol"** (claro, alto contraste)
+  con toggle en vivo. Sistema de tokens de color (`app/static/css/main.css`), controles de
+  vidrio esmerilado, acentos medidos de la bandera. `app/static/js/preferences.js`.
+- **Mapa vivo de élite** (`app/templates/map/index.html`, `app/static/js/map.js`): base
+  profesional **CARTO Dark Matter**; **mapa de calor (KDE)** de intensidad por zona
+  afectada (La Guaira la más intensa) que **a zoom bajo manda y a zoom alto desaparece**
+  dando paso a **clusters → incidentes exactos** (edificio + dirección). Sismos apagados
+  por defecto. Plugins: leaflet.heat, leaflet.markercluster (CSP actualizado para CARTO).
+- **Datos operativos** (`app/models.py`, `app/services/operational.py`): modelos
+  `Incident` (colapsos, atrapados, sepultados…) y `SituationMetric`; migraciones
+  `d4e5f6a7b8c9` y `e5f6a7b8c9d0`. Endpoint `/mapa/live` (situación, intensidad,
+  incidentes, sismos, servicios).
+- **Cifras REALES citadas** vía `flask load-official-figures` (ONU/OCHA): ~50.000
+  desaparecidos (en disputa), 1.430 fallecidos, 3.238 heridos, 2.245 rescatistas, 140
+  perros — cada una con fuente, fecha y "en verificación". **Regla nueva:** solo hechos
+  verificados de fuentes oficiales; nada inventado.
+- **Ruta `/directorio`** (`app/templates/public/directory.html`): personas (buscar/
+  reportar, **menores protegidos**), incidentes de prioridad (búsqueda + filtros por
+  categoría, orden por severidad), servicios, y **registros oficiales de reunificación**
+  (Cruz Roja RFL, Trace the Face, VenApp 0800-RESCATE). Buscador global operations-grade
+  que filtra personas + incidentes + servicios a la vez. Acceso desde el nav y un botón
+  prominente en el inicio.
+- **Personas desaparecidas**: proyección pública con nombre, edad y última ubicación para
+  reunificación; nunca contacto privado; **menores siempre excluidos** del público.
+- **Validación:** 62/62 pruebas, `compileall`, sintaxis JS. Commits `3bdf6d6` (datos
+  operativos) y `38079af` (UI). Datos del mapa aún de **muestra** (preview) salvo las
+  cifras, que son reales; los datos reales entran con la ingesta y el importador PFIF.
+
+### ¿Cuánto falta para el deploy? (hoja de ruta)
+
+Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y
+requiere decisiones del propietario. Lo que falta, en orden:
+
+1. **Datos reales conectados** (no muestra): correr `flask ingest-usgs` / `ingest-directory`
+   en una máquina con red; conectar **importador PFIF** + listas oficiales de fallecidos;
+   curaduría de incidentes reales. (Trabajo de datos, mayormente gratis.)
+2. **Decisión de costo/hosting**: Render necesita un plan pagado + PostgreSQL. Hay que
+   aprobar el gasto (pendiente desde E1). Alternativa: free tier para staging.
+3. **Infra de producción**: `SECRET_KEY` y `DATABASE_URL` reales, migraciones en Postgres,
+   `flask create-admin`, revisar CSP/headers, dominio/correo (diferidos).
+4. **Recopilación automática**: cron para refrescar fuentes (local gratis; en nube = costo).
+5. **Prueba de humo + revisión de privacidad** final, y **fusionar las ramas apiladas**
+   (e2 → e3 → e4) o abrir PRs en orden.
+
+Resumen honesto: a nivel de **código y experiencia** estamos muy avanzados; para
+**desplegar y que sea útil de verdad** falta sobre todo **conectar datos reales** y
+**aprobar el hosting/costo**. Todo lo demás (motor, mapa, directorio, privacidad) ya está.
 
 ### Checkpoint técnico E1
 

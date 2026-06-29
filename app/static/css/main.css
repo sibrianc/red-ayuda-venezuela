@@ -522,3 +522,15 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-item-addr { margin:.15rem 0; color:var(--text-soft); font-size:.88rem; }
 .dir-item-note { margin:.35rem 0 0; color:var(--muted); font-size:.84rem; }
 .dir-empty { padding:1.4rem; border:1px dashed var(--border-strong); border-radius:var(--radius); color:var(--muted); }
+
+/* === Directorio: barra operations-grade (buscador + pestañas) === */
+.dir-toolbar { position:sticky; top:0; z-index:30; display:flex; flex-wrap:wrap; gap:.7rem 1.1rem; justify-content:space-between; align-items:center; margin:1.4rem 0 .3rem; padding:.7rem .9rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--glass); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); box-shadow:var(--shadow-sm); }
+.dir-toolbar .dir-search { flex:1 1 340px; margin:0; }
+.dir-clear { align-self:center; color:var(--muted); font-size:.85rem; white-space:nowrap; text-decoration:none; }
+.dir-clear:hover { color:var(--brand); text-decoration:underline; }
+.dir-tabs { display:flex; gap:.35rem; flex-wrap:wrap; }
+.dir-tabs a { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .85rem; border-radius:99px; color:var(--text-soft); font-weight:750; font-size:.85rem; text-decoration:none; border:1px solid transparent; }
+.dir-tabs a:hover,.dir-tabs a:focus-visible { border-color:var(--border-strong); color:var(--text); }
+.dir-tabs a span { background:var(--brand); color:#04222e; border-radius:99px; padding:.05rem .45rem; font-size:.72rem; font-weight:850; }
+.dir-searchnote { margin:.7rem 0 0; color:var(--text-soft); font-size:.9rem; }
+.dir-section { scroll-margin-top:84px; }

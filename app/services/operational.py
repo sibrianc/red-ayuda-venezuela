@@ -194,16 +194,22 @@ def public_situation() -> list[dict]:
     return headline
 
 
-def public_incidents(limit: int = 5000) -> list[dict]:
+def public_incidents(q: str | None = None, limit: int = 5000) -> list[dict]:
     severity_order = sa_case_severity()
-    query = (
-        Incident.query.filter(
-            Incident.latitude.isnot(None),
-            Incident.longitude.isnot(None),
-        )
-        .order_by(severity_order, Incident.occurred_at.desc().nullslast())
-        .limit(limit)
+    query = Incident.query.filter(
+        Incident.latitude.isnot(None),
+        Incident.longitude.isnot(None),
     )
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                Incident.label.ilike(term),
+                Incident.address_public.ilike(term),
+                Incident.situation_note.ilike(term),
+            )
+        )
+    query = query.order_by(severity_order, Incident.occurred_at.desc().nullslast()).limit(limit)
     return [
         {
             "public_id": incident.public_id,
@@ -236,15 +242,20 @@ def sa_case_severity():
     )
 
 
-def public_directory(limit: int = 3000) -> list[dict]:
-    query = (
-        DirectoryEntry.query.filter(
-            DirectoryEntry.latitude.isnot(None),
-            DirectoryEntry.longitude.isnot(None),
-        )
-        .order_by(DirectoryEntry.emergency.desc())
-        .limit(limit)
+def public_directory(q: str | None = None, limit: int = 3000) -> list[dict]:
+    query = DirectoryEntry.query.filter(
+        DirectoryEntry.latitude.isnot(None),
+        DirectoryEntry.longitude.isnot(None),
     )
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                DirectoryEntry.name.ilike(term),
+                DirectoryEntry.address_public.ilike(term),
+            )
+        )
+    query = query.order_by(DirectoryEntry.emergency.desc()).limit(limit)
     return [
         {
             "public_id": entry.public_id,
