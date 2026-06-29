@@ -13,7 +13,23 @@ frágil de su frontend, pedimos una **exportación oficial**: es más sólido, r
 evita datos obsoletos. La infraestructura para ingerirla ya está lista
 (`flask import-persons-json <archivo|URL>` y `flask import-pfif`).
 
-## Mensaje (español)
+## Contactos identificados
+
+- **Venezuela Te Busca** → creadora **Julia Alessandra Mariano**, en redes **@juliaamariano**
+  (Instagram). Es el canal público para escribirle (la plataforma no publica un correo).
+- **CIVIS Venezuela**, **Desaparecidos Terremoto Venezuela** → buscar su cuenta oficial en
+  Instagram/X o el "Contacto" de su web y escribirles igual.
+
+## Versión corta para DM (Instagram a @juliaamariano)
+
+> Hola Julia 👋 Soy Carlos, desarrollador independiente. Construí **Red de Ayuda Venezuela**,
+> un mapa y directorio público para reunificación tras el terremoto, y admiro lo que hicieron
+> con Venezuela Te Busca. ¿Sería posible que me compartan una **exportación (JSON/CSV)** de los
+> reportes **públicos**? La indexaría **con atribución a ustedes y enlace a su ficha**, marcada
+> como "reporte ciudadano, no verificado", y **excluyendo menores**. La idea es sumar esfuerzos
+> para que más familias encuentren a los suyos. Mi correo: **carlosssibrian@gmail.com**. ¡Gracias!
+
+## Mensaje largo (correo, una vez en contacto)
 
 Asunto: Intercambio de datos para reunificación familiar — terremoto de Venezuela
 
