@@ -285,6 +285,22 @@ ciego. Due diligence hecha:
   **exclusión de menores**. Más `flask import-pfif` para feeds PFIF. Apenas haya export/feed,
   entran los miles de nombres en un comando. 74/74 pruebas.
 
+### HITO — datos REALES de personas vía API pública (Localizados Venezuela) 🎉
+
+El propietario aportó la fuente: **`localizadosvenezuela.com`** expone una **API REST
+PÚBLICA, de solo lectura, sin autenticación** ("para integraciones"). Es la vía 100% limpia.
+- Conector `app/ingestion/localizados.py` (`fetch_localizados` + `parse_localizados`) sobre
+  `GET /api/v1/localizados?q=&page=&limit=`. Comando `flask import-localizados` (paginado,
+  con cortesía de 0,2 s/página).
+- **Ingeridas 4.448 personas localizadas reales** (encontradas en hospitales/refugios),
+  con nombre, lugar, observaciones, fuente y enlace a su ficha. Estado `found`.
+- **Protección de menores:** 95 menores detectados por texto ("(niña menor)", "bebé",
+  "lactante"…) y **excluidos de las vistas públicas** (siguen en base para revisión).
+- **Directorio:** nueva sección y pestaña **"Personas localizadas"** con buscador
+  (ej. `?q=gonzalez` → 110 coincidencias reales), atribución y conteo real (4.330 públicas).
+- 78 pruebas. Para refrescar: `flask import-localizados`. Mapea a `PersonRecord`, así que
+  el buscador del directorio cruza desaparecidos/localizados/fallecidos.
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y

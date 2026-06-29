@@ -6,6 +6,7 @@ from app.public import bp
 from app.services.operational import (
     OFFICIAL_REGISTRIES,
     count_directory,
+    count_person_records,
     public_comms_zones,
     public_directory,
     public_incidents,
@@ -42,6 +43,7 @@ def directory():
 
     persons = public_missing_persons(q or None)
     published_missing = public_person_records(status="missing", q=q or None)
+    localized = public_person_records(status="found", q=q or None)
     deceased = public_person_records(status="deceased", q=q or None)
     all_incidents = public_incidents(q=q or None)
     incidents = [i for i in all_incidents if not category or i["category"] == category]
@@ -55,10 +57,12 @@ def directory():
         figure_missing=figures.get("missing"),
         figure_dead=figures.get("dead"),
         persons=persons,
-        published_missing=published_missing,
-        person_total=len(persons) + len(published_missing),
-        deceased=deceased,
-        deceased_total=len(deceased),
+        published_missing=published_missing[:120],
+        person_total=len(persons) + count_person_records("missing", q or None),
+        localized=localized[:120],
+        localized_total=count_person_records("found", q or None),
+        deceased=deceased[:120],
+        deceased_total=count_person_records("deceased", q or None),
         comms=comms,
         comms_total=len(comms),
         incidents=incidents[:80],

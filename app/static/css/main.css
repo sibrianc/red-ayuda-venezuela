@@ -543,3 +543,5 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-section { scroll-margin-top:84px; }
 .dir-figure-context { margin:.35rem 0 0; color:var(--text-soft); font-size:.9rem; max-width:60ch; }
 .dir-figure-context strong { color:var(--ve-yellow); }
+.dir-person-found { border-left:4px solid #46c08a; }
+.dir-person-found .dir-person-source { color:#46c08a; }

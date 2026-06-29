@@ -245,6 +245,23 @@ def public_comms_zones(q: str | None = None, limit: int = 200) -> list[dict]:
     ]
 
 
+def count_person_records(status: str | None = None, q: str | None = None) -> int:
+    """Total real de personas publicadas por estado (excluye menores), para conteos."""
+    query = PersonRecord.query.filter(PersonRecord.is_minor.is_(False))
+    if status:
+        query = query.filter(PersonRecord.person_status == status)
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                PersonRecord.full_name.ilike(term),
+                PersonRecord.last_known_location.ilike(term),
+                PersonRecord.home_location.ilike(term),
+            )
+        )
+    return query.count()
+
+
 def count_directory(q: str | None = None) -> int:
     """Total real de servicios (para el conteo del directorio, no limitado por display)."""
     query = DirectoryEntry.query.filter(

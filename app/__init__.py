@@ -342,6 +342,45 @@ def register_cli(app: Flask) -> None:
         click.echo(f"  servicios: {directory['total']}")
         click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
 
+    @app.cli.command("import-localizados")
+    @click.option("--max-pages", type=int, default=200, help="Tope de páginas por seguridad.")
+    @click.option("--limit", type=int, default=100, show_default=True)
+    def import_localizados_cmd(max_pages: int, limit: int):
+        """Importa personas LOCALIZADAS desde la API pública de Localizados Venezuela."""
+        import time
+
+        from app.ingestion.localizados import fetch_localizados, parse_localizados
+        from app.ingestion.pipeline import ingest_persons
+
+        total_new = 0
+        total_minors = 0
+        page = 1
+        click.echo("Descargando de la API pública de Localizados Venezuela...")
+        while page <= max_pages:
+            try:
+                payload = fetch_localizados(page=page, limit=limit)
+            except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+                raise click.ClickException(
+                    f"Falló la descarga en la página {page} ({type(exc).__name__}: {exc})."
+                ) from exc
+            people = parse_localizados(payload)
+            if not people:
+                break
+            stats = ingest_persons(people)
+            total_new += stats.new
+            total_minors += sum(1 for person in people if person.is_minor)
+            meta = payload.get("meta", {}) if isinstance(payload, dict) else {}
+            total_pages = meta.get("totalPages")
+            click.echo(f"  página {page}/{total_pages or '?'}: +{stats.new} nuevos")
+            if total_pages and page >= total_pages:
+                break
+            page += 1
+            time.sleep(0.2)  # cortesía con su servidor
+        click.echo(
+            f"Listo. Personas localizadas nuevas: {total_new}. "
+            f"Menores detectados (excluidos del público): {total_minors}."
+        )
+
     @app.cli.command("import-persons-json")
     @click.argument("source")
     @click.option("--source-slug", default="published", show_default=True)

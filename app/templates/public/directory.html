@@ -30,6 +30,7 @@
       </form>
       <nav class="dir-tabs" aria-label="Secciones del directorio">
         <a href="#personas">Desaparecidos{% if person_total %} <span>{{ person_total }}</span>{% endif %}</a>
+        <a href="#localizadas">Localizadas{% if localized_total %} <span>{{ localized_total }}</span>{% endif %}</a>
         <a href="#fallecidos">Fallecidos{% if deceased_total %} <span>{{ deceased_total }}</span>{% endif %}</a>
         <a href="#comunicacion">Sin comunicación{% if comms_total %} <span>{{ comms_total }}</span>{% endif %}</a>
         <a href="#incidentes">Incidentes{% if incident_total %} <span>{{ incident_total }}</span>{% endif %}</a>
@@ -88,6 +89,31 @@
         </ul>
       </div>
       <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
+    </section>
+
+    <section class="dir-section" id="localizadas">
+      <div class="dir-section-head">
+        <div>
+          <p class="eyebrow">Buenas noticias</p>
+          <h2>Personas localizadas{% if localized_total %} <span class="dir-count">{{ localized_total }}</span>{% endif %}</h2>
+          <p class="dir-section-intro">Personas ya <strong>encontradas</strong> (hospitales, refugios, etc.), publicadas por fuentes ciudadanas. Si buscas a alguien, confirma aquí. Menores excluidos por protección.</p>
+        </div>
+      </div>
+      {% if localized %}
+      <div class="dir-person-grid">
+        {% for p in localized %}
+        <article class="dir-person-card dir-person-found">
+          <div class="dir-person-source">Localizada{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
+          <h3>{{ p.full_name }}</h3>
+          {% if p.last_seen %}<p class="dir-person-loc"><span>Lugar</span> {{ p.last_seen }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          {% if p.source_url %}<div class="dir-record-provenance"><a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Ver ficha</a></div>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="dir-empty"><p>No hay personas localizadas publicadas{% if q %} para «{{ q }}»{% endif %}. Importa la fuente con <code>flask import-localizados</code>.</p></div>
+      {% endif %}
     </section>
 
     <section class="dir-section dir-deceased-section" id="fallecidos">
