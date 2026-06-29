@@ -12,9 +12,17 @@ def test_home_loads_with_security_headers(client):
     assert "data-bandwidth-toggle" in response.text
     assert "js/preferences.js" in response.text
     assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
-    assert "default-src 'self'" in response.headers["Content-Security-Policy"]
-    assert "style-src-attr 'unsafe-inline'" in response.headers["Content-Security-Policy"]
+    csp = response.headers["Content-Security-Policy"]
+    assert "default-src 'self'" in csp
+    assert "style-src-attr 'unsafe-inline'" in csp
+    assert "object-src 'none'" in csp
+    assert "frame-ancestors 'none'" in csp
+    assert "form-action 'self'" in csp
+    # los scripts nunca permiten 'unsafe-inline' (anti-XSS)
+    script_src = csp.split("script-src", 1)[1].split(";", 1)[0]
+    assert "unsafe-inline" not in script_src
 
 
 def test_home_summary_only_counts_approved_public_reports(app, client):

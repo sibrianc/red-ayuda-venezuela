@@ -716,9 +716,12 @@ def register_security_headers(app: Flask) -> None:
             "style-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; "
             "style-src-attr 'unsafe-inline'; "
             "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
-            "img-src 'self' data: https://tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com; "
+            # Las imágenes pueden venir de teselas de mapa y de fotos (mascotas/reconocimientos)
+            # enviadas como enlace https; son inertes (no ejecutan código) y se cargan con
+            # referrerpolicy=no-referrer. Se permite cualquier imagen https, nunca http.
+            "img-src 'self' data: https:; "
             "connect-src 'self'; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
-            "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            "object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
         )
         if request.blueprint in {"admin", "auth"}:
             response.headers["Cache-Control"] = "no-store, private"

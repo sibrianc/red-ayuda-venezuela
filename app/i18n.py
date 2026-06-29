@@ -479,7 +479,14 @@ def init_app(app) -> None:
     def _persist_locale(response):
         lang = getattr(g, "persist_locale", None)
         if lang:
-            response.set_cookie("lang", lang, max_age=31_536_000, samesite="Lax")
+            response.set_cookie(
+                "lang",
+                lang,
+                max_age=31_536_000,
+                httponly=True,
+                samesite="Lax",
+                secure=bool(app.config.get("SESSION_COOKIE_SECURE")),
+            )
         return response
 
     app.jinja_env.globals["_"] = translate

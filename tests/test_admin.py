@@ -28,6 +28,13 @@ def test_admin_requires_authentication(client):
     assert "/cuenta/login" in response.headers["Location"]
 
 
+def test_csv_export_is_admin_only(client, reviewer):
+    # La exportación (datos sensibles) es solo para ADMIN; un REVIEWER recibe 403.
+    assert login(client, "reviewer@example.org").status_code == 302
+    response = client.get("/admin/exportar/help_request.csv")
+    assert response.status_code == 403
+
+
 def test_admin_can_approve_and_history_is_written(app, client, admin):
     with app.app_context():
         report = create_help_request()
