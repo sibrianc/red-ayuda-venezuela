@@ -35,6 +35,7 @@
       <div class="map-control-group">
         <span class="map-control-label">Capas</span>
         <div class="map-filter-buttons" role="group" aria-label="Mostrar u ocultar capas del mapa">
+          <button type="button" class="map-chip map-layer-chip danger-chip is-active" data-map-layer="danger" aria-pressed="true">⚠ Zonas de peligro</button>
           <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="incidents" aria-pressed="true">Incidentes</button>
           <button type="button" class="map-chip map-layer-chip" data-map-layer="events" aria-pressed="false">Sismos</button>
           <button type="button" class="map-chip map-layer-chip is-active" data-map-layer="services" aria-pressed="true">Servicios</button>
@@ -72,6 +73,7 @@
           tabindex="0"
         ></div>
         <div class="map-legend" aria-label="Leyenda del mapa">
+          <span><i class="legend-danger"></i>Peligro / colapso (evitar)</span>
           <span><i class="legend-dot crit"></i>Crítico</span>
           <span><i class="legend-dot high"></i>Alto</span>
           <span><i class="legend-dot quake"></i>Sismo</span>

@@ -595,3 +595,25 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-maps-link::before { content:"📍 "; }
 .dir-maps-link:hover { text-decoration:underline; }
 .dir-more-note { margin-top:.8rem; color:var(--muted); font-size:.85rem; }
+
+/* Directorio — resumen en tarjetas (legible, cómodo, no genérico) */
+.dir-overview { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.4rem; margin:1.3rem 0 1.9rem; }
+.dir-ov-title { margin:0 0 .7rem; font-size:.72rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.dir-ov-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.7rem; }
+.dir-ov-card { display:flex; flex-direction:column; gap:.2rem; padding:1.05rem .9rem; border:1px solid var(--border); border-top:3px solid var(--ov,#9aa6ad); border-radius:var(--radius); background:var(--surface); text-decoration:none; transition:transform .12s ease, border-color .12s ease; }
+.dir-ov-card:hover { transform:translateY(-2px); border-color:var(--border-strong); }
+.dir-ov-card b { font-size:1.95rem; font-weight:850; line-height:1.05; color:var(--text); letter-spacing:-.02em; }
+.dir-ov-card span { font-size:.85rem; font-weight:650; color:var(--text-soft); }
+.ov-missing { --ov:#e0a02a; } .ov-found { --ov:#46c08a; } .ov-deceased { --ov:#c2554d; }
+.ov-services { --ov:#2a8fd6; } .ov-incidents { --ov:#ef7d2e; } .ov-comms { --ov:#8a7de0; }
+@media (max-width:560px){ .dir-ov-card { padding:.7rem .55rem; } .dir-ov-card b { font-size:1.45rem; } .dir-ov-card span { font-size:.74rem; } .dir-ov-grid { gap:.45rem; } }
+
+/* Mapa — zonas de peligro (CRÍTICO: colapsos / atrapados / incendio a evitar) */
+.danger-pin { background:transparent; border:0; filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+.danger-pin svg { width:34px; height:34px; display:block; }
+.danger-pin.sev-critical svg { animation:dangerPulse 1.6s ease-in-out infinite; transform-origin:center 80%; }
+@keyframes dangerPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.13); } }
+.map-chip.danger-chip { border-color:#e5253a; color:#ff6b61; font-weight:800; }
+.map-chip.danger-chip.is-active { background:#e5253a; border-color:#e5253a; color:#fff; }
+.map-popup-danger { margin:.2rem 0 .4rem; font-weight:800; color:#e5253a; }
+.legend-danger { display:inline-block; width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:12px solid #e5253a; margin-right:.4rem; vertical-align:middle; }

@@ -51,6 +51,27 @@ window.addEventListener("DOMContentLoaded", async () => {
       iconAnchor: [15, 15],
       popupAnchor: [0, -15],
     });
+
+  // --- Zonas de peligro (CRÍTICO: edificios colapsados / atrapados / incendio / vía
+  // bloqueada). Marcador de advertencia + círculo de área a EVITAR, visible en todo zoom.
+  const DANGER_CATEGORIES = new Set([
+    "collapsed_structure", "trapped_persons", "buried_persons", "fire", "blocked_road",
+  ]);
+  const dangerColor = (sev) =>
+    ({ critical: "#e5253a", high: "#ef5f2e", medium: "#f0a23a", low: "#f0c93a" }[sev] || "#ef5f2e");
+  const dangerRadiusM = (sev) =>
+    ({ critical: 250, high: 150, medium: 90, low: 60 }[sev] || 120);
+  const dangerIcon = (sev) =>
+    L.divIcon({
+      className: `danger-pin sev-${sev}`,
+      html: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22.5 21H1.5Z" `
+        + `fill="${dangerColor(sev)}" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>`
+        + `<rect x="11" y="9" width="2" height="6" rx="1" fill="#fff"/>`
+        + `<circle cx="12" cy="17.6" r="1.25" fill="#fff"/></svg>`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 27],
+      popupAnchor: [0, -24],
+    });
   const severityColor = (severity) =>
     ({ critical: "#e5443a", high: "#ef7d2e", medium: "#f3c534", low: "#46b06a" }[severity] || "#ef7d2e");
   const severityLabel = (severity) =>
@@ -72,6 +93,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   let servicesLayer = null;
   let incidentsCluster = null;
   let incidentsHeat = null;
+  let dangerLayer = null;
   let applyIncidentLayers = () => {};
   if (mapAvailable) {
     map = L.map(element, { scrollWheelZoom: false, zoomControl: false, preferCanvas: true })
@@ -110,6 +132,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     eventsLayer = L.layerGroup().addTo(map);
     servicesLayer = clusterGroup().addTo(map);
     incidentsCluster = clusterGroup();
+    dangerLayer = L.layerGroup().addTo(map);  // zonas de peligro: SIEMPRE visibles (seguridad)
     pointLayer = L.layerGroup().addTo(map);
     densityLayer = L.layerGroup();
 
@@ -136,6 +159,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         incidentsCluster.addTo(map);
       } else if (incidentsCluster && !showCluster && map.hasLayer(incidentsCluster)) {
         map.removeLayer(incidentsCluster);
+      }
+      // Zonas de peligro: visibles en TODO nivel de zoom mientras la capa esté activa.
+      if (dangerLayer) {
+        if (layerVisible.danger && !map.hasLayer(dangerLayer)) dangerLayer.addTo(map);
+        else if (!layerVisible.danger && map.hasLayer(dangerLayer)) map.removeLayer(dangerLayer);
       }
     };
     map.on("zoomend", applyIncidentLayers);
@@ -165,7 +193,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   let activeMode = "points";
   // Prioridad: los afectados. Los sismos quedan apagados por defecto (estorban y, con
   // datos de muestra, caen en el mar); siguen disponibles con su toggle.
-  const layerVisible = { incidents: true, events: false, services: true, reports: true };
+  const layerVisible = { danger: true, incidents: true, events: false, services: true, reports: true };
   const filteredReports = () => reports.filter((report) => activeFilter === "all" || report.type === activeFilter);
 
   const popupRow = (parent, text, className) => {
@@ -186,17 +214,41 @@ window.addEventListener("DOMContentLoaded", async () => {
     const heading = document.createElement("strong");
     heading.textContent = incident.label;
     popup.append(badge, heading);
+    if (DANGER_CATEGORIES.has(incident.category)) {
+      popupRow(popup, "⚠ Zona de peligro — evita acercarte", "map-popup-danger");
+    }
     popupRow(popup, incident.address);
     popupRow(popup, incident.situation_note);
+    if (incident.maps_url) {
+      const link = document.createElement("a");
+      link.className = "map-popup-maps";
+      link.href = incident.maps_url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      link.textContent = "Ver ubicación (Google Maps)";
+      popup.appendChild(link);
+    }
     if (incident.status) popupRow(popup, `Estado: ${incident.status}`, "map-popup-source");
     popupRow(popup, incident.source_name || incident.attribution, "map-popup-source");
     return popup;
   };
   const renderIncidents = () => {
     if (incidentsCluster) incidentsCluster.clearLayers();
-    // Marcadores: SOLO incidentes específicos (edificio + dirección). Posición exacta.
+    if (dangerLayer) dangerLayer.clearLayers();
     incidents.forEach((incident) => {
-      if (incidentsCluster) {
+      const isDanger = DANGER_CATEGORIES.has(incident.category);
+      if (isDanger && dangerLayer) {
+        // Círculo del área a EVITAR + marcador de advertencia (visible en todo zoom).
+        L.circle([incident.latitude, incident.longitude], {
+          radius: dangerRadiusM(incident.severity), color: dangerColor(incident.severity),
+          weight: 1.2, fillColor: dangerColor(incident.severity), fillOpacity: 0.14,
+          dashArray: "5 4", interactive: false,
+        }).addTo(dangerLayer);
+        const marker = L.marker([incident.latitude, incident.longitude], {
+          icon: dangerIcon(incident.severity), zIndexOffset: 1000,
+        });
+        marker.bindPopup(incidentPopup(incident), { minWidth: 248 });
+        dangerLayer.addLayer(marker);
+      } else if (incidentsCluster) {
+        // Incidentes no peligrosos: cluster normal (aparecen al acercar).
         const marker = L.marker([incident.latitude, incident.longitude], {
           icon: dotIcon("incident", severityColor(incident.severity), incident.severity),
         });

@@ -48,21 +48,38 @@
         <button class="btn btn-primary" type="submit">Buscar</button>
         {% if q %}<a class="dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
       </form>
-      <nav class="dir-tabs" aria-label="Secciones del directorio">
-        <span class="dir-tabs-group">
-          <span class="dir-tabs-label">Personas</span>
-          <a href="#personas">Desaparecidos{% if person_total %} <span>{{ person_total }}</span>{% endif %}</a>
-          <a href="#localizadas">Localizadas{% if localized_total %} <span>{{ localized_total }}</span>{% endif %}</a>
-          <a href="#fallecidos">Fallecidos{% if deceased_total %} <span>{{ deceased_total }}</span>{% endif %}</a>
-        </span>
-        <span class="dir-tabs-group">
-          <span class="dir-tabs-label">Lugares y alertas</span>
-          <a href="#servicios">Servicios{% if service_total %} <span>{{ service_total }}</span>{% endif %}</a>
-          <a href="#incidentes">Incidentes{% if incident_total %} <span>{{ incident_total }}</span>{% endif %}</a>
-          <a href="#comunicacion">Sin comunicación{% if comms_total %} <span>{{ comms_total }}</span>{% endif %}</a>
-        </span>
-      </nav>
     </div>
+
+    <nav class="dir-overview" aria-label="Resumen y secciones del directorio">
+      <section class="dir-ov-group">
+        <h2 class="dir-ov-title">Personas</h2>
+        <div class="dir-ov-grid">
+          <a class="dir-ov-card ov-missing" href="#personas">
+            <b>{{ "{:,}".format(person_total).replace(",", ".") }}</b><span>Desaparecidos</span>
+          </a>
+          <a class="dir-ov-card ov-found" href="#localizadas">
+            <b>{{ "{:,}".format(localized_total).replace(",", ".") }}</b><span>Localizadas</span>
+          </a>
+          <a class="dir-ov-card ov-deceased" href="#fallecidos">
+            <b>{{ "{:,}".format(deceased_total).replace(",", ".") }}</b><span>Fallecidos</span>
+          </a>
+        </div>
+      </section>
+      <section class="dir-ov-group">
+        <h2 class="dir-ov-title">Lugares y alertas</h2>
+        <div class="dir-ov-grid">
+          <a class="dir-ov-card ov-services" href="#servicios">
+            <b>{{ "{:,}".format(service_total).replace(",", ".") }}</b><span>Servicios</span>
+          </a>
+          <a class="dir-ov-card ov-incidents" href="#incidentes">
+            <b>{{ "{:,}".format(incident_total).replace(",", ".") }}</b><span>Incidentes</span>
+          </a>
+          <a class="dir-ov-card ov-comms" href="#comunicacion">
+            <b>{{ "{:,}".format(comms_total).replace(",", ".") }}</b><span>Sin comunicación</span>
+          </a>
+        </div>
+      </section>
+    </nav>
     {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ person_total }} desaparecidos · {{ deceased_total }} fallecidos · {{ incident_total }} incidentes · {{ service_total }} servicios.</p>{% endif %}
 
     <section class="dir-section" id="personas">

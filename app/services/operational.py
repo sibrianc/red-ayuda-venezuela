@@ -344,6 +344,7 @@ def public_incidents(q: str | None = None, limit: int = 5000) -> list[dict]:
             "latitude": incident.latitude,
             "longitude": incident.longitude,
             "address": incident.address_public,
+            "maps_url": maps_url(incident.latitude, incident.longitude, incident.address_public),
             "status": incident.status,
             "situation_note": incident.situation_note,
             "source_name": incident.source_name,
