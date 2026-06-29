@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from app.constants import ReportStatus
 from app.extensions import db
+from app.ingestion.pfif import parse_pfif
+from app.ingestion.pipeline import ingest_persons
 from app.models import DirectoryEntry, Incident, MissingPersonReport
 from app.services.operational import (
     public_directory,
@@ -26,6 +30,7 @@ def test_directory_page_renders(client):
     assert "Reportar un familiar" in html
     assert "Incidentes de prioridad" in html
     assert "Registros oficiales" in html
+    assert "Personas fallecidas" in html
 
 
 def test_public_missing_persons_excludes_minors_and_unapproved(app):
@@ -86,3 +91,29 @@ def test_public_directory_search(app):
     assert len(public_directory(q="vargas")) == 1
     assert len(public_directory(q="guaira")) == 1
     assert len(public_directory(q="zzz")) == 0
+
+
+def test_directory_combines_reviewed_and_pfif_people_and_excludes_minors(app, client):
+    fixture = (
+        Path(__file__).parent / "fixtures" / "pfif_people_1_4.xml"
+    ).read_text(encoding="utf-8")
+    with app.app_context():
+        db.session.add(_person("Ana", "Pérez", location_text="Maracay"))
+        ingest_persons(
+            parse_pfif(
+                fixture,
+                source_slug="official-test",
+                attribution="Fuente oficial de prueba",
+            )
+        )
+
+    html = client.get("/directorio").text
+    assert "Ana Pérez" in html
+    assert "Elena Salazar" in html
+    assert "Rafael Mendoza" in html
+    assert "Persona Menor Protegida" not in html
+    assert "Consultar fuente" in html
+
+    search = client.get("/directorio?q=Caraballeda").text
+    assert "Rafael Mendoza" in search
+    assert "Elena Salazar" not in search

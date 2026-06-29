@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pfif:pfif xmlns:pfif="http://zesty.ca/pfif/1.4">
+  <pfif:person>
+    <pfif:person_record_id>adult-missing-1</pfif:person_record_id>
+    <pfif:given_name>Elena</pfif:given_name>
+    <pfif:family_name>Salazar</pfif:family_name>
+    <pfif:age>34</pfif:age>
+    <pfif:sex>female</pfif:sex>
+    <pfif:last_known_location>Macuto, La Guaira</pfif:last_known_location>
+    <pfif:home_city>Caracas</pfif:home_city>
+    <pfif:home_country>Venezuela</pfif:home_country>
+    <pfif:description>Vista por última vez después del sismo.</pfif:description>
+    <pfif:source_name>Registro oficial de prueba</pfif:source_name>
+    <pfif:source_url>https://example.org/person/adult-missing-1</pfif:source_url>
+    <pfif:source_date>2026-06-27T16:30:00Z</pfif:source_date>
+  </pfif:person>
+  <pfif:note>
+    <pfif:person_record_id>adult-missing-1</pfif:person_record_id>
+    <pfif:note_record_id>note-missing-1</pfif:note_record_id>
+    <pfif:status>information_sought</pfif:status>
+    <pfif:source_date>2026-06-27T16:30:00Z</pfif:source_date>
+  </pfif:note>
+
+  <pfif:person>
+    <pfif:person_record_id>adult-deceased-1</pfif:person_record_id>
+    <pfif:full_name>Rafael Mendoza</pfif:full_name>
+    <pfif:age>61 años</pfif:age>
+    <pfif:sex>male</pfif:sex>
+    <pfif:last_known_location>Caraballeda, La Guaira</pfif:last_known_location>
+    <pfif:source_name>Registro oficial de prueba</pfif:source_name>
+    <pfif:source_url>https://example.org/person/adult-deceased-1</pfif:source_url>
+    <pfif:source_date>2026-06-28</pfif:source_date>
+  </pfif:person>
+  <pfif:note>
+    <pfif:person_record_id>adult-deceased-1</pfif:person_record_id>
+    <pfif:note_record_id>note-deceased-1</pfif:note_record_id>
+    <pfif:status>believed_dead</pfif:status>
+    <pfif:source_date>2026-06-28T09:00:00Z</pfif:source_date>
+  </pfif:note>
+
+  <pfif:person>
+    <pfif:person_record_id>minor-1</pfif:person_record_id>
+    <pfif:first_name>Persona</pfif:first_name>
+    <pfif:last_name>Menor Protegida</pfif:last_name>
+    <pfif:age>12</pfif:age>
+    <pfif:last_known_location>Ubicación reservada</pfif:last_known_location>
+    <pfif:source_date>2026-06-27</pfif:source_date>
+  </pfif:person>
+  <pfif:note>
+    <pfif:person_record_id>minor-1</pfif:person_record_id>
+    <pfif:note_record_id>note-minor-1</pfif:note_record_id>
+    <pfif:status>believed_missing</pfif:status>
+    <pfif:source_date>2026-06-27T18:00:00Z</pfif:source_date>
+  </pfif:note>
+</pfif:pfif>

@@ -8,6 +8,7 @@ from app.services.operational import (
     public_directory,
     public_incidents,
     public_missing_persons,
+    public_person_records,
     public_situation,
 )
 from app.services.reporting import public_items, public_summary
@@ -38,6 +39,8 @@ def directory():
     category = request.args.get("category", "").strip()
 
     persons = public_missing_persons(q or None)
+    published_missing = public_person_records(status="missing", q=q or None)
+    deceased = public_person_records(status="deceased", q=q or None)
     all_incidents = public_incidents(q=q or None)
     incidents = [i for i in all_incidents if not category or i["category"] == category]
     services = public_directory(q=q or None)
@@ -45,7 +48,10 @@ def directory():
         "public/directory.html",
         situation=public_situation(),
         persons=persons,
-        person_total=len(persons),
+        published_missing=published_missing,
+        person_total=len(persons) + len(published_missing),
+        deceased=deceased,
+        deceased_total=len(deceased),
         incidents=incidents[:80],
         incident_groups=_grouped(all_incidents),
         incident_total=len(incidents),

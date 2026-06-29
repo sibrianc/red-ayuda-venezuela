@@ -107,6 +107,23 @@ mapean 1:1 a los objetos canónicos ya definidos en `data-routing.md`. Lección 
 - El estado de fuentes distingue “preparada para staging” de “conectada/verificada”
   para no aparentar integraciones que todavía no existen.
 - Esta iteración no añade dependencias, servicios, credenciales ni costos.
+- El propietario revisó la demostración local y autorizó continuar con E2.2.
+
+## 2026-06-28 — Cierre del importador PFIF y directorio nominal
+
+- Solo se publican registros nominales que una fuente identificada ya haya publicado;
+  las cifras agregadas nunca se convierten en nombres inventados.
+- Los menores importados quedan fuera de toda proyección pública, aunque el PFIF los
+  incluya. La procedencia pública se limita a enlaces HTTP(S).
+- Desaparecidos y fallecidos se presentan en secciones separadas, con atribución y
+  lenguaje respetuoso; el buscador del directorio cubre ambos grupos.
+- Los cambios de estado contenidos en notas PFIF forman parte del hash de contenido para
+  actualizar el registro de manera idempotente.
+- Leaflet conserva CSP estricta para scripts; `style-src-attr 'unsafe-inline'` se habilita
+  porque el motor cartográfico posiciona capas con atributos dinámicos. No se habilitan
+  scripts inline.
+- No se cargan personas ficticias para rellenar la interfaz. Sin una fuente PFIF pública
+  y verificable, el directorio muestra un estado vacío honesto.
 
 ## 2026-06-28 — Desarrollo sin costo y cierre de E1
 

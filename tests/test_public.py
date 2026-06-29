@@ -14,6 +14,7 @@ def test_home_loads_with_security_headers(client):
     assert response.headers["X-Frame-Options"] == "DENY"
     assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
     assert "default-src 'self'" in response.headers["Content-Security-Policy"]
+    assert "style-src-attr 'unsafe-inline'" in response.headers["Content-Security-Policy"]
 
 
 def test_home_summary_only_counts_approved_public_reports(app, client):

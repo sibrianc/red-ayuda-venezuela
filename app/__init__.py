@@ -379,6 +379,7 @@ def register_security_headers(app: Flask) -> None:
             "Content-Security-Policy",
             "default-src 'self'; "
             "style-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
+            "style-src-attr 'unsafe-inline'; "
             "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
             "img-src 'self' data: https://tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com; "
             "connect-src 'self'; font-src 'self' https://cdn.jsdelivr.net; "

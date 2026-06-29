@@ -23,9 +23,9 @@ documento).
 ## 2. Dónde vive el código
 
 - **Repositorio (privado):** https://github.com/sibrianc/red-ayuda-venezuela
-- **Rama de trabajo:** `phase/e2-public-experience`
-- **Base de E2:** `4c263b4` (`phase/e1-source-register`). Las ramas están apiladas; E2
-  debe revisarse contra E1 mientras las fases anteriores no estén fusionadas.
+- **Rama de trabajo:** `phase/e4-elite-experience`
+- **Base apilada:** E4 parte de `phase/e3-data-engine`, que a su vez parte de
+  `phase/e2-public-experience`. Las ramas deben revisarse/fusionarse en ese orden.
 - **Cuenta GitHub:** `sibrianc`
 - **Commits hasta hoy:**
   - `964cd34` — implementación inicial del MVP privacy-first (14 fases).
@@ -35,6 +35,11 @@ documento).
   - `47414ee` — E0/E0.1: gobernanza, formularios guiados y línea visual/mapa operativo.
   - `d591d34` — checkpoint E1: registro de fuentes, controles de autorización,
     migración, enrutamiento seguro y documentación operativa.
+  - `522fe30` — E2.1: tablero público y modo ligero.
+  - `3db55e5` — E3: motor de ingesta USGS/GDACS y directorio OSM.
+  - `3bdf6d6`, `38079af`, `e684a22` — E4: datos operativos, rediseño visual, mapa y
+    directorio global.
+  - `245f7e5` — base del importador PFIF y registro canónico de personas.
 
 ## 3. Estado actual: ¿en qué fase estamos?
 
@@ -124,7 +129,23 @@ más abajo y la hoja de ruta al deploy.
 - Capturas locales: `/private/tmp/rav_browser_audit/desktop-home.png`,
   `mobile-home.png` y `desktop-map-low-bandwidth.png`.
 - Costo e infraestructura: cero cambios externos, cero dependencias y cero gasto.
-- Puerta pendiente: revisión visual del propietario antes de definir E2.2.
+- Puerta de E2.1: aprobada por el propietario. Siguiente iteración: E2.2, directorio y
+  listado público profesional, manteniendo formularios como prioridad secundaria.
+
+## 10. Formato obligatorio de cierre y handoff
+
+Al final de cada fase o iteración se entrega un resumen autosuficiente con:
+
+1. **Dónde estoy:** fase/iteración actual, rama y objetivo.
+2. **Hecho y committeado:** modelos, migraciones, rutas, frontend y commit exacto.
+3. **Validación:** cantidad de pruebas, auditoría visual y controles de privacidad.
+4. **Falta para cerrar:** lista concreta y acotada; si no falta nada, indicarlo.
+5. **Documentación:** secciones/archivos de checkpoint actualizados.
+6. **Para retomar:** primer archivo que debe leerse, rama, siguiente punto y comando
+   exacto para levantar el servidor local.
+
+El cierre debe permitir continuar sin repetir investigación, autenticación, pruebas o
+trabajo ya terminado. Nunca debe incluir contraseñas, tokens, OTP ni datos de pago.
 
 ### Checkpoint E3.1 — motor de ingesta masiva (USGS), local y sin costo
 
@@ -242,13 +263,12 @@ Resumen honesto: a nivel de **código y experiencia** estamos muy avanzados; par
 **desplegar y que sea útil de verdad** falta sobre todo **conectar datos reales** y
 **aprobar el hosting/costo**. Todo lo demás (motor, mapa, directorio, privacidad) ya está.
 
-### EN CURSO (WIP) — Importador PFIF y registro de personas (sin terminar)
+### Checkpoint fase #2 — Importador PFIF y registro de personas (cerrada)
 
-> Estado al pausar (créditos bajos). Esta es la fase #2 del orden recomendado:
-> importar personas desaparecidas/fallecidas **ya publicadas** (PFIF, listas oficiales)
-> para reunificación familiar. **Lo siguiente que toca: terminar el directorio y probar.**
+Objetivo: importar personas desaparecidas/fallecidas **ya publicadas** en PFIF o listas
+oficiales, preservando procedencia y privacidad, para reunificación familiar.
 
-**Ya hecho y committeado en commits previos / por commitear como WIP:**
+**Implementado:**
 - Modelo `PersonRecord` (`app/models.py`): personas publicadas con nombre, edad, última
   ubicación, `person_status` (missing/found/deceased), fuente, e `is_minor` (los menores
   se excluyen del público). Migración `f6a7b8c9d0e1`.
@@ -259,31 +279,37 @@ Resumen honesto: a nivel de **código y experiencia** estamos muy avanzados; par
 - Ingesta `ingest_persons` (`app/ingestion/pipeline.py`), idempotente por
   `(source_slug, external_id)`.
 - Proyección `public_person_records(status, q)` (`app/services/operational.py`), **excluye
-  menores**.
+  menores** y descarta URL de procedencia que no sea HTTP(S).
 - Comando `flask import-pfif <URL|archivo> [--source-slug] [--attribution]`.
-- 62/62 pruebas siguen verdes; `compileall` OK. (Estos archivos pueden estar SIN commitear
-  si la sesión se cortó: revisar `git status`.)
+- El directorio combina reportes propios revisados y registros PFIF desaparecidos; añade
+  una sección independiente y respetuosa de fallecidos, buscador unificado, atribución y
+  estados vacíos que nunca convierten cifras agregadas en identidades inventadas.
+- El hash PFIF incluye las notas: un cambio como `believed_dead` actualiza el registro sin
+  crear duplicados.
 
-**FALTA (para cerrar la fase #2):**
-1. **Directorio**: integrar `public_person_records(status="missing")` en la sección de
-   Personas (junto a los reportes propios) y **agregar la sección "Fallecidos"**
-   (`status="deceased"`) en `app/templates/public/directory.html` y la ruta
-   `app/public/routes.py` (pasar `deceased=...` y un buscador `q` que también filtre
-   personas PFIF). CSS si hace falta.
-2. **Pruebas**: parseo PFIF (un fixture XML 1.4 con una persona adulta + un menor + una
-   nota `believed_dead`), exclusión de menores, mapeo de estado, dedup de `ingest_persons`.
-   Crear `tests/test_pfif.py`.
-3. **QA**: `pytest`, `compileall`, ciclo de migración `f6a7b8c9d0e1` upgrade/downgrade.
-4. **Relanzar** server (puerto 5015) y **commitear** la fase. Actualizar este checkpoint.
-5. **Dato real**: no hay feed PFIF público confirmado del evento; el importador queda listo
-   y se llena cuando se conecte un feed (Google Person Finder si activa uno) o una lista
-   oficial. NO sembrar personas falsas (regla del propietario: solo datos verificados).
+**Validación de cierre:**
+- 68/68 pruebas; fixture PFIF 1.4 con adulto desaparecido, adulto fallecido y menor;
+  cobertura de namespace/nombres, estados desde notas, fechas, búsqueda, exclusión de
+  menores, URL segura, actualización e idempotencia por fuente.
+- `compileall`, sintaxis JavaScript y `git diff --check` pasan.
+- Migración desde cero hasta `f6a7b8c9d0e1`, `flask db check`, downgrade a
+  `e5f6a7b8c9d0` y upgrade de regreso: todo sin deriva ni errores.
+- Auditoría E2E: 24/24 comprobaciones en escritorio/móvil, sin overflow a 375 px, sin
+  filtración privada y con cero errores de consola/página. Durante el QA se corrigieron
+  el permiso CSP mínimo para estilos dinámicos de Leaflet y una carrera de repintado de
+  `leaflet.heat` al cambiar de zoom.
+- Capturas: `/private/tmp/rav_browser_audit/desktop-directory.png`,
+  `mobile-directory.png` y `desktop-map-density.png`.
 
-**Cómo continuar en una nueva sesión:** revisar `git status` y `git log` en la rama
-`phase/e4-elite-experience`; leer este WIP; terminar el punto 1, luego 2–4. El servidor de
-revisión corre con `flask run --port 5015 --no-reload` usando
-`DATABASE_URL=sqlite:///instance/demo_review.sqlite3` (tras `flask db upgrade` + `flask
-seed-sample` + `flask load-official-figures`).
+**Límite vigente:** no hay un feed PFIF público confirmado para el evento. El importador
+queda listo, pero no se sembrarán personas falsas. La siguiente fase de datos deberá
+conectar una fuente nominal pública y verificable o mantener correctamente los estados
+vacíos.
+
+**Cómo continuar:** leer esta sección y `git log` en `phase/e4-elite-experience`.
+Esperar la revisión visual del propietario antes de iniciar otra fase. El servidor local
+de revisión usa `instance/demo_review.sqlite3` y el puerto 5015; el comando completo está
+en la sección 5 y en el resumen de cierre entregado al propietario.
 
 ### Checkpoint técnico E1
 

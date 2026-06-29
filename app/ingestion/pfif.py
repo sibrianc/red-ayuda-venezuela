@@ -93,7 +93,7 @@ def _status_from_notes(person_notes: list[dict]) -> str:
     if not dated:
         return "missing"
     dated.sort()  # las fechas ISO ordenan cronológicamente; la última es la más reciente
-    return STATUS_MAP.get(dated[-1][1], "missing")
+    return STATUS_MAP.get(str(dated[-1][1]).casefold(), "missing")
 
 
 def _home_location(fields: dict) -> str | None:
@@ -147,12 +147,17 @@ def parse_pfif(xml_text: str, *, source_slug: str = "pfif", attribution: str | N
         if not full_name:
             continue
         age = _parse_age(fields.get("age"))
+        person_notes = notes.get(pid, [])
         people.append(
             ParsedPerson(
                 source_slug=source_slug,
                 external_id=pid,
                 content_hash=hashlib.sha256(
-                    json.dumps(fields, sort_keys=True, default=str).encode("utf-8")
+                    json.dumps(
+                        {"fields": fields, "notes": person_notes},
+                        sort_keys=True,
+                        default=str,
+                    ).encode("utf-8")
                 ).hexdigest(),
                 full_name=full_name[:240],
                 given_name=given,
@@ -161,7 +166,7 @@ def parse_pfif(xml_text: str, *, source_slug: str = "pfif", attribution: str | N
                 sex=fields.get("sex") or None,
                 last_known_location=fields.get("last_known_location") or None,
                 home_location=_home_location(fields),
-                person_status=_status_from_notes(notes.get(pid, [])),
+                person_status=_status_from_notes(person_notes),
                 description=fields.get("description") or fields.get("other") or None,
                 source_name=fields.get("source_name") or None,
                 source_url=fields.get("source_url") or None,

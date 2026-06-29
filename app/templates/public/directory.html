@@ -29,23 +29,24 @@
         {% if q %}<a class="dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
       </form>
       <nav class="dir-tabs" aria-label="Secciones del directorio">
-        <a href="#personas">Personas <span>{{ person_total }}</span></a>
+        <a href="#personas">Desaparecidos <span>{{ person_total }}</span></a>
+        <a href="#fallecidos">Fallecidos <span>{{ deceased_total }}</span></a>
         <a href="#incidentes">Incidentes <span>{{ incident_total }}</span></a>
         <a href="#servicios">Servicios <span>{{ service_total }}</span></a>
       </nav>
     </div>
-    {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ person_total }} personas · {{ incident_total }} incidentes · {{ service_total }} servicios.</p>{% endif %}
+    {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ person_total }} desaparecidos · {{ deceased_total }} fallecidos · {{ incident_total }} incidentes · {{ service_total }} servicios.</p>{% endif %}
 
     <section class="dir-section" id="personas">
       <div class="dir-section-head">
         <div>
           <p class="eyebrow">Prioridad: las personas</p>
-          <h2>Personas <span class="dir-count">{{ person_total }}</span></h2>
+          <h2>Personas desaparecidas <span class="dir-count">{{ person_total }}</span></h2>
         </div>
         <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
       </div>
 
-      {% if persons %}
+      {% if persons or published_missing %}
       <div class="dir-person-grid">
         {% for p in persons %}
         <article class="dir-person-card">
@@ -54,6 +55,19 @@
           <p class="dir-person-loc"><span>Última ubicación</span> {{ p.last_seen }}</p>
           {% if p.last_contact_date %}<p class="dir-person-loc"><span>Último contacto</span> {{ p.last_contact_date }}</p>{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+        </article>
+        {% endfor %}
+        {% for p in published_missing %}
+        <article class="dir-person-card dir-person-published">
+          <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
+          <h3>{{ p.full_name }}</h3>
+          <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
+          {% if p.last_seen %}<p class="dir-person-loc"><span>Última ubicación</span> {{ p.last_seen }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          <div class="dir-record-provenance">
+            {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
+            {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
+          </div>
         </article>
         {% endfor %}
       </div>
@@ -72,6 +86,35 @@
         </ul>
       </div>
       <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
+    </section>
+
+    <section class="dir-section dir-deceased-section" id="fallecidos">
+      <div class="dir-section-head">
+        <div>
+          <p class="eyebrow">Registros publicados y atribuidos</p>
+          <h2>Personas fallecidas <span class="dir-count dir-count-deceased">{{ deceased_total }}</span></h2>
+        </div>
+      </div>
+      <p class="dir-section-intro">Esta sección reúne únicamente nombres ya publicados por fuentes identificadas. No convierte cifras agregadas en identidades ni muestra menores.</p>
+      {% if deceased %}
+      <div class="dir-person-grid">
+        {% for p in deceased %}
+        <article class="dir-person-card dir-person-deceased">
+          <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
+          <h3>{{ p.full_name }}</h3>
+          <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
+          {% if p.last_seen %}<p class="dir-person-loc"><span>Ubicación asociada</span> {{ p.last_seen }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          <div class="dir-record-provenance">
+            {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
+            {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="dir-empty"><p>No hay registros nominales publicados{% if q %} para «{{ q }}»{% endif %}. Una cifra general de fallecidos no se usa para inventar nombres.</p></div>
+      {% endif %}
     </section>
 
     <section class="dir-section" id="incidentes">

@@ -192,7 +192,11 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
             "person_status": person.person_status,
             "summary": person.description,
             "source_name": person.source_name,
-            "source_url": person.source_url,
+            "source_url": (
+                person.source_url
+                if person.source_url and person.source_url.startswith(("https://", "http://"))
+                else None
+            ),
             "source_date": person.source_date.isoformat() if person.source_date else None,
             "attribution": person.attribution,
         }

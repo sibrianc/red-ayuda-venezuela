@@ -1,13 +1,14 @@
 """Auditoría visual local opcional. No se ejecuta contra producción."""
 
 import json
+import os
 from pathlib import Path
 from uuid import uuid4
 
 from playwright.sync_api import sync_playwright
 
 
-BASE_URL = "http://127.0.0.1:5010"
+BASE_URL = os.getenv("RAV_BASE_URL", "http://127.0.0.1:5010")
 OUTPUT = Path("/private/tmp/rav_browser_audit")
 PRIVATE_MARKER = "CONTACTO-PRIVADO-E2E"
 
@@ -21,7 +22,10 @@ def run() -> None:
         context = browser.new_context(viewport={"width": 1440, "height": 1000}, locale="es-VE")
         page = context.new_page()
         page.on("console", lambda message: results["console_errors"].append(message.text) if message.type == "error" else None)
-        page.on("pageerror", lambda error: results["page_errors"].append(str(error)))
+        page.on(
+            "pageerror",
+            lambda error: results["page_errors"].append(error.stack or str(error)),
+        )
 
         page.goto(BASE_URL, wait_until="domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-home.png", full_page=True)
@@ -77,6 +81,7 @@ def run() -> None:
         page.get_by_label("Contraseña").fill("Demo-Only-Password-2026!")
         page.get_by_role("button", name="Iniciar sesión").click()
         page.wait_for_load_state("domcontentloaded")
+        results["checks"]["admin_login"] = page.url.startswith(f"{BASE_URL}/admin")
         page.get_by_role("link", name=report_title, exact=True).click()
         page.wait_for_load_state("domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-admin-review.png", full_page=True)
@@ -101,6 +106,12 @@ def run() -> None:
         map_text = response.text()
         results["checks"]["private_not_in_map_json"] = PRIVATE_MARKER not in map_text and "DETALLE-PRIVADO-E2E" not in map_text
 
+        page.goto(f"{BASE_URL}/directorio", wait_until="domcontentloaded")
+        page.screenshot(path=OUTPUT / "desktop-directory.png", full_page=True)
+        results["checks"]["directory_missing_section"] = page.locator("#personas").count() == 1
+        results["checks"]["directory_deceased_section"] = page.locator("#fallecidos").count() == 1
+        results["checks"]["directory_global_search"] = page.locator(".dir-search").count() == 1
+
         page.goto(f"{BASE_URL}/mapa", wait_until="domcontentloaded")
         page.screenshot(path=OUTPUT / "desktop-map.png", full_page=True)
         results["checks"]["map_region"] = page.locator("#report-map").count() == 1
@@ -114,7 +125,12 @@ def run() -> None:
 
         mobile = browser.new_context(viewport={"width": 375, "height": 812}, locale="es-VE")
         mobile_page = mobile.new_page()
-        for name, path in (("home", "/"), ("form", "/reportes/ayuda"), ("reports", "/reportes")):
+        for name, path in (
+            ("home", "/"),
+            ("form", "/reportes/ayuda"),
+            ("reports", "/reportes"),
+            ("directory", "/directorio"),
+        ):
             mobile_page.goto(f"{BASE_URL}{path}", wait_until="domcontentloaded")
             overflow = mobile_page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
             results["checks"][f"mobile_{name}_no_overflow"] = not overflow

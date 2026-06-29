@@ -79,7 +79,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // en un campo continuo y se colorean por densidad (verde→rojo).
     incidentsHeat = (typeof L.heatLayer === "function")
       ? L.heatLayer([], { radius: 34, blur: 24, maxZoom: 9, max: 8, minOpacity: 0.42,
-          gradient: { 0.2: "#37d06f", 0.4: "#f0d836", 0.6: "#f4a23a", 0.8: "#ef5f2e", 1: "#e5253a" } })
+          gradient: { 0.2: "#37d06f", 0.4: "#f0d836", 0.6: "#f4a23a", 0.8: "#ef5f2e", 1: "#e5253a" } }).addTo(map)
       : null;
     eventsLayer = L.layerGroup().addTo(map);
     servicesLayer = clusterGroup().addTo(map);
@@ -95,8 +95,22 @@ window.addEventListener("DOMContentLoaded", async () => {
       const zoomedIn = map.getZoom() >= HEAT_MAX_ZOOM;
       const showHeat = layerVisible.incidents && !zoomedIn;
       const showCluster = layerVisible.incidents && zoomedIn;
-      if (incidentsHeat) showHeat ? incidentsHeat.addTo(map) : map.removeLayer(incidentsHeat);
-      if (incidentsCluster) showCluster ? incidentsCluster.addTo(map) : map.removeLayer(incidentsCluster);
+      if (incidentsHeat && showHeat && !map.hasLayer(incidentsHeat)) {
+        incidentsHeat.addTo(map);
+      } else if (incidentsHeat && !showHeat && map.hasLayer(incidentsHeat)) {
+        // leaflet.heat 0.2.0 no cancela su requestAnimationFrame al salir del
+        // mapa. Si el zoom cambia durante ese frame, intenta pintar sin _map.
+        if (incidentsHeat._frame) {
+          L.Util.cancelAnimFrame(incidentsHeat._frame);
+          incidentsHeat._frame = null;
+        }
+        map.removeLayer(incidentsHeat);
+      }
+      if (incidentsCluster && showCluster && !map.hasLayer(incidentsCluster)) {
+        incidentsCluster.addTo(map);
+      } else if (incidentsCluster && !showCluster && map.hasLayer(incidentsCluster)) {
+        map.removeLayer(incidentsCluster);
+      }
     };
     map.on("zoomend", applyIncidentLayers);
   } else {
@@ -165,7 +179,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     });
     // El mapa de calor usa la capa de intensidad de zonas afectadas (no los incidentes).
-    if (incidentsHeat) incidentsHeat.setLatLngs(intensity);
+    if (incidentsHeat) {
+      // Leaflet.heat no permite setLatLngs() mientras la capa está fuera del mapa:
+      // intenta redibujar con this._map=null. Conservamos los datos para que onAdd
+      // los pinte al volver a una escala de calor.
+      if (map?.hasLayer(incidentsHeat)) incidentsHeat.setLatLngs(intensity);
+      else incidentsHeat._latlngs = intensity;
+    }
     applyIncidentLayers();
   };
 
