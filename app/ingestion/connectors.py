@@ -340,6 +340,8 @@ OSM_AMENITY_TO_CATEGORY = {
     "social_facility": "shelter",
     "community_centre": "community_center",
     "drinking_water": "water_point",
+    "fuel": "fuel",
+    "marketplace": "supplies",
 }
 EMERGENCY_CATEGORIES = {"hospital", "clinic", "fire_station", "police"}
 CATEGORY_DEFAULT_LABEL = {
@@ -351,6 +353,8 @@ CATEGORY_DEFAULT_LABEL = {
     "shelter": "Refugio",
     "community_center": "Centro comunitario",
     "water_point": "Punto de agua",
+    "fuel": "Gasolinera / combustible",
+    "supplies": "Mercado / víveres",
     "other": "Servicio",
 }
 
@@ -383,9 +387,11 @@ def build_overpass_query(bbox: dict | None = None) -> str:
     selectors = [f'nwr["amenity"="{value}"]{area};' for value in (
         "hospital", "clinic", "doctors", "pharmacy", "fire_station",
         "police", "shelter", "social_facility", "community_centre", "drinking_water",
+        "fuel", "marketplace",
     )]
     selectors.append(f'nwr["healthcare"="hospital"]{area};')
     selectors.append(f'nwr["emergency"="yes"]{area};')
+    selectors.append(f'nwr["shop"="supermarket"]{area};')
     return "[out:json][timeout:90];(" + "".join(selectors) + ");out center tags;"
 
 
@@ -406,6 +412,8 @@ def _osm_category(tags: dict) -> str:
     amenity = tags.get("amenity")
     if amenity in OSM_AMENITY_TO_CATEGORY:
         return OSM_AMENITY_TO_CATEGORY[amenity]
+    if tags.get("shop") == "supermarket":
+        return "supplies"
     if tags.get("emergency") == "yes":
         return "shelter"
     return "other"

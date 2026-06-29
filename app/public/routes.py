@@ -4,11 +4,14 @@ from flask import render_template, request
 
 from app.public import bp
 from app.services.operational import (
+    CATEGORY_LABELS,
     OFFICIAL_REGISTRIES,
     count_directory,
     count_person_records,
+    directory_category_counts,
     public_comms_zones,
     public_directory,
+    public_directory_balanced,
     public_incidents,
     public_missing_persons,
     public_person_records,
@@ -40,6 +43,7 @@ def _grouped(rows: list[dict]) -> list[dict]:
 def directory():
     q = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
+    scat = request.args.get("scat", "").strip()
 
     persons = public_missing_persons(q or None)
     published_missing = public_person_records(status="missing", q=q or None)
@@ -47,7 +51,16 @@ def directory():
     deceased = public_person_records(status="deceased", q=q or None)
     all_incidents = public_incidents(q=q or None)
     incidents = [i for i in all_incidents if not category or i["category"] == category]
-    services = public_directory(q=q or None)
+    services = (
+        public_directory(q=q or None, category=scat)
+        if scat
+        else public_directory_balanced(q=q or None)
+    )
+    cat_counts = directory_category_counts(q or None)
+    service_groups = [
+        {"category": cat, "label": CATEGORY_LABELS.get(cat, "Servicio"), "count": count}
+        for cat, count in sorted(cat_counts.items(), key=lambda kv: kv[1], reverse=True)
+    ]
     comms = public_comms_zones(q or None)
     situation = public_situation()
     figures = {metric["key"]: metric for metric in situation}
@@ -68,9 +81,10 @@ def directory():
         incidents=incidents[:80],
         incident_groups=_grouped(all_incidents),
         incident_total=len(incidents),
-        services=services[:80],
-        service_groups=_grouped(services),
+        services=services[:150],
+        service_groups=service_groups,
         service_total=count_directory(q or None),
+        service_category=scat,
         registries=OFFICIAL_REGISTRIES,
         q=q,
         category=category,

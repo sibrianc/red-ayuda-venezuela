@@ -316,6 +316,29 @@ Forbidden** (restringido a su frontend — NO se fuerza, no es vía limpia). Per
 - Resultado: el directorio tiene **ambos lados reales** — Desaparecidos (145) y Localizadas
   (4.335) — buscables y cruzados. 80 pruebas.
 
+### Fase E5 — directorio profesional, mapa con iconos, Google Maps y más datos
+
+Investigación (grounded, no inventado):
+- **Iconos del mapa:** OCHA Humanitarian Icons (500 SVG, dominio público, hechos para crisis).
+  Implementados como glifos de trazo en badges circulares de color por categoría.
+- **Fuentes nuevas:** ReliefWeb API v1 está **410 Gone** (deprecada). **HDX** (CKAN) responde
+  (266 datasets VE) — útil para capas geo futuras. Para *personas* la vía pública fácil ya
+  está agotada (localizados + reporta); más requiere export/acuerdo.
+
+Entregado:
+- **Más datos:** se ampliaron las categorías OSM (combustible + víveres/supermercado). El
+  directorio pasó de ~16.200 a **25.562 servicios** (supplies 5.839, pharmacy 4.498,
+  shelter 3.817, fuel 3.517, …).
+- **Google Maps:** direcciones y ubicaciones son **hipervínculos** a Google Maps (`maps_url`
+  en proyecciones de directorio y personas; "Cómo llegar" en tarjetas y popups del mapa).
+- **Mapa con iconos semánticos:** `serviceIcon` (badge + glifo SVG por categoría) en vez de
+  círculos. Muestra equilibrada (`public_directory_balanced`, round-robin) → ~3.349
+  marcadores con VARIEDAD (hospital, refugio, agua, farmacia, combustible, víveres…).
+- **Directorio rediseñado:** navegación agrupada (Personas / Lugares y alertas); Servicios con
+  **filtros clicables por categoría** (icono + conteo REAL vía `directory_category_counts`),
+  tarjetas con icono, badge de emergencia, teléfono y "Cómo llegar"; vista "Todos" equilibrada.
+  80 pruebas.
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y

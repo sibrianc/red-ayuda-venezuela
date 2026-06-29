@@ -20,11 +20,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     pharmacy: { label: "Farmacia", color: "#4cae6a" },
     fire_station: { label: "Bomberos", color: "#ef7d2e" },
     police: { label: "Policía", color: "#2a6fd6" },
-    shelter: { label: "Refugio", color: "#f3c534" },
+    shelter: { label: "Refugio", color: "#caa12f" },
     water_point: { label: "Punto de agua", color: "#2a8fd6" },
     community_center: { label: "Centro comunitario", color: "#8a7de0" },
+    fuel: { label: "Combustible", color: "#6b7785" },
+    supplies: { label: "Víveres", color: "#c2603d" },
     other: { label: "Servicio", color: "#9aa6ad" },
   };
+  // Glifos SVG (trazo, estilo Lucide/OCHA) para que el icono hable por sí solo.
+  const serviceGlyphs = {
+    hospital: "M5 12h14M12 5v14",
+    clinic: "M5 12h14M12 5v14",
+    pharmacy: "M5 12h14M12 5v14",
+    shelter: "m3 10.5 9-7 9 7M5 9v12h14V9M10 21v-6h4v6",
+    water_point: "M12 21a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 4.5 12 2c-.5 2.5-2 4.9-4 6.5S5 12 5 14a7 7 0 0 0 7 7z",
+    fire_station: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1-2-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z",
+    police: "M12 3l7 3v5c0 4.5-3 7-7 8.5C8 18 5 15.5 5 11V6z",
+    community_center: "M4 21V8l8-5 8 5v13M4 21h16M9 21v-5h6v5",
+    fuel: "M5 21V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v16M4 21h11M7 9h4M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3",
+    supplies: "M4 8h16l-1.5 11H5.5zM4 8l3-5h10l3 5M9 12v3m6-3v3",
+    other: "M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+  };
+  const serviceIcon = (meta, category) =>
+    L.divIcon({
+      className: "svc-pin",
+      html: `<i style="--c:${meta.color}"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" `
+        + `stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">`
+        + `<path d="${serviceGlyphs[category] || serviceGlyphs.other}"/></svg></i>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -15],
+    });
   const severityColor = (severity) =>
     ({ critical: "#e5443a", high: "#ef7d2e", medium: "#f3c534", low: "#46b06a" }[severity] || "#ef7d2e");
   const severityLabel = (severity) =>
@@ -233,7 +259,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     services.forEach((service) => {
       const meta = serviceMeta[service.category] || serviceMeta.other;
       const marker = L.marker([service.latitude, service.longitude], {
-        icon: dotIcon("service", meta.color),
+        icon: serviceIcon(meta, service.category),
       });
       const popup = document.createElement("div");
       popup.className = "map-popup";
@@ -245,6 +271,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       popup.append(tag, heading);
       popupRow(popup, service.address);
       popupRow(popup, service.phone);
+      if (service.maps_url) {
+        const link = document.createElement("a");
+        link.className = "map-popup-maps";
+        link.href = service.maps_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Cómo llegar (Google Maps)";
+        popup.appendChild(link);
+      }
       popupRow(popup, service.attribution, "map-popup-source");
       marker.bindPopup(popup, { minWidth: 220 });
       servicesLayer.addLayer(marker);

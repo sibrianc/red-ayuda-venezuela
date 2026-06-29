@@ -6,8 +6,9 @@ publicación de reportes de personas sigue su propia puerta de revisión humana.
 """
 
 import random
+import urllib.parse
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from app.constants import ReportStatus
 from app.models import (
@@ -113,6 +114,8 @@ CATEGORY_LABELS = {
     "shelter": "Refugio",
     "community_center": "Centro comunitario",
     "water_point": "Punto de agua",
+    "fuel": "Gasolinera / combustible",
+    "supplies": "Mercado / víveres",
     "other": "Servicio",
 }
 
@@ -173,12 +176,22 @@ def public_missing_persons(q: str | None = None, limit: int = 300) -> list[dict]
             "age": person.age,
             "gender": person.gender,
             "last_seen": person.location_text,
+            "maps_url": maps_url(text=person.location_text),
             "last_contact_date": person.last_contact_date.isoformat() if person.last_contact_date else None,
             "summary": person.description_public,
             "status": person.status.value,
         }
         for person in query.all()
     ]
+
+
+def maps_url(latitude=None, longitude=None, text: str | None = None) -> str | None:
+    """Enlace a Google Maps: por coordenadas si las hay; si no, por texto de ubicación."""
+    if latitude is not None and longitude is not None:
+        return f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
+    if text and text.strip():
+        return "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(f"{text.strip()}, Venezuela")
+    return None
 
 
 def public_person_records(status: str | None = None, q: str | None = None, limit: int = 500) -> list[dict]:
@@ -203,6 +216,7 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
             "age": person.age,
             "sex": person.sex,
             "last_seen": person.last_known_location or person.home_location,
+            "maps_url": maps_url(text=person.last_known_location or person.home_location),
             "person_status": person.person_status,
             "summary": person.description,
             "source_name": person.source_name,
@@ -351,11 +365,30 @@ def sa_case_severity():
     )
 
 
-def public_directory(q: str | None = None, limit: int = 3000) -> list[dict]:
+def directory_category_counts(q: str | None = None) -> dict:
+    """Conteo REAL de servicios por categoría (para filtros del directorio)."""
     query = DirectoryEntry.query.filter(
         DirectoryEntry.latitude.isnot(None),
         DirectoryEntry.longitude.isnot(None),
     )
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(DirectoryEntry.name.ilike(term), DirectoryEntry.address_public.ilike(term))
+        )
+    rows = query.with_entities(DirectoryEntry.category, func.count(DirectoryEntry.id)).group_by(
+        DirectoryEntry.category
+    ).all()
+    return {category: count for category, count in rows}
+
+
+def public_directory(q: str | None = None, category: str | None = None, limit: int = 3000) -> list[dict]:
+    query = DirectoryEntry.query.filter(
+        DirectoryEntry.latitude.isnot(None),
+        DirectoryEntry.longitude.isnot(None),
+    )
+    if category:
+        query = query.filter(DirectoryEntry.category == category)
     if q:
         term = f"%{q}%"
         query = query.filter(
@@ -374,6 +407,7 @@ def public_directory(q: str | None = None, limit: int = 3000) -> list[dict]:
             "latitude": entry.latitude,
             "longitude": entry.longitude,
             "address": entry.address_public,
+            "maps_url": maps_url(entry.latitude, entry.longitude, entry.address_public),
             "phone": entry.phone_public,
             "operator": entry.operator,
             "emergency": entry.emergency,
@@ -382,3 +416,23 @@ def public_directory(q: str | None = None, limit: int = 3000) -> list[dict]:
         }
         for entry in query.all()
     ]
+
+
+# Orden de prioridad de desastre para la muestra equilibrada (críticos primero).
+MAP_CATEGORY_ORDER = [
+    "hospital", "shelter", "water_point", "pharmacy", "clinic",
+    "fire_station", "police", "fuel", "supplies", "community_center", "other",
+]
+
+
+def public_directory_balanced(q: str | None = None, per_category: int = 350) -> list[dict]:
+    """Muestra equilibrada por categoría (round-robin) para que el mapa y la vista 'Todos'
+    muestren VARIEDAD de iconos (hospital, refugio, agua, farmacia…), no un solo tipo, con
+    el total acotado para el rendimiento del mapa."""
+    buckets = [public_directory(q=q, category=category, limit=per_category) for category in MAP_CATEGORY_ORDER]
+    rows: list[dict] = []
+    for index in range(max((len(bucket) for bucket in buckets), default=0)):
+        for bucket in buckets:
+            if index < len(bucket):
+                rows.append(bucket[index])
+    return rows

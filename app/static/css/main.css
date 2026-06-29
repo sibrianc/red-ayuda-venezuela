@@ -545,3 +545,53 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 .dir-figure-context strong { color:var(--ve-yellow); }
 .dir-person-found { border-left:4px solid #46c08a; }
 .dir-person-found .dir-person-source { color:#46c08a; }
+
+/* Pines de servicio con icono semántico (badge circular + glifo blanco) */
+.svc-pin { background: transparent; border: 0; }
+.svc-pin i {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--c); border: 2px solid #fff;
+  box-shadow: 0 2px 7px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.25);
+}
+.svc-pin svg { width: 17px; height: 17px; display: block; }
+.map-popup-maps {
+  display: inline-block; margin-top: 7px; font-weight: 600;
+  color: #2a8fd6; text-decoration: none; font-size: .9rem;
+}
+.map-popup-maps::before { content: "📍 "; }
+.map-popup-maps:hover { text-decoration: underline; }
+
+/* Directorio — navegación agrupada (Personas / Lugares) */
+.dir-tabs { gap:.6rem; }
+.dir-tabs-group { display:inline-flex; align-items:center; gap:.3rem; flex-wrap:wrap; padding:.22rem .45rem .22rem .6rem; border:1px solid var(--border); border-radius:99px; background:var(--surface); }
+.dir-tabs-label { font-size:.64rem; font-weight:850; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-right:.1rem; }
+
+/* Ubicación como enlace a Google Maps */
+.dir-loc-link { color:inherit; text-decoration:underline; text-decoration-color:var(--border-strong); text-underline-offset:2px; }
+.dir-loc-link:hover { text-decoration-color:var(--brand); }
+
+/* Chips de servicios con icono semántico */
+.dir-chips-svc { gap:.5rem; }
+.svc-chip { display:inline-flex; align-items:center; gap:.42rem; }
+.svc-chip-icon { display:inline-flex; width:18px; height:18px; color:var(--cat); }
+.svc-chip-icon svg { width:18px; height:18px; }
+.svc-chip.is-active { background:var(--cat); border-color:var(--cat); color:#fff; }
+.svc-chip.is-active .svc-chip-icon { color:#fff; }
+.svc-chip b { color:var(--muted); font-weight:800; }
+.svc-chip.is-active b { color:rgba(255,255,255,.85); }
+
+/* Tarjetas de servicio con icono por categoría */
+.dir-service-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:.9rem; }
+.dir-service-card { display:flex; gap:.8rem; padding:1rem; border:1px solid var(--border); border-left:4px solid var(--cat); border-radius:var(--radius); background:var(--surface); }
+.dir-service-card.is-emergency { background:var(--surface-2); }
+.svc-card-icon { display:flex; align-items:flex-start; flex:0 0 auto; }
+.svc-card-icon svg { width:26px; height:26px; color:var(--cat); }
+.svc-card-body { min-width:0; }
+.svc-card-body h3 { margin:0 0 .3rem; font-size:1.02rem; }
+.dir-item-phone { margin:.15rem 0; font-size:.88rem; }
+.dir-item-phone a { color:var(--text-soft); text-decoration:none; }
+.dir-maps-link { display:inline-block; margin-top:.5rem; font-size:.85rem; font-weight:700; color:var(--brand); text-decoration:none; }
+.dir-maps-link::before { content:"📍 "; }
+.dir-maps-link:hover { text-decoration:underline; }
+.dir-more-note { margin-top:.8rem; color:var(--muted); font-size:.85rem; }

@@ -3,7 +3,7 @@ from flask import jsonify, render_template, url_for
 from app.map import bp
 from app.services.operational import (
     affected_intensity,
-    public_directory,
+    public_directory_balanced,
     public_events,
     public_incidents,
     public_situation,
@@ -42,7 +42,7 @@ def live():
         "intensity": affected_intensity(),
         "incidents": public_incidents(),
         "events": public_events(),
-        "services": public_directory(),
+        "services": public_directory_balanced(),
     })
     response.headers["Cache-Control"] = "public, max-age=120"
     return response
