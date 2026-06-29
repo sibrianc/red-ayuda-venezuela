@@ -22,8 +22,9 @@ from app.ingestion.connectors import (
 )
 from app.ingestion.normalize import match_key
 from app.ingestion.incidents import ParsedIncident
+from app.ingestion.pets import ParsedPet
 from app.ingestion.pfif import ParsedPerson
-from app.models import DirectoryEntry, Incident, IngestedEvent, PersonRecord, SourceRecord
+from app.models import DirectoryEntry, Incident, IngestedEvent, PersonRecord, PetRecord, SourceRecord
 
 
 @dataclass
@@ -401,6 +402,55 @@ def ingest_persons(people: list[ParsedPerson], *, commit: bool = True) -> Ingest
         else:
             stats.updated += 1
         _apply_person_fields(existing, person)
+
+    if commit:
+        db.session.commit()
+    return stats
+
+
+def _apply_pet_fields(target: PetRecord, pet: ParsedPet) -> None:
+    target.content_hash = pet.content_hash
+    target.name = pet.name
+    target.species = pet.species
+    target.breed = pet.breed
+    target.color = pet.color
+    target.last_seen_location = pet.last_seen_location
+    target.last_seen_date = pet.last_seen_date
+    target.photo_url = pet.photo_url
+    target.description = pet.description
+    target.source_name = pet.source_name
+    target.source_url = pet.source_url
+    target.source_date = pet.source_date
+    target.attribution = pet.attribution
+
+
+def ingest_pets(pets: list[ParsedPet], *, commit: bool = True) -> IngestStats:
+    """Limpia, deduplica y persiste mascotas de fuentes verificadas (idempotente por origen)."""
+    stats = IngestStats(received=len(pets))
+
+    deduped: dict[tuple[str, str], ParsedPet] = {}
+    for pet in pets:
+        if not pet.external_id:
+            stats.invalid += 1
+            continue
+        deduped[(pet.source_slug, pet.external_id)] = pet
+
+    for (source_slug, external_id), pet in deduped.items():
+        existing = (
+            db.session.query(PetRecord)
+            .filter_by(source_slug=source_slug, external_id=external_id)
+            .one_or_none()
+        )
+        if existing is not None and existing.content_hash == pet.content_hash:
+            stats.unchanged += 1
+            continue
+        if existing is None:
+            existing = PetRecord(source_slug=source_slug, external_id=external_id)
+            db.session.add(existing)
+            stats.new += 1
+        else:
+            stats.updated += 1
+        _apply_pet_fields(existing, pet)
 
     if commit:
         db.session.commit()

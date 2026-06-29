@@ -294,6 +294,38 @@ class PersonRecord(TimestampMixin, db.Model):
     corroboration: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
 
+class PetRecord(TimestampMixin, db.Model):
+    """Mascota desaparecida publicada por una FUENTE verificada (grupos/registros de
+    rescate animal). Pública por su propósito (reunir a la mascota con su familia),
+    con atribución de la fuente. No contiene datos privados del dueño.
+    """
+
+    __tablename__ = "pet_records"
+    __table_args__ = (
+        UniqueConstraint("source_slug", "external_id", name="uq_pet_records_origin"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), unique=True, nullable=False, default=lambda: str(uuid4()), index=True
+    )
+    source_slug: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    species: Mapped[str] = mapped_column(String(40), default="other", nullable=False, index=True)
+    breed: Mapped[str | None] = mapped_column(String(120))
+    color: Mapped[str | None] = mapped_column(String(120))
+    last_seen_location: Mapped[str | None] = mapped_column(String(300))
+    last_seen_date: Mapped[date | None] = mapped_column(Date)
+    photo_url: Mapped[str | None] = mapped_column(String(500))
+    description: Mapped[str | None] = mapped_column(Text)
+    source_name: Mapped[str | None] = mapped_column(String(200))
+    source_url: Mapped[str | None] = mapped_column(String(500))
+    source_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attribution: Mapped[str | None] = mapped_column(String(240))
+
+
 class SituationMetric(TimestampMixin, db.Model):
     """Cifra agregada de situación (objeto canónico OperationalFact).
 

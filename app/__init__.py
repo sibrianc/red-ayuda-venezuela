@@ -579,6 +579,33 @@ def register_cli(app: Flask) -> None:
         minors = sum(1 for person in people if person.is_minor)
         click.echo(f"Menores detectados (excluidos del público por protección): {minors}")
 
+    @app.cli.command("import-pets-json")
+    @click.argument("source")
+    @click.option("--source-slug", default="pets", show_default=True)
+    @click.option("--attribution", default=None, help="Atribución de la fuente verificada de mascotas.")
+    def import_pets_json_cmd(source: str, source_slug: str, attribution: str | None):
+        """Importa mascotas desaparecidas desde un export JSON de una FUENTE VERIFICADA (URL o archivo)."""
+        from app.ingestion.pets import parse_pets_json
+        from app.ingestion.pfif import fetch_pfif
+        from app.ingestion.pipeline import ingest_pets
+
+        if source.startswith(("http://", "https://")):
+            try:
+                text = fetch_pfif(source)  # descarga de texto genérica (reutilizada)
+            except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+                raise click.ClickException(
+                    f"No se pudo descargar ({type(exc).__name__}: {exc})."
+                ) from exc
+        else:
+            with open(source, encoding="utf-8") as handle:
+                text = handle.read()
+
+        pets = parse_pets_json(text, source_slug=source_slug, attribution=attribution)
+        stats = ingest_pets(pets)
+        click.echo("Resultado del import JSON de mascotas:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+
     @app.cli.command("import-pfif")
     @click.argument("source")
     @click.option("--source-slug", default="pfif", show_default=True)

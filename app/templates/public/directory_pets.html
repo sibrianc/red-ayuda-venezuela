@@ -10,26 +10,42 @@
 
   <div class="container">
     <section class="dir-section" id="mascotas">
+      {% set grand_total = total + (community_total or 0) %}
       <div class="dir-section-head">
         <div>
-          <h2>Mascotas desaparecidas{% if total %} <span class="dir-count">{{ "{:,}".format(total).replace(",", ".") }}</span>{% endif %}</h2>
-          <p class="dir-section-intro">Si encontraste o perdiste una mascota, repórtala. La publicación es automática tras una limpieza básica.</p>
+          <h2>Mascotas desaparecidas{% if grand_total %} <span class="dir-count">{{ "{:,}".format(grand_total).replace(",", ".") }}</span>{% endif %}</h2>
+          <p class="dir-section-intro">Reportes de la comunidad y registros publicados por <strong>fuentes verificadas</strong> de rescate animal. Los datos del dueño se mantienen privados.</p>
         </div>
         <a class="btn btn-primary" href="{{ url_for('reports.lost_pet') }}">Reportar mascota</a>
       </div>
-      {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ "{:,}".format(total).replace(",", ".") }} mascotas.</p>{% endif %}
-      {% if pets %}
+      {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ "{:,}".format(grand_total).replace(",", ".") }} mascotas.</p>{% endif %}
+      {% if community or records %}
       <div class="dir-person-grid">
-        {% for p in pets %}
+        {% for p in community %}
         <article class="dir-person-card dir-pet-card">
           {% if p.photo_url %}<img class="dir-pet-photo" src="{{ p.photo_url }}" alt="Foto de {{ p.title }}" loading="lazy" referrerpolicy="no-referrer" decoding="async">{% endif %}
           <div class="dir-person-source">{{ p.species_label }}{% if p.breed %} · {{ p.breed }}{% endif %}</div>
           <h3>{{ p.title }}</h3>
           {% if p.color %}<p class="dir-person-meta">{{ p.color }}</p>{% endif %}
-          <p class="dir-person-loc"><span>Visto en</span> {% if p.maps_url %}<a class="dir-loc-link" href="{{ p.maps_url }}" target="_blank" rel="noopener noreferrer">{{ p.zone }}</a>{% else %}{{ p.zone }}{% endif %}</p>
+          {% if p.zone %}<p class="dir-person-loc"><span>Visto en</span> {% if p.maps_url %}<a class="dir-loc-link" href="{{ p.maps_url }}" target="_blank" rel="noopener noreferrer">{{ p.zone }}</a>{% else %}{{ p.zone }}{% endif %}</p>{% endif %}
           {% if p.last_seen_date %}<p class="dir-person-loc"><span>Desde</span> {{ p.last_seen_date }}</p>{% endif %}
           {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
           <div class="dir-record-provenance"><span>Fuente: reporte recibido por esta plataforma</span></div>
+        </article>
+        {% endfor %}
+        {% for p in records %}
+        <article class="dir-person-card dir-pet-card dir-person-published">
+          {% if p.photo_url %}<img class="dir-pet-photo" src="{{ p.photo_url }}" alt="Foto de {{ p.title }}" loading="lazy" referrerpolicy="no-referrer" decoding="async">{% endif %}
+          <div class="dir-person-source">{{ p.species_label }}{% if p.breed %} · {{ p.breed }}{% endif %}{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
+          <h3>{{ p.title }}</h3>
+          {% if p.color %}<p class="dir-person-meta">{{ p.color }}</p>{% endif %}
+          {% if p.zone %}<p class="dir-person-loc"><span>Visto en</span> {{ p.zone }}</p>{% endif %}
+          {% if p.last_seen_date %}<p class="dir-person-loc"><span>Desde</span> {{ p.last_seen_date[:10] }}</p>{% endif %}
+          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+          <div class="dir-record-provenance">
+            {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
+            {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
+          </div>
         </article>
         {% endfor %}
       </div>

@@ -19,6 +19,7 @@ from app.models import (
     LostPetReport,
     MissingPersonReport,
     PersonRecord,
+    PetRecord,
     SituationMetric,
 )
 
@@ -626,3 +627,54 @@ def public_lost_pets(q: str | None = None, limit: int = 60, offset: int = 0) -> 
 
 def count_lost_pets(q: str | None = None) -> int:
     return _lost_pets_query(q).count()
+
+
+def _pet_record_dict(p) -> dict:
+    return {
+        "public_id": p.public_id,
+        "title": p.name,
+        "species": p.species,
+        "species_label": SPECIES_LABELS.get(p.species, "Mascota"),
+        "breed": p.breed,
+        "color": p.color,
+        "summary": p.description,
+        "zone": p.last_seen_location,
+        "last_seen_date": p.last_seen_date.isoformat() if p.last_seen_date else None,
+        "photo_url": p.photo_url,
+        "maps_url": None,
+        "source_name": p.source_name,
+        "source_url": p.source_url,
+        "attribution": p.attribution,
+        "source_date": p.source_date.isoformat() if p.source_date else None,
+    }
+
+
+def _pet_records_query(q: str | None = None):
+    query = PetRecord.query
+    if q:
+        term = f"%{q}%"
+        query = query.filter(
+            or_(
+                PetRecord.name.ilike(term),
+                PetRecord.last_seen_location.ilike(term),
+                PetRecord.breed.ilike(term),
+                PetRecord.color.ilike(term),
+            )
+        )
+    return query
+
+
+def public_pet_records(q: str | None = None, limit: int = 60, offset: int = 0) -> list[dict]:
+    """Mascotas desaparecidas publicadas por fuentes verificadas (ingesta atribuida)."""
+    rows = (
+        _pet_records_query(q)
+        .order_by(PetRecord.source_date.desc().nullslast(), PetRecord.id.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return [_pet_record_dict(p) for p in rows]
+
+
+def count_pet_records(q: str | None = None) -> int:
+    return _pet_records_query(q).count()

@@ -11,6 +11,7 @@ from app.services.operational import (
     count_directory,
     count_lost_pets,
     count_person_records,
+    count_pet_records,
     directory_category_counts,
     public_comms_zones,
     public_directory,
@@ -18,6 +19,7 @@ from app.services.operational import (
     public_lost_pets,
     public_missing_persons,
     public_person_records,
+    public_pet_records,
     public_situation,
 )
 from app.services.reporting import public_items, public_report_dict, public_summary
@@ -71,8 +73,8 @@ def directory():
          "count": count_directory(), "url": url_for("public.directory_services"), "accent": "#1f9d63"},
         {"label": "Zonas sin comunicación", "desc": "Alertas de posibles víctimas incomunicadas.",
          "count": len(public_comms_zones()), "url": url_for("public.directory_zones"), "accent": "#8a5cf0"},
-        {"label": "Mascotas desaparecidas", "desc": "Mascotas perdidas reportadas por la comunidad.",
-         "count": count_lost_pets(), "url": url_for("public.directory_pets"), "accent": "#e0a02a"},
+        {"label": "Mascotas desaparecidas", "desc": "Mascotas perdidas (comunidad + fuentes verificadas).",
+         "count": count_lost_pets() + count_pet_records(), "url": url_for("public.directory_pets"), "accent": "#e0a02a"},
     ]
     return render_template(
         "public/directory.html",
@@ -159,13 +161,18 @@ def directory_zones():
 def directory_pets():
     q = request.args.get("q", "").strip()
     page = _page_arg()
-    total = count_lost_pets(q or None)
+    # Registros de fuentes verificadas (ingesta atribuida); paginados.
+    total = count_pet_records(q or None)
     pages = _page_count(total, PEOPLE_PAGE)
     page = min(page, pages)
-    pets = public_lost_pets(q or None, limit=PEOPLE_PAGE, offset=(page - 1) * PEOPLE_PAGE)
+    records = public_pet_records(q or None, limit=PEOPLE_PAGE, offset=(page - 1) * PEOPLE_PAGE)
+    # Reportes ciudadanos (formulario); se muestran arriba en la primera página.
+    community = public_lost_pets(q or None) if page == 1 else []
     return render_template(
         "public/directory_pets.html",
-        pets=pets, total=total, page=page, pages=pages, q=q,
+        community=community, records=records,
+        total=total, community_total=count_lost_pets(q or None),
+        page=page, pages=pages, q=q,
     )
 
 
