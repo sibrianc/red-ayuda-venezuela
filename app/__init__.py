@@ -342,6 +342,34 @@ def register_cli(app: Flask) -> None:
         click.echo(f"  servicios: {directory['total']}")
         click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
 
+    @app.cli.command("import-persons-json")
+    @click.argument("source")
+    @click.option("--source-slug", default="published", show_default=True)
+    @click.option("--attribution", default=None, help="Atribución de la plataforma/fuente publicada.")
+    def import_persons_json_cmd(source: str, source_slug: str, attribution: str | None):
+        """Importa personas desde una exportación JSON (URL o archivo). Vía limpia, con atribución."""
+        from app.ingestion.pfif import fetch_pfif, parse_persons_json
+        from app.ingestion.pipeline import ingest_persons
+
+        if source.startswith(("http://", "https://")):
+            try:
+                text = fetch_pfif(source)  # descarga de texto genérica (reutilizada)
+            except Exception as exc:  # noqa: BLE001 — el CLI reporta el error legible
+                raise click.ClickException(
+                    f"No se pudo descargar ({type(exc).__name__}: {exc})."
+                ) from exc
+        else:
+            with open(source, encoding="utf-8") as handle:
+                text = handle.read()
+
+        people = parse_persons_json(text, source_slug=source_slug, attribution=attribution)
+        stats = ingest_persons(people)
+        click.echo("Resultado del import JSON de personas:")
+        for key, value in stats.as_dict().items():
+            click.echo(f"  {key}: {value}")
+        minors = sum(1 for person in people if person.is_minor)
+        click.echo(f"Menores detectados (excluidos del público por protección): {minors}")
+
     @app.cli.command("import-pfif")
     @click.argument("source")
     @click.option("--source-slug", default="pfif", show_default=True)

@@ -102,6 +102,86 @@ def _home_location(fields: dict) -> str | None:
     return joined or None
 
 
+PERSON_STATUS_KEYWORDS = {
+    "deceased": ["fallecid", "muerto", "deceased", "dead"],
+    "found": ["encontrad", "localizad", "found", "a salvo", "con vida"],
+    "missing": ["desaparecid", "missing", "no localizad", "se busca", "buscad"],
+}
+
+
+def _status_from_text(value: str | None) -> str:
+    text = (value or "").lower()
+    for status, keywords in PERSON_STATUS_KEYWORDS.items():
+        if any(keyword in text for keyword in keywords):
+            return status
+    return "missing"
+
+
+def _first(record: dict, *keys: str):
+    for key in keys:
+        if record.get(key) not in (None, ""):
+            return record[key]
+    return None
+
+
+def parse_persons_json(json_text: str, *, source_slug: str = "published", attribution: str | None = None) -> list[ParsedPerson]:
+    """Convierte una exportación JSON de personas en registros canónicos.
+
+    Flexible con nombres de campo en español o inglés (`nombre/full_name`,
+    `edad/age`, `ubicacion/last_known_location`, `estado/status`…). Es la vía limpia
+    para ingerir un export o feed de una plataforma ciudadana, con su atribución.
+    """
+    data = json.loads(json_text)
+    if isinstance(data, dict):
+        for key in ("data", "reports", "personas", "records", "results", "items"):
+            if isinstance(data.get(key), list):
+                data = data[key]
+                break
+    if not isinstance(data, list):
+        return []
+
+    people: list[ParsedPerson] = []
+    for index, record in enumerate(data):
+        if not isinstance(record, dict):
+            continue
+        given = _first(record, "given_name", "first_name", "nombre", "nombres")
+        family = _first(record, "family_name", "last_name", "apellido", "apellidos")
+        full_name = _first(record, "full_name", "name", "nombre_completo") \
+            or " ".join(str(p) for p in (given, family) if p).strip()
+        if not full_name:
+            continue
+        age_raw = _first(record, "age", "edad")
+        age = _parse_age(str(age_raw)) if age_raw is not None else None
+        external_id = _first(record, "id", "external_id", "record_id", "public_id") or f"row-{index}"
+        people.append(
+            ParsedPerson(
+                source_slug=source_slug,
+                external_id=str(external_id),
+                content_hash=hashlib.sha256(
+                    json.dumps(record, sort_keys=True, default=str).encode("utf-8")
+                ).hexdigest(),
+                full_name=str(full_name)[:240],
+                given_name=str(given) if given else None,
+                family_name=str(family) if family else None,
+                age=age,
+                sex=_first(record, "sex", "gender", "genero", "sexo"),
+                last_known_location=_first(
+                    record, "last_known_location", "ubicacion", "ultima_ubicacion",
+                    "location", "last_seen", "zona", "lugar",
+                ),
+                home_location=_first(record, "home", "ciudad", "estado_origen"),
+                person_status=_status_from_text(str(_first(record, "status", "estado", "situacion") or "")),
+                description=_first(record, "description", "descripcion", "notas", "detalle"),
+                source_name=_first(record, "source_name", "fuente"),
+                source_url=_first(record, "source_url", "url"),
+                source_date=_parse_dt(str(_first(record, "source_date", "date", "fecha") or "")),
+                is_minor=age is not None and age < 18,
+                attribution=attribution,
+            )
+        )
+    return people
+
+
 def fetch_pfif(url: str, *, timeout: int = 30) -> str:
     """Descarga un documento PFIF. Requiere red; no se llama en pruebas."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})

@@ -267,6 +267,24 @@ de reportar y **enlaces a los registros reales del evento** donde están los nom
 badges de conteo se ocultan cuando son 0. El conteo de servicios muestra el total real
 (16.204). El mapa sirve hasta 3.000 servicios por rendimiento. No se siembran datos falsos.
 
+### Checkpoint — datos de personas por vía LIMPIA (no scraping a ciegas)
+
+El propietario pidió traer los nombres de las plataformas ciudadanas (Venezuela Te Busca
+~28.000, etc.). Decisión: **vía limpia (API/export + conector respetuoso)**, no scraping
+ciego. Due diligence hecha:
+- `venezuelatebusca.com/robots.txt` usa Content-Signals: **`search=yes`** (permite recolectar
+  para búsqueda), `ai-train=no`, `Allow: /`; bloquea bots de entrenamiento de IA (ClaudeBot,
+  GPTBot…). O sea, un conector de **búsqueda/reunificación** está permitido por su política,
+  pero **no exponen un API/JSON público** estable (cargan por JS) → reverse-engineering
+  frágil e invasivo, contra el espíritu de la vía limpia.
+- Conclusión: la vía sólida es una **exportación/feed** de la plataforma. Borrador de
+  solicitud en `docs/outreach/person-data-sharing-draft.md` (no enviado).
+- **Infraestructura lista:** importador genérico `flask import-persons-json <archivo|URL>`
+  (`parse_persons_json` en `app/ingestion/pfif.py`) que mapea exportaciones JSON con claves
+  en español o inglés → `PersonRecord`, con atribución, estado (desaparecido/fallecido) y
+  **exclusión de menores**. Más `flask import-pfif` para feeds PFIF. Apenas haya export/feed,
+  entran los miles de nombres en un comando. 74/74 pruebas.
+
 ### ¿Cuánto falta para el deploy? (hoja de ruta)
 
 Estado: **listo para correr en local**; el deploy a producción (Render) sigue pendiente y
