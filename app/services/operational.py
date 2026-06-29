@@ -276,7 +276,7 @@ def safe_public_url(value: str | None) -> str | None:
     return value if value and value.startswith(("https://", "http://")) else None
 
 
-def public_person_records(status: str | None = None, q: str | None = None, limit: int = 500) -> list[dict]:
+def public_person_records(status: str | None = None, q: str | None = None, limit: int = 500, offset: int = 0) -> list[dict]:
     """Personas publicadas (PFIF / listas oficiales) por estado. Excluye menores."""
     query = PersonRecord.query.filter(PersonRecord.is_minor.is_(False))
     if status:
@@ -290,7 +290,7 @@ def public_person_records(status: str | None = None, q: str | None = None, limit
                 PersonRecord.home_location.ilike(term),
             )
         )
-    query = query.order_by(PersonRecord.source_date.desc().nullslast(), PersonRecord.id.desc()).limit(limit)
+    query = query.order_by(PersonRecord.source_date.desc().nullslast(), PersonRecord.id.desc()).offset(offset).limit(limit)
     return [
         {
             "public_id": person.public_id,
@@ -521,7 +521,7 @@ def directory_category_counts(q: str | None = None) -> dict:
     return {category: count for category, count in rows}
 
 
-def public_directory(q: str | None = None, category: str | None = None, limit: int = 3000) -> list[dict]:
+def public_directory(q: str | None = None, category: str | None = None, limit: int = 3000, offset: int = 0) -> list[dict]:
     query = DirectoryEntry.query.filter(
         DirectoryEntry.latitude.isnot(None),
         DirectoryEntry.longitude.isnot(None),
@@ -536,7 +536,7 @@ def public_directory(q: str | None = None, category: str | None = None, limit: i
                 DirectoryEntry.address_public.ilike(term),
             )
         )
-    query = query.order_by(DirectoryEntry.emergency.desc()).limit(limit)
+    query = query.order_by(DirectoryEntry.emergency.desc()).offset(offset).limit(limit)
     return [
         {
             "public_id": entry.public_id,

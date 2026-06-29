@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Personas · Directorio · {{ config.APP_NAME }}{% endblock %}
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+{% from "public/_dir_macros.html" import chrome, loc, corrob, pager with context %}
+{% block content %}
+{% set args = dict(estado=estado) %}{% if q %}{% set _ = args.update({'q': q}) %}{% endif %}
+<div class="rv-page directory-page">
+  {{ chrome('personas', 'Personas · Reunificación familiar', 'Buscar personas',
+            'Desaparecidas, localizadas y fallecidas — publicadas por fuentes identificadas. Menores excluidos por protección.',
+            q, url_for('public.directory_people')) }}
+
+  <div class="container">
+    <div class="dir-section-head">
+      <div>
+        <p class="eyebrow">Prioridad: las personas</p>
+        <h2>Personas {{ estado_label|lower }}{% if total %} <span class="dir-count">{{ "{:,}".format(total).replace(",", ".") }}</span>{% endif %}</h2>
+        {% if estado == 'missing' and figure_missing %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_missing.value).replace(",", ".") }}</strong> ({{ figure_missing.source_name }}).</p>{% endif %}
+        {% if estado == 'deceased' and figure_dead %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}). Solo se listan nombres ya publicados por fuentes identificadas.</p>{% endif %}
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+    </div>
+
+    <div class="dir-chips" role="group" aria-label="Filtrar personas por estado">
+      {% for t in tabs %}
+      <a class="dir-chip {{ 'is-active' if estado == t.key }}" href="{{ url_for('public.directory_people', estado=t.key, q=q or none) }}">{{ t.label }} ({{ "{:,}".format(t.count).replace(",", ".") }})</a>
+      {% endfor %}
+    </div>
+
+    {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}» en {{ estado_label|lower }}: {{ "{:,}".format(total).replace(",", ".") }}.</p>{% endif %}
+
+    {% if community or records %}
+    <div class="dir-person-grid">
+      {% for p in community %}
+      <article class="dir-person-card">
+        <h3>{{ p.first_name }} {{ p.last_name }}</h3>
+        <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.gender %} · {{ p.gender }}{% endif %}</p>
+        {{ loc('Última ubicación', p.last_seen, p.maps_url) }}
+        {% if p.last_contact_date %}<p class="dir-person-loc"><span>Último contacto</span> {{ p.last_contact_date }}</p>{% endif %}
+        {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+        <div class="dir-record-provenance"><span>Fuente: reporte recibido y revisado por esta plataforma</span></div>
+      </article>
+      {% endfor %}
+      {% for p in records %}
+      <article class="dir-person-card dir-person-{{ 'found' if estado == 'found' else ('deceased' if estado == 'deceased' else 'published') }}">
+        <div class="dir-person-source">{% if estado == 'found' %}Localizada{% else %}Registro publicado{% endif %}{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
+        <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
+        <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
+        {% if p.last_seen %}{{ loc('Ubicación', p.last_seen, p.maps_url) }}{% endif %}
+        {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
+        <div class="dir-record-provenance">
+          {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
+          {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {{ pager(page, pages, 'public.directory_people', args) }}
+    {% else %}
+    <div class="dir-empty">
+      <p>No hay personas en «{{ estado_label|lower }}»{% if q %} para «{{ q }}»{% endif %}. Si buscas a un familiar, prueba otra pestaña, consulta los registros oficiales o repórtalo con el botón de arriba.</p>
+    </div>
+    {% endif %}
+
+    <section class="rv-section dir-registries-section" id="registros">
+      <div class="dir-registries">
+        <h3>Registros oficiales de búsqueda y reunificación</h3>
+        <ul>
+          {% for r in registries %}
+          <li><a href="{{ r.url }}" target="_blank" rel="noopener">{{ r.name }}</a> — {{ r.detail }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

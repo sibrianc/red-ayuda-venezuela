@@ -49,6 +49,6 @@ def test_public_comms_zones_hide_private_and_filter(app):
 
 
 def test_directory_shows_comms_section(client):
-    html = client.get("/directorio").text
+    html = client.get("/directorio/zonas").text
     assert "Zonas sin comunicación" in html
     assert "Reportar zona sin comunicación" in html

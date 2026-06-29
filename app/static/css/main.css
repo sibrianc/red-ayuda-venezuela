@@ -980,3 +980,18 @@ html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,
 .directory-page .dir-person-card:hover,
 .directory-page .dir-item:hover,
 .directory-page .dir-service-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--brand);}
+
+/* ===== Directorio dividido: jerarquía home, chips activos, paginación ===== */
+.rv-btn-lg{font-size:1.08rem;padding:1rem 1.7rem;}
+.rv-hero-sub{display:flex;flex-wrap:wrap;gap:1.2rem;margin:0 0 1.8rem;}
+.rv-hero-sub a{color:#cdd9f0;font-weight:600;font-size:.95rem;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:2px;}
+.rv-hero-sub a:hover{color:#fff;border-color:#fff;}
+.rv-card[style*="--rc"] .rv-go{color:var(--rc);}
+.rv-chipnav a.is-active{background:#FCD116;color:#0d2040;border-color:#FCD116;}
+.directory-page .dir-chip.is-active{background:var(--brand);color:#fff;border-color:var(--brand);}
+.rv-pager{display:flex;align-items:center;justify-content:center;gap:1rem;margin:2rem 0 .5rem;flex-wrap:wrap;}
+.rv-pager-btn{font-weight:700;font-size:.92rem;text-decoration:none;color:var(--brand);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.55rem 1rem;}
+.rv-pager-btn:hover{border-color:var(--brand);}
+.rv-pager-btn.is-disabled{color:var(--muted);opacity:.5;pointer-events:none;}
+.rv-pager-info{color:var(--muted);font-size:.9rem;font-weight:600;}
+.dir-registries-section{border-top:1px solid var(--border);}

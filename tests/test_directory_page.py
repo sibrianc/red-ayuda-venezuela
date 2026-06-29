@@ -23,14 +23,29 @@ def _person(first, last, **overrides):
     return MissingPersonReport(**values)
 
 
-def test_directory_page_renders(client):
+def test_directory_hub_lists_sections(client):
     response = client.get("/directorio")
     assert response.status_code == 200
     html = response.text
-    assert "Reportar un familiar" in html
-    assert "Incidentes y evaluación estructural" in html
+    assert "Directorio del terremoto" in html
+    assert "Edificios e incidentes" in html
     assert "Registros oficiales" in html
-    assert "Personas fallecidas" in html
+    # el hub enlaza a cada subpágina por su propia ruta
+    assert "/directorio/personas" in html
+    assert "/directorio/incidentes" in html
+    assert "/directorio/servicios" in html
+    assert "/directorio/zonas" in html
+
+
+def test_directory_subpages_render(client):
+    people = client.get("/directorio/personas")
+    assert people.status_code == 200
+    assert "Reportar un familiar" in people.text
+    assert "Registros oficiales" in people.text
+    assert "Personas fallecidas" in client.get("/directorio/personas?estado=deceased").text
+    assert "Incidentes y evaluación estructural" in client.get("/directorio/incidentes").text
+    assert client.get("/directorio/servicios").status_code == 200
+    assert client.get("/directorio/zonas").status_code == 200
 
 
 def test_public_missing_persons_excludes_minors_and_unapproved(app):
@@ -147,13 +162,17 @@ def test_directory_combines_reviewed_and_pfif_people_and_excludes_minors(app, cl
             )
         )
 
-    html = client.get("/directorio").text
-    assert "Ana Pérez" in html
-    assert "Elena Salazar" in html
-    assert "Rafael Mendoza" in html
-    assert "Persona Menor Protegida" not in html
-    assert "Consultar fuente" in html
+    # Desaparecidas: comunidad (Ana) + PFIF "information_sought" (Elena)
+    missing = client.get("/directorio/personas").text
+    assert "Ana Pérez" in missing
+    assert "Elena Salazar" in missing
+    assert "Persona Menor Protegida" not in missing
+    # Fallecidas: PFIF "believed_dead" (Rafael), con enlace a la fuente
+    deceased = client.get("/directorio/personas?estado=deceased").text
+    assert "Rafael Mendoza" in deceased
+    assert "Consultar fuente" in deceased
+    assert "Persona Menor Protegida" not in deceased
 
-    search = client.get("/directorio?q=Caraballeda").text
+    search = client.get("/directorio/personas?estado=deceased&q=Caraballeda").text
     assert "Rafael Mendoza" in search
     assert "Elena Salazar" not in search

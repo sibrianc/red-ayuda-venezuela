@@ -1,6 +1,7 @@
+import math
 from collections import Counter
 
-from flask import render_template, request
+from flask import render_template, request, url_for
 
 from app.public import bp
 from app.services.operational import (
@@ -12,7 +13,6 @@ from app.services.operational import (
     directory_category_counts,
     public_comms_zones,
     public_directory,
-    public_directory_balanced,
     public_incidents,
     public_missing_persons,
     public_person_records,
@@ -40,56 +40,115 @@ def _grouped(rows: list[dict]) -> list[dict]:
     ]
 
 
+PEOPLE_PAGE = 60
+SERVICES_PAGE = 60
+INCIDENTS_PAGE = 40
+PERSON_STATES = {"missing": "Desaparecidas", "found": "Localizadas", "deceased": "Fallecidas"}
+
+
+def _page_arg() -> int:
+    return max(request.args.get("page", 1, type=int), 1)
+
+
+def _page_count(total: int, size: int) -> int:
+    return max(math.ceil(total / size), 1) if total else 1
+
+
 @bp.get("/directorio")
 def directory():
+    """Hub del directorio: una tarjeta por sección con su conteo real; sin listas pesadas."""
+    situation = public_situation()
+    figures = {metric["key"]: metric for metric in situation}
+    sections = [
+        {"label": "Personas", "desc": "Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar.",
+         "count": count_person_records("missing") + count_person_records("found") + count_person_records("deceased"),
+         "url": url_for("public.directory_people"), "accent": "#2a6fd6"},
+        {"label": "Edificios e incidentes", "desc": "Colapsos y evaluación estructural, con fuente.",
+         "count": len(public_incidents()), "url": url_for("public.directory_incidents"), "accent": "#e5443a"},
+        {"label": "Servicios", "desc": "Hospitales, refugios, agua, farmacias, combustible y víveres.",
+         "count": count_directory(), "url": url_for("public.directory_services"), "accent": "#1f9d63"},
+        {"label": "Zonas sin comunicación", "desc": "Alertas de posibles víctimas incomunicadas.",
+         "count": len(public_comms_zones()), "url": url_for("public.directory_zones"), "accent": "#8a5cf0"},
+    ]
+    return render_template(
+        "public/directory.html",
+        sections=sections,
+        situation=situation,
+        figure_missing=figures.get("missing"),
+        figure_dead=figures.get("dead"),
+        registries=OFFICIAL_REGISTRIES,
+    )
+
+
+@bp.get("/directorio/personas")
+def directory_people():
+    q = request.args.get("q", "").strip()
+    estado = request.args.get("estado", "missing").strip()
+    if estado not in PERSON_STATES:
+        estado = "missing"
+    page = _page_arg()
+    total = count_person_records(estado, q or None)
+    pages = _page_count(total, PEOPLE_PAGE)
+    page = min(page, pages)
+    records = public_person_records(status=estado, q=q or None, limit=PEOPLE_PAGE, offset=(page - 1) * PEOPLE_PAGE)
+    community = public_missing_persons(q or None) if (estado == "missing" and page == 1) else []
+    situation = public_situation()
+    figures = {metric["key"]: metric for metric in situation}
+    tabs = [{"key": key, "label": label, "count": count_person_records(key, q or None)} for key, label in PERSON_STATES.items()]
+    return render_template(
+        "public/directory_people.html",
+        estado=estado, estado_label=PERSON_STATES[estado], tabs=tabs,
+        community=community, records=records, total=total, page=page, pages=pages,
+        figure_missing=figures.get("missing"), figure_dead=figures.get("dead"),
+        registries=OFFICIAL_REGISTRIES, q=q,
+    )
+
+
+@bp.get("/directorio/incidentes")
+def directory_incidents():
     q = request.args.get("q", "").strip()
     category = request.args.get("category", "").strip()
-    scat = request.args.get("scat", "").strip()
-
-    persons = public_missing_persons(q or None)
-    published_missing = public_person_records(status="missing", q=q or None)
-    localized = public_person_records(status="found", q=q or None)
-    deceased = public_person_records(status="deceased", q=q or None)
+    page = _page_arg()
     all_incidents = public_incidents(q=q or None)
-    incidents = [i for i in all_incidents if not category or i["category"] == category]
-    services = (
-        public_directory(q=q or None, category=scat)
-        if scat
-        else public_directory_balanced(q=q or None)
+    groups = _grouped(all_incidents)
+    filtered = [i for i in all_incidents if not category or i["category"] == category]
+    total = len(filtered)
+    pages = _page_count(total, INCIDENTS_PAGE)
+    page = min(page, pages)
+    start = (page - 1) * INCIDENTS_PAGE
+    return render_template(
+        "public/directory_incidents.html",
+        incidents=filtered[start:start + INCIDENTS_PAGE], incident_groups=groups,
+        total=total, page=page, pages=pages, category=category, q=q,
     )
+
+
+@bp.get("/directorio/servicios")
+def directory_services():
+    q = request.args.get("q", "").strip()
+    scat = request.args.get("scat", "").strip()
+    page = _page_arg()
     cat_counts = directory_category_counts(q or None)
+    total = cat_counts.get(scat, 0) if scat else count_directory(q or None)
+    pages = _page_count(total, SERVICES_PAGE)
+    page = min(page, pages)
+    services = public_directory(q=q or None, category=scat or None, limit=SERVICES_PAGE, offset=(page - 1) * SERVICES_PAGE)
     service_groups = [
         {"category": cat, "label": CATEGORY_LABELS.get(cat, "Servicio"), "count": count}
         for cat, count in sorted(cat_counts.items(), key=lambda kv: kv[1], reverse=True)
     ]
-    comms = public_comms_zones(q or None)
-    situation = public_situation()
-    figures = {metric["key"]: metric for metric in situation}
     return render_template(
-        "public/directory.html",
-        situation=situation,
-        figure_missing=figures.get("missing"),
-        figure_dead=figures.get("dead"),
-        persons=persons,
-        published_missing=published_missing[:120],
-        person_total=len(persons) + count_person_records("missing", q or None),
-        localized=localized[:120],
-        localized_total=count_person_records("found", q or None),
-        deceased=deceased[:120],
-        deceased_total=count_person_records("deceased", q or None),
-        comms=comms,
-        comms_total=len(comms),
-        incidents=incidents[:80],
-        incident_groups=_grouped(all_incidents),
-        incident_total=len(incidents),
-        services=services[:150],
-        service_groups=service_groups,
-        service_total=count_directory(q or None),
-        service_category=scat,
-        registries=OFFICIAL_REGISTRIES,
-        q=q,
-        category=category,
+        "public/directory_services.html",
+        services=services, service_groups=service_groups, total=total,
+        page=page, pages=pages, service_category=scat, q=q,
     )
+
+
+@bp.get("/directorio/zonas")
+def directory_zones():
+    q = request.args.get("q", "").strip()
+    comms = public_comms_zones(q or None)
+    return render_template("public/directory_zones.html", comms=comms, comms_total=len(comms), q=q)
 
 
 @bp.get("/coordinacion")

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Servicios · Directorio · {{ config.APP_NAME }}{% endblock %}
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+{% from "public/_dir_macros.html" import chrome, svc_icon, pager, CAT_COLORS with context %}
+{% block content %}
+{% set args = {} %}{% if q %}{% set _ = args.update({'q': q}) %}{% endif %}{% if service_category %}{% set _ = args.update({'scat': service_category}) %}{% endif %}
+<div class="rv-page directory-page">
+  {{ chrome('servicios', 'Servicios y recursos', 'Servicios disponibles',
+            'Hospitales, refugios, agua, farmacias, combustible y víveres (OpenStreetMap). Filtra por tipo y abre cómo llegar en Google Maps.',
+            q, url_for('public.directory_services')) }}
+
+  <div class="container">
+    <section class="dir-section" id="servicios">
+      <div class="dir-chips dir-chips-svc" aria-label="Filtrar servicios por tipo">
+        <a class="dir-chip {{ 'is-active' if not service_category }}" href="{{ url_for('public.directory_services', q=q or none) }}">Todos</a>
+        {% for g in service_groups %}
+        <a class="dir-chip svc-chip {{ 'is-active' if service_category == g.category }}" style="--cat:{{ CAT_COLORS.get(g.category, CAT_COLORS['other']) }}"
+           href="{{ url_for('public.directory_services', q=q or none, scat=g.category) }}">
+          <span class="svc-chip-icon">{{ svc_icon(g.category) }}</span>{{ g.label }} <b>{{ "{:,}".format(g.count).replace(",", ".") }}</b>
+        </a>
+        {% endfor %}
+      </div>
+      {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ "{:,}".format(total).replace(",", ".") }} servicios{% if service_category %} en esta categoría{% endif %}.</p>{% endif %}
+      <div class="dir-service-grid">
+        {% for s in services %}
+        <article class="dir-service-card{% if s.emergency %} is-emergency{% endif %}" style="--cat:{{ CAT_COLORS.get(s.category, CAT_COLORS['other']) }}">
+          <span class="svc-card-icon">{{ svc_icon(s.category) }}</span>
+          <div class="svc-card-body">
+            <span class="dir-item-tag">{{ s.category_label }}{% if s.emergency %} · Emergencia{% endif %}</span>
+            <h3>{{ s.name }}</h3>
+            {% if s.address %}<p class="dir-item-addr">{{ s.address }}</p>{% endif %}
+            {% if s.phone %}<p class="dir-item-phone"><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
+            {% if s.maps_url %}<a class="dir-maps-link" href="{{ s.maps_url }}" target="_blank" rel="noopener noreferrer">Cómo llegar</a>{% endif %}
+            {% if s.url or s.attribution %}<div class="dir-record-provenance">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">Ver fuente</a>{% endif %}{% if s.attribution %}<span>{{ s.attribution }}</span>{% endif %}</div>{% endif %}
+          </div>
+        </article>
+        {% else %}
+        <p class="dir-empty">No hay servicios{% if q %} para «{{ q }}»{% endif %}{% if service_category %} en esta categoría{% endif %}.</p>
+        {% endfor %}
+      </div>
+      {{ pager(page, pages, 'public.directory_services', args) }}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -5,49 +5,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
-
+{% from "public/_dir_macros.html" import chrome with context %}
 {% block content %}
-{% set CAT_GLYPHS = {
-  'hospital': 'M5 12h14M12 5v14',
-  'clinic': 'M5 12h14M12 5v14',
-  'pharmacy': 'M5 12h14M12 5v14',
-  'shelter': 'm3 10.5 9-7 9 7M5 9v12h14V9M10 21v-6h4v6',
-  'water_point': 'M12 21a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5S12.5 4.5 12 2c-.5 2.5-2 4.9-4 6.5S5 12 5 14a7 7 0 0 0 7 7z',
-  'fire_station': 'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1-2-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z',
-  'police': 'M12 3l7 3v5c0 4.5-3 7-7 8.5C8 18 5 15.5 5 11V6z',
-  'community_center': 'M4 21V8l8-5 8 5v13M4 21h16M9 21v-5h6v5',
-  'fuel': 'M5 21V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v16M4 21h11M7 9h4M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V9l-3-3',
-  'supplies': 'M4 8h16l-1.5 11H5.5zM4 8l3-5h10l3 5M9 12v3m6-3v3',
-  'other': 'M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'
-} %}
-{% set CAT_COLORS = {
-  'hospital': '#e2473d', 'clinic': '#27a59a', 'pharmacy': '#4cae6a', 'fire_station': '#ef7d2e',
-  'police': '#2a6fd6', 'shelter': '#caa12f', 'water_point': '#2a8fd6', 'community_center': '#8a7de0',
-  'fuel': '#6b7785', 'supplies': '#c2603d', 'other': '#9aa6ad'
-} %}
-{% macro svc_icon(cat) %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ CAT_GLYPHS.get(cat, CAT_GLYPHS['other']) }}"/></svg>{% endmacro %}
-{% macro loc(label, text, url) %}<p class="dir-person-loc"><span>{{ label }}</span> {% if url %}<a class="dir-loc-link" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ text }}</a>{% else %}{{ text }}{% endif %}</p>{% endmacro %}
-{% macro corrob(p) %}{% if p.corroboration and p.corroboration >= 2 %}<span class="dir-corroborated" title="Reportado por varias fuentes independientes">✓ Corroborado · {{ p.corroboration }} fuentes</span>{% endif %}{% endmacro %}
 <div class="rv-page directory-page">
-  <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
-  <section class="rv-dir-hero">
-    <div class="container">
-      <p class="rv-badge"><i aria-hidden="true"></i> Directorio · Reunificación familiar</p>
-      <h1>Encuentra reportes verificados</h1>
-      <p class="rv-dir-lead">Personas reportadas, edificios colapsados, servicios y registros oficiales — para que <strong>familias y rescatistas</strong> encuentren lo que necesitan.</p>
-      <form class="rv-dir-search" method="get" action="{{ url_for('public.directory') }}" role="search">
-        <input type="search" name="q" value="{{ q }}" placeholder="Buscar persona, edificio, dirección o servicio…" aria-label="Buscar en el directorio">
-        <button type="submit">Buscar</button>
-        {% if q %}<a class="rv-dir-clear" href="{{ url_for('public.directory') }}">Limpiar</a>{% endif %}
-      </form>
-      <nav class="rv-chipnav" aria-label="Secciones del directorio">
-        <a href="#personas">Personas</a><a href="#localizadas">Localizadas</a><a href="#fallecidos">Fallecidos</a><a href="#incidentes">Incidentes</a><a href="#servicios">Servicios</a><a href="#comunicacion">Sin comunicación</a>
-      </nav>
-    </div>
-  </section>
+  {{ chrome('hub', 'Directorio · Reunificación familiar', 'Directorio del terremoto',
+            'Elige una sección: personas, edificios e incidentes, servicios o zonas sin comunicación. Cada una con su propia página y buscador.',
+            '', url_for('public.directory_people')) }}
+
   <div class="container">
-
-
     {% if situation %}
     <div class="dir-figures">
       {% for m in situation %}
@@ -60,80 +25,21 @@
     <p class="situation-disclaimer">Cifras reportadas por fuentes oficiales y <strong>en verificación</strong>; no son un conteo confirmado.</p>
     {% endif %}
 
-    <nav class="dir-overview" aria-label="Resumen y secciones del directorio">
-      <section class="dir-ov-group">
-        <h2 class="dir-ov-title">Personas</h2>
-        <div class="dir-ov-grid">
-          <a class="dir-ov-card ov-missing" href="#personas">
-            <b>{{ "{:,}".format(person_total).replace(",", ".") }}</b><span>Desaparecidos</span>
-          </a>
-          <a class="dir-ov-card ov-found" href="#localizadas">
-            <b>{{ "{:,}".format(localized_total).replace(",", ".") }}</b><span>Localizadas</span>
-          </a>
-          <a class="dir-ov-card ov-deceased" href="#fallecidos">
-            <b>{{ "{:,}".format(deceased_total).replace(",", ".") }}</b><span>Fallecidos</span>
-          </a>
-        </div>
-      </section>
-      <section class="dir-ov-group">
-        <h2 class="dir-ov-title">Lugares y alertas</h2>
-        <div class="dir-ov-grid">
-          <a class="dir-ov-card ov-services" href="#servicios">
-            <b>{{ "{:,}".format(service_total).replace(",", ".") }}</b><span>Servicios</span>
-          </a>
-          <a class="dir-ov-card ov-incidents" href="#incidentes">
-            <b>{{ "{:,}".format(incident_total).replace(",", ".") }}</b><span>Incidentes</span>
-          </a>
-          <a class="dir-ov-card ov-comms" href="#comunicacion">
-            <b>{{ "{:,}".format(comms_total).replace(",", ".") }}</b><span>Sin comunicación</span>
-          </a>
-        </div>
-      </section>
-    </nav>
-    {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ person_total }} desaparecidos · {{ deceased_total }} fallecidos · {{ incident_total }} incidentes · {{ service_total }} servicios.</p>{% endif %}
-
-    <section class="dir-section" id="personas">
-      <div class="dir-section-head">
-        <div>
-          <p class="eyebrow">Prioridad: las personas</p>
-          <h2>Personas desaparecidas{% if person_total %} <span class="dir-count">{{ person_total }}</span>{% endif %}</h2>
-          {% if figure_missing %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_missing.value).replace(",", ".") }}</strong> ({{ figure_missing.source_name }}). Los nombres están en los registros activos de abajo.</p>{% endif %}
-        </div>
-        <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
-      </div>
-
-      {% if persons or published_missing %}
-      <div class="dir-person-grid">
-        {% for p in persons %}
-        <article class="dir-person-card">
-          <h3>{{ p.first_name }} {{ p.last_name }}</h3>
-          <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.gender %} · {{ p.gender }}{% endif %}</p>
-          {{ loc('Última ubicación', p.last_seen, p.maps_url) }}
-          {% if p.last_contact_date %}<p class="dir-person-loc"><span>Último contacto</span> {{ p.last_contact_date }}</p>{% endif %}
-          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
-          <div class="dir-record-provenance"><span>Fuente: reporte recibido y revisado por esta plataforma</span></div>
-        </article>
-        {% endfor %}
-        {% for p in published_missing %}
-        <article class="dir-person-card dir-person-published">
-          <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
-          <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
-          {% if p.last_seen %}{{ loc('Última ubicación', p.last_seen, p.maps_url) }}{% endif %}
-          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
-          <div class="dir-record-provenance">
-            {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
-            {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
-          </div>
-        </article>
+    <section class="rv-section">
+      <p class="rv-kicker">Secciones</p>
+      <h2 class="rv-h2">Explora por categoría</h2>
+      <div class="rv-action-grid">
+        {% for s in sections %}
+        <a class="rv-card" style="--rc:{{ s.accent }}" href="{{ s.url }}">
+          <h3>{{ s.label }}</h3>
+          <p>{{ s.desc }}</p>
+          <span class="rv-go">{{ "{:,}".format(s.count).replace(",", ".") }} registros · Abrir →</span>
+        </a>
         {% endfor %}
       </div>
-      {% else %}
-      <div class="dir-empty">
-        <p>Aquí aparecerán los reportes que reciba esta plataforma{% if q %} para «{{ q }}»{% endif %}. <strong>Las decenas de miles de nombres ya reportados están en los registros activos</strong> (abajo). Si buscas a un familiar, consúltalos o repórtalo con el botón de arriba.</p>
-      </div>
-      {% endif %}
+    </section>
 
+    <section class="rv-section dir-registries-section" id="registros">
       <div class="dir-registries">
         <h3>Registros oficiales de búsqueda y reunificación</h3>
         <ul>
@@ -143,148 +49,6 @@
         </ul>
       </div>
       <p class="dir-note">Por protección, los reportes de <strong>menores no aparecen públicamente</strong>: se gestionan de forma privada y prioritaria.</p>
-    </section>
-
-    <section class="dir-section" id="localizadas">
-      <div class="dir-section-head">
-        <div>
-          <p class="eyebrow">Buenas noticias</p>
-          <h2>Personas localizadas{% if localized_total %} <span class="dir-count">{{ localized_total }}</span>{% endif %}</h2>
-          <p class="dir-section-intro">Personas ya <strong>encontradas</strong> (hospitales, refugios, etc.), publicadas por fuentes ciudadanas. Si buscas a alguien, confirma aquí. Menores excluidos por protección.</p>
-        </div>
-      </div>
-      {% if localized %}
-      <div class="dir-person-grid">
-        {% for p in localized %}
-        <article class="dir-person-card dir-person-found">
-          <div class="dir-person-source">Localizada{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
-          {% if p.last_seen %}{{ loc('Lugar', p.last_seen, p.maps_url) }}{% endif %}
-          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
-          {% if p.source_url %}<div class="dir-record-provenance"><a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Ver ficha</a></div>{% endif %}
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="dir-empty"><p>No hay personas localizadas publicadas{% if q %} para «{{ q }}»{% endif %}. Importa la fuente con <code>flask import-localizados</code>.</p></div>
-      {% endif %}
-    </section>
-
-    <section class="dir-section dir-deceased-section" id="fallecidos">
-      <div class="dir-section-head">
-        <div>
-          <p class="eyebrow">Registros publicados y atribuidos</p>
-          <h2>Personas fallecidas{% if deceased_total %} <span class="dir-count dir-count-deceased">{{ deceased_total }}</span>{% endif %}</h2>
-          {% if figure_dead %}<p class="dir-figure-context">Cifra oficial reportada: <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}). Solo se listan nombres ya publicados por fuentes identificadas.</p>{% endif %}
-        </div>
-      </div>
-      <p class="dir-section-intro">Esta sección reúne únicamente nombres ya publicados por fuentes identificadas. No convierte cifras agregadas en identidades ni muestra menores.</p>
-      {% if deceased %}
-      <div class="dir-person-grid">
-        {% for p in deceased %}
-        <article class="dir-person-card dir-person-deceased">
-          <div class="dir-person-source">Registro publicado{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
-          <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
-          <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} años{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
-          {% if p.last_seen %}{{ loc('Ubicación asociada', p.last_seen, p.maps_url) }}{% endif %}
-          {% if p.summary %}<p class="dir-person-summary">{{ p.summary }}</p>{% endif %}
-          <div class="dir-record-provenance">
-            {% if p.source_date %}<time datetime="{{ p.source_date }}">Publicado {{ p.source_date[:10] }}</time>{% endif %}
-            {% if p.source_url %}<a href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer">Consultar fuente</a>{% elif p.attribution %}<span>{{ p.attribution }}</span>{% endif %}
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="dir-empty"><p>No hay registros nominales publicados{% if q %} para «{{ q }}»{% endif %}. Una cifra general de fallecidos no se usa para inventar nombres.</p></div>
-      {% endif %}
-    </section>
-
-    <section class="dir-section" id="comunicacion">
-      <div class="dir-section-head">
-        <div>
-          <p class="eyebrow">Alertas</p>
-          <h2>Zonas sin comunicación <span class="dir-count">{{ comms_total }}</span></h2>
-        </div>
-        <a class="btn btn-primary" href="{{ url_for('reports.communication_signal') }}">Reportar zona sin comunicación</a>
-      </div>
-      <p class="dir-note">Posibles víctimas que no pueden pedir ayuda. Son <strong>alertas sin verificar</strong> para que los equipos prioricen evaluar la zona.</p>
-      {% if comms %}
-      <div class="dir-list">
-        {% for z in comms %}
-        <article class="dir-item dir-comms sev-{{ 'high' if z.status == 'advisory' else 'medium' }}">
-          <span class="dir-item-tag">Sin comunicación · {{ z.status }}</span>
-          <h3>{{ z.zone_label }}</h3>
-          {% if z.public_note %}<p class="dir-item-note">{{ z.public_note }}</p>{% endif %}
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="dir-empty"><p>No hay zonas sin comunicación reportadas{% if q %} para «{{ q }}»{% endif %}. Si conoces una, repórtala con el botón de arriba.</p></div>
-      {% endif %}
-    </section>
-
-    <section class="dir-section" id="incidentes">
-      <h2>Incidentes y evaluación estructural <span class="dir-count">{{ incident_total }}</span></h2>
-      <p class="dir-section-intro">Los colapsos corroborados y las evaluaciones satelitales pendientes se muestran por separado. Un edificio dañado nunca implica automáticamente que haya personas atrapadas.</p>
-      <div class="dir-chips" role="group" aria-label="Filtrar incidentes por tipo">
-        <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory', q=q) }}#incidentes">Todos</a>
-        {% for g in incident_groups %}
-        <a class="dir-chip {{ 'is-active' if category == g.category }}" href="{{ url_for('public.directory', q=q, category=g.category) }}#incidentes">{{ g.label }} ({{ g.count }})</a>
-        {% endfor %}
-      </div>
-      <div class="dir-list">
-        {% for i in incidents %}
-        <article class="dir-item sev-{{ i.severity }}">
-          <span class="dir-item-tag">{{ i.category_label }} · {{ i.severity|capitalize }}</span>
-          <h3>{{ i.label }}</h3>
-          {% if i.address %}<p class="dir-item-addr">{{ i.address }}</p>{% endif %}
-          {% if i.situation_note %}<p class="dir-item-note">{{ i.situation_note }}</p>{% endif %}
-          <p class="dir-incident-verification">{{ i.verification_label }}</p>
-          {% if i.category == 'collapsed_structure' and i.people_trapped_status != 'confirmed' %}<p class="dir-incident-people">Personas atrapadas: sin confirmación individual.</p>{% endif %}
-          {% if i.confidence is not none %}<p class="dir-item-note">Confianza del modelo: {{ (i.confidence * 100)|round|int }}%</p>{% endif %}
-          {% if i.source_url %}<a class="dir-source-link" href="{{ i.source_url }}" target="_blank" rel="noopener noreferrer">Fuente: {{ i.source_name or 'consultar registro' }}</a>{% elif i.source_name %}<p class="dir-item-note">Fuente: {{ i.source_name }}</p>{% endif %}
-          {% if i.source_date %}<time class="dir-source-date" datetime="{{ i.source_date }}">Publicado {{ i.source_date[:10] }}</time>{% endif %}
-        </article>
-        {% else %}
-        <p class="dir-empty">No hay incidentes{% if q %} para «{{ q }}»{% endif %}{% if category %} en esta categoría{% endif %}.</p>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="dir-section" id="servicios">
-      <div class="dir-section-head"><div>
-        <p class="eyebrow">Recursos cerca de ti</p>
-        <h2>Servicios disponibles <span class="dir-count">{{ "{:,}".format(service_total).replace(",", ".") }}</span></h2>
-        <p class="dir-section-intro">Hospitales, refugios, agua, farmacias, combustible y víveres (OpenStreetMap). Filtra por tipo y abre <strong>cómo llegar</strong> en Google Maps.</p>
-      </div></div>
-      <div class="dir-chips dir-chips-svc" aria-label="Filtrar servicios por tipo">
-        <a class="dir-chip {{ 'is-active' if not service_category }}" href="{{ url_for('public.directory', q=q) }}#servicios">Todos</a>
-        {% for g in service_groups %}
-        <a class="dir-chip svc-chip {{ 'is-active' if service_category == g.category }}" style="--cat:{{ CAT_COLORS.get(g.category, CAT_COLORS['other']) }}"
-           href="{{ url_for('public.directory', q=q, scat=g.category) }}#servicios">
-          <span class="svc-chip-icon">{{ svc_icon(g.category) }}</span>{{ g.label }} <b>{{ "{:,}".format(g.count).replace(",", ".") }}</b>
-        </a>
-        {% endfor %}
-      </div>
-      <div class="dir-service-grid">
-        {% for s in services %}
-        <article class="dir-service-card{% if s.emergency %} is-emergency{% endif %}" style="--cat:{{ CAT_COLORS.get(s.category, CAT_COLORS['other']) }}">
-          <span class="svc-card-icon">{{ svc_icon(s.category) }}</span>
-          <div class="svc-card-body">
-            <span class="dir-item-tag">{{ s.category_label }}{% if s.emergency %} · Emergencia{% endif %}</span>
-            <h3>{{ s.name }}</h3>
-            {% if s.address %}<p class="dir-item-addr">{{ s.address }}</p>{% endif %}
-            {% if s.phone %}<p class="dir-item-phone"><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
-            {% if s.maps_url %}<a class="dir-maps-link" href="{{ s.maps_url }}" target="_blank" rel="noopener noreferrer">Cómo llegar</a>{% endif %}
-            {% if s.url or s.attribution %}<div class="dir-record-provenance">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener noreferrer">Ver fuente</a>{% endif %}{% if s.attribution %}<span>{{ s.attribution }}</span>{% endif %}</div>{% endif %}
-          </div>
-        </article>
-        {% else %}
-        <p class="dir-empty">No hay servicios{% if q %} para «{{ q }}»{% endif %}{% if service_category %} en esta categoría{% endif %}.</p>
-        {% endfor %}
-      </div>
-      {% if service_total > services|length %}<p class="dir-more-note">Mostrando {{ services|length }} de {{ "{:,}".format(service_total).replace(",", ".") }}. Usa el buscador o filtra por tipo para acercarte.</p>{% endif %}
     </section>
   </div>
 </div>

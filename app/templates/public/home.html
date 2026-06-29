@@ -15,11 +15,14 @@
       <h1>Ayuda coordinada para Venezuela</h1>
       <p class="rv-lead">Consulta y reporta personas sin contacto, solicitudes de ayuda, recursos y zonas afectadas. Cada dato público conserva fuente, frescura y límites de privacidad claros.</p>
       <div class="rv-hero-actions">
-        <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory') }}#personas">Buscar a un familiar →</a>
-        <a class="rv-btn rv-btn-ghost" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
-        <a class="rv-btn rv-btn-ghost" href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
+        <a class="rv-btn rv-btn-light rv-btn-lg" href="{{ url_for('public.directory_people') }}">Buscar personas →</a>
         <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">Emergencia · 911</a>
       </div>
+      <nav class="rv-hero-sub" aria-label="Accesos del directorio">
+        <a href="{{ url_for('public.directory') }}">Directorio de incidentes y servicios</a>
+        <a href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+        <a href="{{ url_for('map.index') }}">Ver el mapa vivo</a>
+      </nav>
       <dl class="rv-stats">
         <div><dd data-summary-total>{{ summary.total }}</dd><dt>Registros visibles</dt></div>
         <div><dd data-summary-priority>{{ summary.attention_priority }}</dd><dt>Atención prioritaria</dt></div>
@@ -31,8 +34,8 @@
   </section>
 
   <section class="container rv-section" aria-labelledby="rv-actions-title">
-    <p class="rv-kicker">¿Qué necesitas hacer?</p>
-    <h2 class="rv-h2" id="rv-actions-title">Elige cómo participar</h2>
+    <p class="rv-kicker">Reportar</p>
+    <h2 class="rv-h2" id="rv-actions-title">¿Qué quieres reportar?</h2>
     <div class="rv-action-grid">
       <a class="rv-card rv-c-persona" href="{{ url_for('reports.missing_person') }}">
         <span class="rv-ic" aria-hidden="true">P</span>

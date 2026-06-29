@@ -288,5 +288,7 @@ def test_emergency_contacts_page_lists_verified_channels(client):
 
 def test_home_links_to_family_search_and_emergency(client):
     html = client.get("/").text
-    assert "Buscar a un familiar" in html
+    assert "Buscar personas" in html
+    assert "/directorio/personas" in html
+    assert "Directorio de incidentes y servicios" in html
     assert "/contactos" in html

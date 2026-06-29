@@ -63,7 +63,7 @@
     </div>
     <div class="mapc-right-foot">
       Ordenado por distancia geodésica al epicentro.
-      {% if unlocated_structures %}<span class="mapc-unlocated"><strong>{{ unlocated_structures }} estructuras publicadas</strong> aún sin coordenada precisa: <a href="{{ url_for('public.directory', category='collapsed_structure') }}#incidentes">Ver lista nominal y fuentes</a>.</span>{% endif %}
+      {% if unlocated_structures %}<span class="mapc-unlocated"><strong>{{ unlocated_structures }} estructuras publicadas</strong> aún sin coordenada precisa: <a href="{{ url_for('public.directory_incidents', category='collapsed_structure') }}">Ver lista nominal y fuentes</a>.</span>{% endif %}
     </div>
   </aside>
 

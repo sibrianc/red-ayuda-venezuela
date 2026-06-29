@@ -100,7 +100,7 @@ def communication_signal():
             "Gracias. Tu reporte de zona sin comunicación fue recibido como alerta sin verificar.",
             "success",
         )
-        return redirect(url_for("public.directory") + "#comunicacion")
+        return redirect(url_for("public.directory_zones"))
     return render_template(
         "reports/communication.html", form=form, title="Reportar zona sin comunicación"
     )
