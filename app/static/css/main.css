@@ -1016,8 +1016,8 @@ html[data-theme="light"] .rv-dir-hero{background:linear-gradient(120deg,#00247D,
 .dir-pet-card{display:flex;flex-direction:column;}
 .dir-pet-photo{width:100%;height:180px;object-fit:cover;border-radius:10px;margin:-.2rem 0 .8rem;background:var(--glass);border:1px solid var(--border);}
 
-/* ===== Selector de idioma (ES/EN) ===== */
-.lang-switch{display:flex;align-items:center;gap:.1rem;}
-.lang-link{font-size:.78rem;font-weight:700;color:var(--muted);text-decoration:none;padding:.2rem .42rem;border-radius:6px;line-height:1;}
-.lang-link:hover{color:var(--text);}
-.lang-link.is-active{color:var(--text);background:var(--glass);}
+/* ===== Botón de cambio de idioma (ES/EN) ===== */
+.lang-switch{display:flex;align-items:center;}
+.lang-toggle{display:inline-flex;align-items:center;gap:.4rem;font-weight:700;font-size:.82rem;line-height:1;color:var(--text);background:var(--glass);border:1px solid var(--border);border-radius:999px;padding:.42rem .85rem;text-decoration:none;transition:border-color .14s ease, background .14s ease, color .14s ease;}
+.lang-toggle:hover{color:var(--text);border-color:var(--brand);background:var(--surface);}
+.lang-toggle svg{width:16px;height:16px;flex:none;}

@@ -1,3 +1,4 @@
+{% from "_ui.html" import icon %}
 <!doctype html>
 <html lang="{{ current_locale }}" data-bandwidth="standard" data-theme="dark">
 <head>
@@ -46,8 +47,11 @@
               {{ _('Modo ligero') }}
             </button>
           </li>
-          <li class="nav-item lang-switch" aria-label="{{ _('Idioma') }}">
-            {% for code, label in LANGUAGES.items() %}<a class="lang-link{{ ' is-active' if current_locale == code }}" href="{{ set_lang_link(code) }}" hreflang="{{ code }}" rel="nofollow">{{ code|upper }}</a>{% endfor %}
+          <li class="nav-item lang-switch">
+            {% set _other = 'en' if current_locale == 'es' else 'es' %}
+            <a class="btn btn-sm lang-toggle" href="{{ set_lang_link(_other) }}" hreflang="{{ _other }}" rel="nofollow" aria-label="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}" title="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}">
+              {{ icon('globe', 16) }}<span>{{ LANGUAGES[_other] }}</span>
+            </a>
           </li>
           <li class="nav-item"><a class="btn btn-sm btn-primary nav-report-button" href="{{ url_for('reports.help_request') }}">{{ _('Crear reporte') }}</a></li>
           {% if current_user.is_authenticated %}
