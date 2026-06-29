@@ -2,16 +2,27 @@
 
 Aplicación web para registrar, revisar y publicar de forma segura reportes humanitarios durante una emergencia por terremoto en Venezuela.
 
-La plataforma **no es un servicio oficial de emergencia** y no publica reportes automáticamente. El MVP funciona sin AI en producción.
+La plataforma **no es un servicio oficial de emergencia**. Puede operar de forma
+**autónoma** (sin revisión humana) gracias a una limpieza y verificación automática de
+datos; la revisión humana sigue disponible para quien se sume al proyecto.
 
-## Funciones del MVP
+## Funciones
 
 - Cuatro formularios públicos: personas sin contacto, solicitudes, recursos y zonas afectadas.
-- Revisión humana y separación estricta entre datos públicos y privados.
-- Login y cola administrativa con notas e historial.
-- Búsqueda, filtros y mapa de ubicaciones aproximadas.
-- Reglas deterministas para prioridad, duplicados y coincidencias.
-- Reportes de abuso, exportación administrativa y borradores locales no sensibles.
+- **Pipeline autónomo** (`AUTO_PUBLISH`): los reportes limpios y completos se publican
+  solos; los que fallan la verificación automática (incompletos, posible spam o duplicado,
+  o que involucran a un menor) se resguardan en cola sin perderse.
+- Separación estricta público/privado: contacto, dirección exacta y notas médicas nunca
+  se publican; los menores nunca se publican automáticamente.
+- **Mapa "Centro de Operaciones"** con datos reales, calor por densidad de desaparecidos,
+  GPS y filtros por radio.
+- **Directorio / buscador de personas** (Person Finder) y **centro de coordinación**
+  (familias ↔ rescatistas ↔ recursos).
+- **Red de contacto verificada**: 911, instituciones de rescate y colectivos de búsqueda.
+- Ingesta de fuentes reales (sismos, daños estructurales, registros de personas) con
+  atribución y corroboración.
+- Reenvío automático opcional de la proyección pública a instituciones.
+- Login y cola administrativa con notas e historial; reportes de abuso y exportación.
 
 ## Stack
 
@@ -40,6 +51,10 @@ Para una prueba rápida sin PostgreSQL se puede reemplazar temporalmente `DATABA
 - `FLASK_ENV`: `development`, `testing` o `production`.
 - `APP_NAME`: nombre visible.
 - `APP_BASE_URL`: URL canónica cuando se despliegue.
+- `AUTO_PUBLISH`: `true` (default) publica reportes limpios sin revisión humana; `false`
+  exige aprobación manual.
+- `INSTITUTION_FORWARD_ENABLED` / `INSTITUTION_WEBHOOK_URL`: reenvío automático de la
+  proyección pública (sin datos privados) a un endpoint propio. Desactivado por defecto.
 
 `.env` nunca debe subirse a GitHub.
 
@@ -80,9 +95,23 @@ python scripts/browser_audit.py
 
 ## Privacidad
 
-- Todos los reportes empiezan `pending` y `is_public = false`.
+- Cada reporte se limpia y verifica automáticamente al ingresar (`app/services/intake.py`).
+  Con `AUTO_PUBLISH=true` los limpios y completos se publican; el resto queda en cola.
 - Los datos de contacto, direcciones exactas, notas médicas y notas internas no aparecen en HTML o JSON público.
 - Solo un reporte `approved` y marcado explícitamente como público es visible.
+- Los reportes que involucran a un menor nunca se publican automáticamente.
 - Las exportaciones internas requieren rol administrador y se marcan como contenido sensible.
 
 Consulta [docs/README.md](docs/README.md) para la jerarquía documental y [docs/operations.md](docs/operations.md) para operación y seguridad.
+
+## Open source y contribución
+
+Proyecto bajo licencia **[MIT](LICENSE)**. ¡Las contribuciones son bienvenidas!
+
+- Cómo contribuir y reglas de datos: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Código de conducta: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Reportar vulnerabilidades (en privado): [SECURITY.md](SECURITY.md)
+
+Antes de aportar, lee las **reglas de datos no negociables** (solo datos reales, nunca
+exponer datos privados, menores fuera del flujo público, atribuir fuentes) en
+`CONTRIBUTING.md`.
