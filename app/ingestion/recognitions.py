@@ -29,6 +29,7 @@ class ParsedRecognition:
     kind: str
     name: str
     org: str | None
+    country: str | None
     role: str | None
     description: str | None
     photo_url: str | None
@@ -45,6 +46,12 @@ def _clean(value):
 
 def _kind(value) -> str:
     return "rescue_dog" if str(value or "").strip().lower() in _DOG_HINTS else "responder_unit"
+
+
+def _country(value):
+    """Normaliza a ISO 3166-1 alpha-2 en minúsculas (para la bandera). Sólo dos letras."""
+    code = str(value or "").strip().lower()
+    return code if re.fullmatch(r"[a-z]{2}", code) else None
 
 
 def _valid_photo(value):
@@ -83,6 +90,7 @@ def parse_recognitions_json(text: str, *, source_slug: str, attribution: str | N
                 kind=_kind(row.get("kind") or row.get("tipo")),
                 name=name,
                 org=_clean(row.get("org") or row.get("organizacion") or row.get("pais")),
+                country=_country(row.get("country") or row.get("pais_iso") or row.get("iso")),
                 role=_clean(row.get("role") or row.get("rol")),
                 description=_clean(row.get("description") or row.get("descripcion")),
                 photo_url=_valid_photo(row.get("photo_url") or row.get("foto")),

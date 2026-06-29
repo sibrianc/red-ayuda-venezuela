@@ -348,6 +348,7 @@ class Recognition(TimestampMixin, db.Model):
     kind: Mapped[str] = mapped_column(String(20), default="responder_unit", nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     org: Mapped[str | None] = mapped_column(String(200))
+    country: Mapped[str | None] = mapped_column(String(2))  # ISO 3166-1 alpha-2 (para bandera)
     role: Mapped[str | None] = mapped_column(String(160))
     description: Mapped[str | None] = mapped_column(Text)
     photo_url: Mapped[str | None] = mapped_column(String(500))

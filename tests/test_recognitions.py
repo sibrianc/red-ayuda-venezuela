@@ -43,3 +43,12 @@ def test_recognition_parser_validates_photo_and_maps_kind():
 
 def test_recognitions_linked_in_footer(client):
     assert "/reconocimientos" in client.get("/").text
+
+
+def test_recognition_country_maps_to_flag(app, client):
+    feed = json.dumps([{"id": "x", "kind": "responder_unit", "name": "UME", "country": "ES"}])
+    with app.app_context():
+        recs = parse_recognitions_json(feed, source_slug="o")
+        assert recs[0].country == "es"  # normalizado a ISO alpha-2 minúsculas
+        ingest_recognitions(recs)
+    assert "flags/es.svg" in client.get("/reconocimientos").text

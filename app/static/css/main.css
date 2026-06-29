@@ -1071,3 +1071,7 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 .rv-recognition-body{padding:1.05rem;}
 .rv-recognition-body .dir-item-tag{display:inline-flex;align-items:center;gap:.3rem;}
 .rv-recognition-body h3{margin:.4rem 0 .25rem;font-size:1.05rem;}
+
+/* ===== Bandera de país (reconocimientos) ===== */
+.rv-flag-row{display:flex;align-items:center;gap:.45rem;}
+.rv-flag{width:22px;height:15px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none;}

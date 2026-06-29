@@ -688,6 +688,7 @@ def _recognition_dict(r) -> dict:
         "kind_label": RECOGNITION_KIND_LABELS.get(r.kind, "Reconocimiento"),
         "name": r.name,
         "org": r.org,
+        "country": r.country,
         "role": r.role,
         "description": r.description,
         "photo_url": r.photo_url,

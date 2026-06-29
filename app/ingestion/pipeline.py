@@ -471,6 +471,7 @@ def _apply_recognition_fields(target: Recognition, rec: ParsedRecognition) -> No
     target.kind = rec.kind
     target.name = rec.name
     target.org = rec.org
+    target.country = rec.country
     target.role = rec.role
     target.description = rec.description
     target.photo_url = rec.photo_url

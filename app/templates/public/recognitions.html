@@ -21,7 +21,7 @@
         <div class="rv-recognition-body">
           {% if u.role %}<span class="dir-item-tag">{{ u.role }}</span>{% endif %}
           <h3>{{ u.name }}</h3>
-          {% if u.org %}<p class="dir-person-meta">{{ u.org }}</p>{% endif %}
+          {% if u.org or u.country %}<p class="dir-person-meta rv-flag-row">{% if u.country %}<img class="rv-flag" src="{{ url_for('static', filename='flags/' ~ u.country ~ '.svg') }}" alt="" width="22" height="15" loading="lazy" decoding="async">{% endif %}{% if u.org %}<span>{{ u.org }}</span>{% endif %}</p>{% endif %}
           {% if u.description %}<p class="dir-person-summary">{{ u.description }}</p>{% endif %}
           <div class="dir-record-provenance">
             {% if u.source_url %}<a href="{{ u.source_url }}" target="_blank" rel="noopener noreferrer">{{ _('Consultar fuente') }}</a>{% elif u.source_name %}<span>{{ u.source_name }}</span>{% endif %}
@@ -46,7 +46,7 @@
         <div class="rv-recognition-body">
           <span class="dir-item-tag">{{ icon('paw', 14) }} {{ _('Perro rescatista') }}</span>
           <h3>{{ d.name }}</h3>
-          {% if d.org %}<p class="dir-person-meta">{{ d.org }}</p>{% endif %}
+          {% if d.org or d.country %}<p class="dir-person-meta rv-flag-row">{% if d.country %}<img class="rv-flag" src="{{ url_for('static', filename='flags/' ~ d.country ~ '.svg') }}" alt="" width="22" height="15" loading="lazy" decoding="async">{% endif %}{% if d.org %}<span>{{ d.org }}</span>{% endif %}</p>{% endif %}
           {% if d.description %}<p class="dir-person-summary">{{ d.description }}</p>{% endif %}
           <div class="dir-record-provenance">
             {% if d.source_url %}<a href="{{ d.source_url }}" target="_blank" rel="noopener noreferrer">{{ _('Consultar fuente') }}</a>{% elif d.source_name %}<span>{{ d.source_name }}</span>{% endif %}
