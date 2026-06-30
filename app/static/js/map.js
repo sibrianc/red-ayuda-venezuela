@@ -202,6 +202,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Agrupamiento (clustering): con miles de servicios, agrupar y mantener en el DOM solo
   // lo visible hace el mapa fluido SIN perder datos. Si el plugin no cargó, cae a un grupo
   // simple para no romper nada.
+  const clusterIcon = (cluster) => {
+    const n = cluster.getChildCount();
+    const tier = n < 10 ? "s" : n < 100 ? "m" : n < 500 ? "l" : "xl";
+    const size = n < 10 ? 32 : n < 100 ? 38 : n < 500 ? 46 : 54;
+    const label = n < 1000 ? n : (n / 1000).toFixed(1) + "k";
+    return L.divIcon({
+      html: `<div class="rk-cluster rk-cluster-${tier}"><span>${label}</span></div>`,
+      className: "rk-cluster-wrap",
+      iconSize: L.point(size, size),
+    });
+  };
   const markersGroup = (typeof L.markerClusterGroup === "function"
     ? L.markerClusterGroup({
         chunkedLoading: true,            // añade en lotes: no congela la UI
@@ -210,6 +221,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         disableClusteringAtZoom: 17,     // al acercar, iconos individuales
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
+        iconCreateFunction: clusterIcon,
       })
     : L.layerGroup()).addTo(map);
   const makeIcon = (it) => {
@@ -431,8 +443,13 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // ---------------- GPS (opt-in) ----------------
   const locate = (btn) => {
-    if (!navigator.geolocation) { if (btn) { btn.textContent = "GPS no disponible"; } return; }
-    if (btn) btn.textContent = "Localizando…";
+    // Actualiza solo la etiqueta (no el botón entero) para no borrar el icono.
+    const setLabel = (txt) => {
+      const l = btn && btn.querySelector(".mapc-gps-label");
+      if (l) l.textContent = txt; else if (btn) btn.textContent = txt;
+    };
+    if (!navigator.geolocation) { setLabel("GPS no disponible"); return; }
+    setLabel("Localizando…");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const ll = [pos.coords.latitude, pos.coords.longitude];
@@ -440,9 +457,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         L.marker(ll, { icon: L.divIcon({ className: "mapc-user", html: "<span></span>", iconSize: [22, 22], iconAnchor: [11, 11] }), zIndexOffset: 1300 }).bindPopup("Tu ubicación").addTo(userLayer);
         L.circle(ll, { radius: Math.min(pos.coords.accuracy || 300, 2500), color: ACCENT, weight: 1, fillColor: ACCENT, fillOpacity: 0.06, interactive: false }).addTo(userLayer);
         map.flyTo(ll, Math.max(map.getZoom(), 14), { duration: 0.6 });
-        if (btn) { btn.textContent = "Mi ubicación (GPS)"; btn.classList.add("is-on"); btn.setAttribute("aria-pressed", "true"); }
+        setLabel("Mi ubicación (GPS)");
+        if (btn) { btn.classList.add("is-on"); btn.setAttribute("aria-pressed", "true"); }
       },
-      () => { if (btn) { btn.textContent = "Permiso denegado"; setTimeout(() => { btn.textContent = "Mi ubicación (GPS)"; }, 2600); } },
+      () => { setLabel("Permiso denegado"); setTimeout(() => setLabel("Mi ubicación (GPS)"), 2600); },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
