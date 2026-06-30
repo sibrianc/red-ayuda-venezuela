@@ -81,7 +81,10 @@ CSV (público/interno) **solo ADMIN**, a prueba de inyección CSV.
 - **F2 — Resumen operativo (4W): ENTREGADO.** `/admin/operacion` con cifras, análisis de
   brechas (necesidad sin recurso), tabla necesidades↔recursos, prioridades, hotspots,
   zonas sin comunicación y frescura de datos.
-- **F3 — Gestión de fuentes/ingesta + reconocimientos/contactos** desde el panel.
+- **F3 — Gestión de fuentes/ingesta + reconocimientos: ENTREGADO.**
+  `/admin/reconocimientos` (CRUD con país/bandera, auditado) y `/admin/fuentes`
+  (inventario: conteo + frescura por categoría + referencia de comandos de ingesta +
+  contactos verificados de solo lectura).
 - **F4 — Roles VOLUNTEER/VIEWER** con permisos acotados y vistas sin PII.
 
 ## Fuentes (marco)
