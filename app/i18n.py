@@ -73,6 +73,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "Abrir →": "Open →",
         "Unidades de rescate y perros que ayudaron.": "Rescue units and dogs that helped.",
         "Panel": "Dashboard",
+        "Reactivar el mapa": "Re-enable the map",
         "Ver el mapa vivo →": "Open the live map →",
         "Accesos rápidos": "Quick links",
         "Ir al registro oficial": "Go to the official registry",

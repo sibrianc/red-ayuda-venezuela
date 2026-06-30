@@ -1185,3 +1185,9 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
   .rv-registry-banner{ flex-wrap:wrap; align-items:flex-start; }
   .rv-registry-banner .rv-btn{ width:100%; text-align:center; }
 }
+
+/* Botón de escape: reactivar el mapa desde el fallback del modo ligero */
+.mapc-btn-reactivate{ margin-top:12px; padding:10px 16px; background:linear-gradient(180deg,rgba(45,225,214,.26),rgba(45,225,214,.12));
+  border:1px solid rgba(45,225,214,.75); border-radius:8px; color:#aef6ef; cursor:pointer;
+  font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; letter-spacing:.03em; }
+.mapc-btn-reactivate:hover{ background:rgba(45,225,214,.32); color:#dffbf7; }

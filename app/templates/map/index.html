@@ -98,7 +98,8 @@
   </div>
 
   <div class="mapc-fallback" id="cmd-fallback" hidden>
-    <p><strong>Mapa visual pausado.</strong> En modo ligero o sin mapa, usa el <a href="{{ url_for('reports.index') }}">listado de información revisada</a> y el <a href="{{ url_for('public.directory') }}">directorio</a>.</p>
+    <p><strong>Mapa visual pausado.</strong> Estás en <strong>modo ligero</strong> (ahorra datos). Reactiva el mapa abajo, o usa el <a href="{{ url_for('reports.index') }}">listado de información revisada</a> y el <a href="{{ url_for('public.directory') }}">directorio</a>.</p>
+    <button type="button" class="mapc-btn-reactivate" id="cmd-reactivate-map" hidden>{{ _('Reactivar el mapa') }}</button>
   </div>
 </section>
 {% endblock %}
