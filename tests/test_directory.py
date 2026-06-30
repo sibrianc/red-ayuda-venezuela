@@ -52,6 +52,34 @@ def test_parse_overpass_maps_fields_and_skips_invalid():
     assert water.emergency is False
 
 
+def test_parse_overpass_sanitizes_long_phone_and_caps_fields():
+    # OSM trae texto libre: el teléfono puede venir como lista ';' (varios números) y
+    # el operador muy largo. Debe saquedar el primer número y acotar a los límites de
+    # columna (phone ≤120, operator ≤200) para no romper el INSERT en Postgres.
+    long_phone = "; ".join(f"+58 286-71322{n:02d}" for n in range(20))
+    payload = {"elements": [{
+        "type": "node", "id": 99, "lat": 10.5, "lon": -66.9,
+        "tags": {"amenity": "clinic", "name": "Clínica X",
+                 "phone": long_phone, "operator": "O" * 400},
+    }]}
+    entry = parse_overpass(payload)[0]
+    assert entry.phone_public == "+58 286-7132200"  # primer número de la lista
+    assert len(entry.phone_public) <= 120
+    assert len(entry.operator) <= 200
+
+
+def test_ingest_directory_handles_long_osm_phone(app):
+    long_phone = "; ".join(f"+58 286-71322{n:02d}" for n in range(20))
+    payload = {"elements": [{
+        "type": "node", "id": 99, "lat": 10.5, "lon": -66.9,
+        "tags": {"amenity": "clinic", "name": "Clínica X", "phone": long_phone},
+    }]}
+    with app.app_context():
+        stats = ingest_directory(parse_overpass(payload))
+        assert stats.new == 1
+        assert DirectoryEntry.query.one().phone_public == "+58 286-7132200"
+
+
 def test_build_overpass_query_targets_venezuela():
     query = build_overpass_query()
     assert "hospital" in query and "shelter" in query and "out center tags" in query
