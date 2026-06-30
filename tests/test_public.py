@@ -81,7 +81,7 @@ def test_map_supports_text_only_low_bandwidth_fallback(client):
 
 @pytest.mark.parametrize(
     "endpoint",
-    ["/reportes/persona", "/reportes/ayuda", "/reportes/recurso", "/reportes/zona"],
+    ["/reportes/ayuda", "/reportes/recurso", "/reportes/zona", "/reportes/mascota"],
 )
 def test_public_forms_use_guided_flow_and_hide_manual_coordinates(client, endpoint):
     response = client.get(endpoint)
@@ -111,17 +111,6 @@ def test_map_page_is_command_center(client):
 @pytest.mark.parametrize(
     ("endpoint", "extra", "model"),
     [
-        (
-            "/reportes/persona",
-            {
-                "first_name": "María",
-                "last_name": "Pérez",
-                "age": "32",
-                "last_contact_date": "2026-06-26",
-                "involves_minor": "",
-            },
-            MissingPersonReport,
-        ),
         (
             "/reportes/ayuda",
             {
@@ -164,25 +153,21 @@ def test_valid_reports_auto_publish_after_cleaning(app, client, base_report_data
         assert report.public_id
 
 
-def test_minor_report_is_held_and_never_public(app, client, base_report_data):
-    client.post(
-        "/reportes/persona",
-        data={
-            **base_report_data,
-            "first_name": "Niño",
-            "last_name": "Protegido",
-            "age": "8",
-            "last_contact_date": "2026-06-26",
-            "involves_minor": "y",
-        },
-    )
+def test_minor_report_is_held_and_never_public(app):
+    # El reporte público de personas se delega al registro canónico, pero la protección de
+    # menores del pipeline se mantiene: un MissingPersonReport con menor nunca se publica.
+    from app.constants import ReportType
+    from app.services.intake import evaluate_intake
+
     with app.app_context():
-        report = MissingPersonReport.query.one()
-        assert report.is_public is False
-        assert report.status is ReportStatus.NEEDS_VERIFICATION
-        public_id = report.public_id
-    assert client.get(f"/reportes/missing_person/{public_id}").status_code == 404
-    assert client.get("/mapa/data").json == {"reports": []}
+        report = MissingPersonReport(
+            first_name="Niño", last_name="Protegido", age=8, involves_minor=True,
+            location_text="Caracas", description_public="Descripción suficiente del caso.",
+            reporter_name_private="Reportante", reporter_contact_private="+58 000",
+        )
+        decision = evaluate_intake(ReportType.MISSING_PERSON, report)
+        assert decision.is_public is False
+        assert decision.status is ReportStatus.NEEDS_VERIFICATION
 
 
 def test_manual_review_mode_queues_without_publishing(app, client, base_report_data):

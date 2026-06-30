@@ -111,29 +111,9 @@ def communication_signal():
     )
 
 
-@bp.route("/persona", methods=["GET", "POST"])
-@limiter.limit("30 per hour", methods=["POST"])
-def missing_person():
-    form = MissingPersonForm()
-    if form.validate_on_submit():
-        report = MissingPersonReport(
-            **common_values(form),
-            first_name=form.first_name.data.strip(),
-            last_name=form.last_name.data.strip(),
-            age=form.age.data,
-            gender=form.gender.data or None,
-            last_contact_date=form.last_contact_date.data,
-            relationship_to_person_private=(form.relationship_to_person_private.data or "").strip() or None,
-            medical_information_private=(form.medical_information_private.data or "").strip() or None,
-            involves_minor=form.involves_minor.data,
-        )
-        return save_report(ReportType.MISSING_PERSON, report)
-    return render_template(
-        "reports/form.html",
-        form=form,
-        title=_("Reportar persona sin contacto"),
-        report_type=ReportType.MISSING_PERSON,
-    )
+# El reporte de personas desaparecidas se delega al registro ciudadano canónico
+# (desaparecidosterremotovenezuela.com): no duplicamos esa captura. Aquí solo agregamos
+# y presentamos esa información en el directorio. Los demás formularios siguen activos.
 
 
 @bp.route("/ayuda", methods=["GET", "POST"])

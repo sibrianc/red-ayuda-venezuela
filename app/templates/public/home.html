@@ -21,7 +21,7 @@
       </div>
       <nav class="rv-hero-sub" aria-label="{{ _('Directorio de incidentes y servicios') }}">
         <a href="{{ url_for('public.directory') }}">{{ _('Directorio de incidentes y servicios') }}</a>
-        <a href="{{ url_for('reports.missing_person') }}">{{ _('Reportar un familiar') }}</a>
+        <a href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
         <a href="{{ url_for('map.index') }}">{{ _('Ver el mapa vivo') }}</a>
       </nav>
       <dl class="rv-stats">
@@ -38,11 +38,11 @@
     <p class="rv-kicker">{{ _('Reportar') }}</p>
     <h2 class="rv-h2" id="rv-actions-title">{{ _('¿Qué quieres reportar?') }}</h2>
     <div class="rv-action-grid">
-      <a class="rv-card rv-c-persona" href="{{ url_for('reports.missing_person') }}">
+      <a class="rv-card rv-c-persona" href="{{ person_registry_url }}" target="_blank" rel="noopener">
         <span class="rv-ic" aria-hidden="true">{{ icon('user-search') }}</span>
-        <h3>{{ _('Persona sin contacto') }}</h3>
-        <p>{{ _('Reporta a alguien con quien tu familia perdió comunicación.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
+        <h3>{{ _('Buscar o reportar un familiar') }}</h3>
+        <p>{{ _('Se gestiona en el registro ciudadano de personas desaparecidas.') }} ↗</p>
+        <span class="rv-go">{{ _('Ir al registro →') }}</span>
       </a>
       <a class="rv-card rv-c-ayuda" href="{{ url_for('reports.help_request') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('life-buoy') }}</span>

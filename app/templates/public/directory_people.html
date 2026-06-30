@@ -21,7 +21,7 @@
         {% if estado == 'missing' and figure_missing %}<p class="dir-figure-context">{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_missing.value).replace(",", ".") }}</strong> ({{ figure_missing.source_name }}).</p>{% endif %}
         {% if estado == 'deceased' and figure_dead %}<p class="dir-figure-context">{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}). {{ _('Solo se listan nombres ya publicados por fuentes identificadas.') }}</p>{% endif %}
       </div>
-      <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">{{ _('Reportar un familiar') }}</a>
+      <a class="btn btn-primary" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
     </div>
 
     <div class="dir-chips" role="group" aria-label="{{ _('Personas') }}">

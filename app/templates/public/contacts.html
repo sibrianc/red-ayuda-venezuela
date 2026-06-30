@@ -9,7 +9,7 @@
   <div class="rv-hero-actions">
     <a class="rv-btn rv-btn-emergency" href="tel:911">{{ _('Llamar al 9-1-1') }}</a>
     <a class="rv-btn rv-btn-light" href="{{ url_for('public.directory_people') }}">{{ _('Buscar a un familiar') }}</a>
-    <a class="rv-btn rv-btn-ghost" href="{{ url_for('reports.missing_person') }}">{{ _('Reportar un familiar') }}</a>
+    <a class="rv-btn rv-btn-ghost" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
   </div>
 {% endcall %}
 <section class="contacts-page">

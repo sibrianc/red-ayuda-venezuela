@@ -29,10 +29,15 @@ from app.models import (
 # privada). Los nombres viven en estas plataformas; aquí solo enlazamos para que familias
 # y rescatistas lleguen a ellas. A las plataformas ciudadanas se enlaza por búsqueda
 # (evita fijar una URL no verificada que pueda cambiar o suplantarse).
+# Registro ciudadano canónico para REPORTAR/buscar personas desaparecidas (verificado por
+# cobertura de prensa: El Nacional, CNN en Español, El Tiempo, El Colombiano…). Aquí no
+# duplicamos esa captura: derivamos a este registro y agregamos su información.
+PERSON_REGISTRY_URL = "https://desaparecidosterremotovenezuela.com/"
+
 OFFICIAL_REGISTRIES = [
     {"name": "Desaparecidos Terremoto Venezuela",
-     "detail": "Registro ciudadano de desaparecidos y localizados (~50.000 reportados)",
-     "url": "https://www.google.com/search?q=Desaparecidos+Terremoto+Venezuela"},
+     "detail": "Registro ciudadano (no oficial) para reportar y buscar personas: ~40.000 reportados, miles localizados",
+     "url": PERSON_REGISTRY_URL},
     {"name": "Venezuela Te Busca",
      "detail": "Registrar y buscar personas: nombre, edad, foto, última ubicación",
      "url": "https://www.google.com/search?q=%22Venezuela+Te+Busca%22+desaparecidos"},

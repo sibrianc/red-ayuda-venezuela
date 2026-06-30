@@ -694,11 +694,14 @@ def register_template_helpers(app: Flask) -> None:
 
     @app.context_processor
     def labels():
+        from app.services.operational import PERSON_REGISTRY_URL
+
         return {
             "report_type_labels": REPORT_TYPE_LABELS,
             "status_labels": STATUS_LABELS,
             "priority_labels": PRIORITY_LABELS,
             "verification_labels": VERIFICATION_LABELS,
+            "person_registry_url": PERSON_REGISTRY_URL,
         }
 
     @app.context_processor

@@ -18,7 +18,7 @@
           <span><b>{{ "{:,}".format(localized_total).replace(",", ".") }}</b> localizados</span>
         </div>
         <div class="coord-actions">
-          <a class="btn btn-primary" href="{{ url_for('reports.missing_person') }}">Reportar un familiar</a>
+          <a class="btn btn-primary" href="{{ person_registry_url }}" target="_blank" rel="noopener">Reportar un familiar ↗</a>
           <a class="btn btn-outline-secondary" href="{{ url_for('public.directory_people') }}">Buscar en el directorio</a>
         </div>
       </article>
