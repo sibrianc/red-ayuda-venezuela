@@ -1148,18 +1148,13 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 .mapc-panel-layers.is-collapsed .mapc-panel-chev{ transform:rotate(-45deg); }
 .mapc-panel-layers.is-collapsed #cmd-layers{ display:none; }
 
-/* Cluster a medida (iconCreateFunction): burbuja de vidrio con halo, en el cian de marca.
-   No usa rojo/ámbar para no confundirse con la severidad del mapa; escala tamaño + opacidad
-   según el volumen. Texto mono, alto contraste. */
-.rk-cluster-wrap{ background:transparent !important; }
-.rk-cluster{ display:flex; align-items:center; justify-content:center; width:100%; height:100%;
-  border-radius:50%; font-family:'IBM Plex Mono',monospace; font-weight:700; color:#04161b;
-  background:rgba(45,225,214,var(--rk-a,.9)); border:2px solid rgba(5,10,14,.5);
-  box-shadow:0 0 0 5px rgba(45,225,214,.15), 0 4px 12px rgba(0,0,0,.4); }
-.rk-cluster span{ line-height:1; letter-spacing:.02em; font-size:12px; }
-.rk-cluster-s{ --rk-a:.78; }
-.rk-cluster-m{ --rk-a:.88; }
-.rk-cluster-l{ --rk-a:.95; }
-.rk-cluster-l span{ font-size:13px; }
-.rk-cluster-xl{ --rk-a:1; }
-.rk-cluster-xl span{ font-size:13px; }
+/* Clusters: se mantiene la burbuja REDONDA del plugin y solo se reviste con el tema oscuro
+   (vidrio + borde y halo cian). Sin rojo/ámbar para no confundirse con la severidad. */
+.marker-cluster{ background:transparent !important; font-family:'IBM Plex Mono',monospace; }
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{ background:transparent !important; }
+.marker-cluster div{ width:34px; height:34px; margin-left:3px; margin-top:3px;
+  display:flex; align-items:center; justify-content:center; border-radius:50%;
+  background:rgba(8,14,20,.88) !important; color:#aef6ef !important; font-weight:700;
+  border:1px solid rgba(45,225,214,.6);
+  box-shadow:0 0 0 5px rgba(45,225,214,.14), 0 4px 12px rgba(0,0,0,.4); }
+.marker-cluster span{ line-height:34px; font-size:12px; letter-spacing:.02em; }
