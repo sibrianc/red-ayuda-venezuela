@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Usuarios · Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space">
+  <p class="eyebrow">Administración</p>
+  <h1>Usuarios y colaboradores</h1>
+  <p><a href="{{ url_for('admin.dashboard') }}">← Panel</a> · <a href="{{ url_for('admin.audit') }}">Auditoría</a></p>
+
+  {% if invite_link %}
+  <div class="alert alert-success" role="status">
+    <strong>Enlace de invitación (expira en 72 h):</strong><br>
+    <code>{{ invite_link }}</code><br>
+    <small>Compártelo solo por un canal seguro. La persona fijará su contraseña y configurará 2FA.</small>
+  </div>
+  {% endif %}
+
+  <h2>Invitar colaborador</h2>
+  <form method="post" novalidate class="mb-4">{{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}
+      {% for e in form.name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    <div class="mb-3">{{ form.email.label(class="form-label") }}{{ form.email(class="form-control") }}
+      {% for e in form.email.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    <div class="mb-3">{{ form.role.label(class="form-label") }}{{ form.role(class="form-select") }}</div>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+
+  <h2>Cuentas</h2>
+  <table class="table">
+    <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>2FA</th><th></th></tr></thead>
+    <tbody>
+      {% for u in people %}
+      <tr>
+        <td>{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role.value }}</td>
+        <td>{% if u.invite_token %}invitado (pendiente){% elif u.is_active %}activo{% else %}inactivo{% endif %}</td>
+        <td>{{ 'sí' if u.totp_enabled else 'no' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.toggle_user', user_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">{{ 'Desactivar' if u.is_active else 'Activar' }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

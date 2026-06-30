@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, SelectField, SubmitField, TextAreaField
-from wtforms.validators import Length, Optional
+from wtforms import BooleanField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Email, Length, Optional
 
 from app.constants import (
     PRIORITY_LABELS,
@@ -8,8 +8,24 @@ from app.constants import (
     VERIFICATION_LABELS,
     Priority,
     ReportStatus,
+    UserRole,
     VerificationStatus,
 )
+
+
+class InviteUserForm(FlaskForm):
+    name = StringField("Nombre", validators=[DataRequired(), Length(max=120)])
+    email = StringField("Correo", validators=[DataRequired(), Email(), Length(max=255)])
+    role = SelectField(
+        "Rol",
+        choices=[
+            (UserRole.REVIEWER.value, "Revisor (revisa y publica)"),
+            (UserRole.VOLUNTEER.value, "Colaborador (triage, sin publicar ni PII)"),
+            (UserRole.VIEWER.value, "Observador (solo lectura, sin PII)"),
+            (UserRole.ADMIN.value, "Administrador (control total)"),
+        ],
+    )
+    submit = SubmitField("Generar invitación")
 
 
 class ReviewForm(FlaskForm):

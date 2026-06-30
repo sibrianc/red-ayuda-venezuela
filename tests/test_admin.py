@@ -100,8 +100,12 @@ def test_export_requires_admin_and_escapes_formula(app, client, reviewer):
     with app.app_context():
         from app.constants import UserRole
         from app.models import User
+        from tests.conftest import TEST_TOTP_SECRET
 
-        user = User(name="Admin2", email="admin2@example.org", role=UserRole.ADMIN)
+        user = User(
+            name="Admin2", email="admin2@example.org", role=UserRole.ADMIN,
+            totp_secret=TEST_TOTP_SECRET, totp_enabled=True,
+        )
         user.set_password("correct-horse-battery-staple")
         db.session.add(user)
         db.session.commit()

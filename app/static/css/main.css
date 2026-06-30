@@ -1075,3 +1075,10 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 /* ===== Bandera de país (reconocimientos) ===== */
 .rv-flag-row{display:flex;align-items:center;gap:.45rem;}
 .rv-flag{width:22px;height:15px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none;}
+
+/* ===== 2FA (verificación en dos pasos) ===== */
+.twofa-enroll{text-align:center;margin:0 0 1.4rem;}
+.twofa-qr{display:inline-block;background:#fff;padding:.6rem;border-radius:12px;border:1px solid var(--border);}
+.twofa-qr svg{width:200px;height:200px;display:block;}
+.twofa-secret{margin-top:.8rem;color:var(--muted);font-size:.9rem;}
+.twofa-secret code{background:var(--glass);padding:.2rem .45rem;border-radius:6px;}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Activar cuenta · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
+{% block content %}
+<div class="rv-page">
+{% call hero('Invitación', 'Activa tu cuenta') %}
+  <p class="rv-lead">Hola {{ invited.name }}. Define una contraseña para activar tu cuenta de colaborador (rol: <strong>{{ invited.role.value }}</strong>). Luego configurarás el segundo factor (2FA).</p>
+{% endcall %}
+<section class="container narrow section-space">
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    <div class="mb-3">{{ form.password.label(class="form-label") }}{{ form.password(class="form-control", autocomplete="new-password") }}
+      {% for e in form.password.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    <div class="mb-3">{{ form.confirm.label(class="form-label") }}{{ form.confirm(class="form-control", autocomplete="new-password") }}
+      {% for e in form.confirm.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+</section>
+</div>
+{% endblock %}

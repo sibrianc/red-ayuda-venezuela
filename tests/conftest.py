@@ -1,9 +1,13 @@
+import pyotp
 import pytest
 
 from app import create_app
 from app.constants import UserRole
 from app.extensions import db
 from app.models import User
+
+# Secreto TOTP fijo para las cuentas de prueba (permite calcular códigos 2FA válidos).
+TEST_TOTP_SECRET = "JBSWY3DPEHPK3PXP"
 
 
 @pytest.fixture()
@@ -25,7 +29,10 @@ def client(app):
 @pytest.fixture()
 def admin(app):
     with app.app_context():
-        user = User(name="Admin", email="admin@example.org", role=UserRole.ADMIN)
+        user = User(
+            name="Admin", email="admin@example.org", role=UserRole.ADMIN,
+            totp_secret=TEST_TOTP_SECRET, totp_enabled=True,
+        )
         user.set_password("correct-horse-battery-staple")
         db.session.add(user)
         db.session.commit()
@@ -35,7 +42,10 @@ def admin(app):
 @pytest.fixture()
 def reviewer(app):
     with app.app_context():
-        user = User(name="Reviewer", email="reviewer@example.org", role=UserRole.REVIEWER)
+        user = User(
+            name="Reviewer", email="reviewer@example.org", role=UserRole.REVIEWER,
+            totp_secret=TEST_TOTP_SECRET, totp_enabled=True,
+        )
         user.set_password("correct-horse-battery-staple")
         db.session.add(user)
         db.session.commit()
@@ -43,9 +53,15 @@ def reviewer(app):
 
 
 def login(client, email="admin@example.org"):
-    return client.post(
+    """Inicia sesión completa: contraseña + segundo factor (2FA)."""
+    client.post(
         "/cuenta/login",
         data={"email": email, "password": "correct-horse-battery-staple"},
+        follow_redirects=False,
+    )
+    return client.post(
+        "/cuenta/2fa",
+        data={"code": pyotp.TOTP(TEST_TOTP_SECRET).now()},
         follow_redirects=False,
     )
 

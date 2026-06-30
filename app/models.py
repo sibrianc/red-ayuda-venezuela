@@ -1,4 +1,6 @@
 from datetime import date, datetime, timezone
+
+import pyotp
 from uuid import uuid4
 
 from flask_login import UserMixin
@@ -88,9 +90,16 @@ class User(UserMixin, TimestampMixin, db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Nullable: una cuenta invitada existe antes de fijar su contraseña.
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[UserRole] = enum_column(UserRole, UserRole.REVIEWER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # 2FA (TOTP) obligatorio para el panel.
+    totp_secret: Mapped[str | None] = mapped_column(String(32))
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Invitación: token de un solo uso para fijar contraseña (sin registro público).
+    invite_token: Mapped[str | None] = mapped_column(String(64), unique=True, index=True)
+    invite_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     notes: Mapped[list["AdminNote"]] = relationship(back_populates="author")
 
@@ -98,7 +107,20 @@ class User(UserMixin, TimestampMixin, db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password_hash, password)
+        return bool(self.password_hash) and check_password_hash(self.password_hash, password)
+
+    def ensure_totp_secret(self) -> str:
+        if not self.totp_secret:
+            self.totp_secret = pyotp.random_base32()
+        return self.totp_secret
+
+    def totp_uri(self, issuer: str = "Red de Ayuda Venezuela") -> str:
+        return pyotp.TOTP(self.totp_secret).provisioning_uri(name=self.email, issuer_name=issuer)
+
+    def verify_totp(self, code: str) -> bool:
+        if not self.totp_secret:
+            return False
+        return pyotp.TOTP(self.totp_secret).verify((code or "").strip().replace(" ", ""), valid_window=1)
 
 
 class DataSource(TimestampMixin, db.Model):
@@ -513,6 +535,19 @@ class LostPetReport(ReportMixin, db.Model):
     color: Mapped[str | None] = mapped_column(String(80))
     last_seen_date: Mapped[date | None] = mapped_column(Date)
     photo_url: Mapped[str | None] = mapped_column(String(500))
+
+
+class AuditLog(db.Model):
+    """Bitácora de acciones sensibles del panel (acceso por necesidad + trazabilidad)."""
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True)
+    action: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    detail: Mapped[str | None] = mapped_column(String(500))
+    ip: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
 
 
 class AdminNote(db.Model):

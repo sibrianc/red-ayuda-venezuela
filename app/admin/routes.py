@@ -1,11 +1,13 @@
 import csv
 import io
+import secrets
+from datetime import timedelta
 
 from flask import Response, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 
 from app.admin import bp
-from app.admin.forms import AbuseReviewForm, ReviewForm
+from app.admin.forms import AbuseReviewForm, InviteUserForm, ReviewForm
 from app.constants import (
     AbuseStatus,
     Priority,
@@ -18,11 +20,14 @@ from app.extensions import db
 from app.models import (
     AbuseReport,
     AdminNote,
+    AuditLog,
     DuplicateCandidate,
     REPORT_MODELS,
     ReportStatusHistory,
+    User,
+    utcnow,
 )
-from app.services.auth import roles_required
+from app.services.auth import record_audit, roles_required
 from app.services.automation import (
     missing_required_information,
     suggest_priority,
@@ -99,6 +104,7 @@ def review_report(report_type: str, report_id: int):
                 )
             )
         db.session.commit()
+        record_audit("report_reviewed", detail=f"{parsed_type.value}:{report.public_id}->{new_status.value}")
         flash("Revisión guardada.", "success")
         return redirect(
             url_for("admin.review_report", report_type=parsed_type.value, report_id=report.id)
@@ -238,4 +244,54 @@ def export_csv(report_type: str):
     )
     response.headers["Cache-Control"] = "no-store, private"
     response.headers["X-Data-Classification"] = "sensitive" if scope == "internal" else "public"
+    record_audit("export_csv", detail=f"{parsed_type.value}/{scope}")
     return response
+
+
+@bp.route("/usuarios", methods=["GET", "POST"])
+@roles_required(UserRole.ADMIN)
+def users():
+    form = InviteUserForm()
+    invite_link = None
+    if form.validate_on_submit():
+        email = form.email.data.strip().lower()
+        if User.query.filter_by(email=email).first():
+            flash("Ya existe una cuenta con ese correo.", "warning")
+        else:
+            token = secrets.token_urlsafe(32)
+            user = User(
+                name=form.name.data.strip(),
+                email=email,
+                role=UserRole(form.role.data),
+                is_active=True,
+                invite_token=token,
+                invite_expires_at=utcnow() + timedelta(hours=72),
+            )
+            db.session.add(user)
+            db.session.commit()
+            record_audit("user_invited", detail=f"{email} ({form.role.data})")
+            invite_link = url_for("auth.accept_invite", token=token, _external=True)
+            flash("Invitación creada. Copia el enlace y compártelo de forma segura (expira en 72 h).", "success")
+    people = User.query.order_by(User.created_at.desc()).all()
+    return render_template("admin/users.html", form=form, people=people, invite_link=invite_link)
+
+
+@bp.post("/usuarios/<int:user_id>/estado")
+@roles_required(UserRole.ADMIN)
+def toggle_user(user_id: int):
+    user = db.get_or_404(User, user_id)
+    if user.id == current_user.id:
+        flash("No puedes desactivar tu propia cuenta.", "warning")
+    else:
+        user.is_active = not user.is_active
+        db.session.commit()
+        record_audit("user_active_toggled", detail=f"{user.email}={user.is_active}")
+    return redirect(url_for("admin.users"))
+
+
+@bp.get("/auditoria")
+@roles_required(UserRole.ADMIN)
+def audit():
+    entries = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(200).all()
+    actors = {u.id: u.email for u in User.query.all()}
+    return render_template("admin/audit.html", entries=entries, actors=actors)

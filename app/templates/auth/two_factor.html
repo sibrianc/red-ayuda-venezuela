@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Verificación en dos pasos · {{ config.APP_NAME }}{% endblock %}
+{% from "_ui.html" import hero with context %}
+{% block content %}
+<div class="rv-page">
+{% call hero('Acceso seguro', 'Verificación en dos pasos') %}
+  <p class="rv-lead">{% if enrolling %}Configura tu segundo factor: escanea el código con tu app autenticadora (Google Authenticator, Microsoft Authenticator, etc.) y escribe el código de 6 dígitos para confirmar.{% else %}Escribe el código de 6 dígitos de tu app autenticadora.{% endif %}</p>
+{% endcall %}
+<section class="container narrow section-space">
+  {% if enrolling %}
+  <div class="twofa-enroll">
+    <div class="twofa-qr" aria-hidden="true">{{ qr_svg|safe }}</div>
+    <p class="twofa-secret">¿No puedes escanear? Ingresa esta clave en tu app: <code>{{ secret }}</code></p>
+  </div>
+  {% endif %}
+  <form method="post" novalidate>{{ form.hidden_tag() }}
+    <div class="form-field">
+      {{ form.code.label(class="form-label") }}
+      {{ form.code(class="form-control", inputmode="numeric", autocomplete="one-time-code", autofocus=true) }}
+      {% for e in form.code.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+  </form>
+</section>
+</div>
+{% endblock %}

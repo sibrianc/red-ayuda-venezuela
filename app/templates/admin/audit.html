@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Auditoría · Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space">
+  <p class="eyebrow">Administración</p>
+  <h1>Bitácora de auditoría</h1>
+  <p><a href="{{ url_for('admin.dashboard') }}">← Panel</a> · <a href="{{ url_for('admin.users') }}">Usuarios</a></p>
+  <p class="text-secondary">Últimas 200 acciones sensibles (acceso, revisión, exportación, invitaciones, 2FA).</p>
+  <table class="table">
+    <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td>{{ e.created_at|venezuela_time }}</td>
+        <td>{{ actors.get(e.user_id, '—') }}</td>
+        <td><code>{{ e.action }}</code></td>
+        <td>{{ e.detail or '' }}</td>
+        <td>{{ e.ip or '' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5">Sin registros todavía.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

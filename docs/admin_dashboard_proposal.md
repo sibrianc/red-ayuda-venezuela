@@ -74,7 +74,10 @@ CSV (público/interno) **solo ADMIN**, a prueba de inyección CSV.
 
 ## 5. Plan por fases (sugerido)
 
-- **F1 — Endurecer acceso:** 2FA/TOTP + invitación de colaboradores + bitácora de auditoría.
+- **F1 — Endurecer acceso: ENTREGADO.** 2FA/TOTP obligatorio (inscripción con QR +
+  verificación, gate en `roles_required`), invitación de colaboradores (token de un solo
+  uso, sin registro público, página `/admin/usuarios`) y bitácora de auditoría
+  (`/admin/auditoria`: login, revisión, export, invitación, 2FA). Login con rate limit.
 - **F2 — Resumen operativo (4W)** dentro del panel (necesidades/recursos/brechas/prioridades).
 - **F3 — Gestión de fuentes/ingesta + reconocimientos/contactos** desde el panel.
 - **F4 — Roles VOLUNTEER/VIEWER** con permisos acotados y vistas sin PII.
