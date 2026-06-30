@@ -65,10 +65,12 @@
     {% endif %}
 
     <aside class="dir-memoriam" aria-label="{{ _('Personas fallecidas') }}">
-      <h3>{{ _('Personas fallecidas') }}</h3>
+      <h3>{{ _('En memoria de las personas fallecidas') }}</h3>
+      <p class="dir-memoriam-lede">{{ _('Acompañamos en el dolor a cada familia que ha perdido a un ser querido. Ninguna cifra alcanza a nombrar lo que vale una vida: sostenemos su memoria con respeto, y a ustedes, con fuerza. No están solos.') }}</p>
       <p>{{ _('Por respeto a las familias y para no arriesgar errores, no publicamos una lista de nombres de personas fallecidas. La identificación corresponde a las autoridades y a los registros oficiales.') }}
       {% if figure_dead %}{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}).{% endif %}</p>
-      <p class="dir-note">{{ _('Para datos de personas fallecidas, consulta a las autoridades y los registros oficiales de abajo.') }}</p>
+      <p class="dir-note">{{ _('Si buscas a una persona fallecida o necesitas confirmar una identificación, el registro oficial reúne y actualiza esa información con el debido cuidado.') }}</p>
+      <a class="btn btn-primary dir-memoriam-link" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Consultar el registro oficial') }} ↗</a>
     </aside>
 
     <section class="rv-section dir-registries-section" id="registros">
