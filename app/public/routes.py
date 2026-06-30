@@ -95,24 +95,41 @@ def directory():
 def directory_people():
     q = request.args.get("q", "").strip()
     estado = request.args.get("estado", "missing").strip()
-    if estado not in PERSON_STATES:
+    # 'deceased' es una pestaña navegable pero SIN lista de nombres (decisión de dignidad):
+    # muestra una nota de duelo y deriva al registro oficial. Los demás estados sí listan.
+    if estado not in PERSON_STATES and estado != "deceased":
         estado = "missing"
+    situation = public_situation()
+    figures = {metric["key"]: metric for metric in situation}
+    figure_dead = figures.get("dead")
+    headings = {"missing": "Personas desaparecidas", "found": "Personas localizadas",
+                "deceased": "En memoria de las personas fallecidas"}
+    tabs = [{"key": key, "label": _(label), "count": count_person_records(key, q or None)}
+            for key, label in PERSON_STATES.items()]
+    # La pestaña de fallecidas no muestra conteo de registros (no listamos nombres).
+    tabs.append({"key": "deceased", "label": _("Fallecidas"), "count": None})
+
+    common = dict(
+        tabs=tabs, figure_missing=figures.get("missing"), figure_dead=figure_dead,
+        registries=OFFICIAL_REGISTRIES, q=q,
+    )
+    if estado == "deceased":
+        return render_template(
+            "public/directory_people.html",
+            estado="deceased", estado_label=_("Fallecidas"), estado_heading=_(headings["deceased"]),
+            community=[], records=[], total=0, page=1, pages=1, **common,
+        )
+
     page = _page_arg()
     total = count_person_records(estado, q or None)
     pages = _page_count(total, PEOPLE_PAGE)
     page = min(page, pages)
     records = public_person_records(status=estado, q=q or None, limit=PEOPLE_PAGE, offset=(page - 1) * PEOPLE_PAGE)
     community = public_missing_persons(q or None) if (estado == "missing" and page == 1) else []
-    situation = public_situation()
-    figures = {metric["key"]: metric for metric in situation}
-    tabs = [{"key": key, "label": _(label), "count": count_person_records(key, q or None)} for key, label in PERSON_STATES.items()]
-    headings = {"missing": "Personas desaparecidas", "found": "Personas localizadas"}
     return render_template(
         "public/directory_people.html",
-        estado=estado, estado_label=_(PERSON_STATES[estado]), estado_heading=_(headings[estado]), tabs=tabs,
-        community=community, records=records, total=total, page=page, pages=pages,
-        figure_missing=figures.get("missing"), figure_dead=figures.get("dead"),
-        registries=OFFICIAL_REGISTRIES, q=q,
+        estado=estado, estado_label=_(PERSON_STATES[estado]), estado_heading=_(headings[estado]),
+        community=community, records=records, total=total, page=page, pages=pages, **common,
     )
 
 

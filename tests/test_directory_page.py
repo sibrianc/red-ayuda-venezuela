@@ -42,8 +42,8 @@ def test_directory_subpages_render(client):
     assert people.status_code == 200
     assert "Reportar un familiar" in people.text
     assert "Registros oficiales" in people.text
-    # Fallecidas: no hay lista navegable, sí una nota digna en la página de personas.
-    assert "Personas fallecidas" in people.text
+    # Fallecidas existe como pestaña navegable junto a desaparecidas y localizadas.
+    assert "Fallecidas" in people.text
     assert "Incidentes y evaluación estructural" in client.get("/directorio/incidentes").text
     assert client.get("/directorio/servicios").status_code == 200
     assert client.get("/directorio/zonas").status_code == 200
@@ -168,13 +168,15 @@ def test_directory_combines_reviewed_and_pfif_people_and_excludes_minors(app, cl
     assert "Ana Pérez" in missing
     assert "Elena Salazar" in missing
     assert "Persona Menor Protegida" not in missing
-    # Fallecidas: NO se publica una lista de nombres (decisión de dignidad). 'deceased'
-    # ya no es un estado navegable: redirige a desaparecidas y Rafael no aparece listado.
-    redirected = client.get("/directorio/personas?estado=deceased").text
-    assert "Rafael Mendoza" not in redirected
-    # En su lugar, una nota digna que remite a fuentes oficiales.
-    assert "Personas fallecidas" in redirected
-    assert "no publicamos una lista de nombres" in redirected
+    # Fallecidas: pestaña navegable propia que NO publica una lista de nombres (dignidad).
+    # Rafael (fallecido) nunca aparece listado; en su lugar, una nota digna + enlace oficial.
+    deceased = client.get("/directorio/personas?estado=deceased").text
+    assert "Rafael Mendoza" not in deceased
+    assert "no publicamos una lista de nombres" in deceased
+    assert "Consultar el registro oficial" in deceased
+    # Y tampoco se cuela en las otras pestañas.
+    assert "Rafael Mendoza" not in missing
+    assert "Rafael Mendoza" not in client.get("/directorio/personas?estado=found").text
 
 
 def test_directory_has_live_search_hooks(client):
