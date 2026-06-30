@@ -9,6 +9,8 @@
   --border:#21333f; --border-strong:#33495a;
   --brand:#4cb7de; --brand-strong:#7ad0ec; --brand-tint:#11303d; --teal:#2bb59f;
   --shadow-sm:0 10px 30px rgba(0,0,0,.38); --shadow:0 26px 64px rgba(0,0,0,.52);
+  /* Conmemoración (pestaña Fallecidas): luz de vela cálida, no alerta */
+  --memorial-accent:#e6bd80; --memorial-glow:rgba(247,216,156,.15); --memorial-halo:rgba(255,226,168,.5);
   /* Alias de compatibilidad con el sistema previo */
   --ink:var(--text); --ink-soft:var(--text-soft); --white:var(--surface); --paper:var(--surface-2);
   --mist:var(--surface-3); --aqua:#10303a; --blue:var(--brand); --blue-dark:var(--brand-strong);
@@ -21,6 +23,7 @@ html[data-theme="light"] {
   --border:#d5dfdf; --border-strong:#aebfc0;
   --brand:#145b79; --brand-strong:#0d4057; --brand-tint:#e8f3f6; --teal:#168579;
   --shadow-sm:0 8px 24px rgba(15,45,58,.08); --shadow:0 22px 60px rgba(15,45,58,.12);
+  --memorial-accent:#a9762a; --memorial-glow:rgba(214,170,96,.20); --memorial-halo:rgba(244,206,140,.6);
   --ink:var(--text); --ink-soft:var(--text-soft); --white:var(--surface); --paper:var(--surface-2);
   --mist:#eef4f3; --aqua:#dcefed; --blue:var(--brand); --blue-dark:var(--brand-strong);
   --blue-soft:var(--brand-tint); --yellow:#e9ad39; --red:#a53a32;
@@ -1192,24 +1195,30 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
   font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; letter-spacing:.03em; }
 .mapc-btn-reactivate:hover{ background:rgba(45,225,214,.32); color:#dffbf7; }
 
-/* Nota digna sobre personas fallecidas (sin lista de nombres) */
-/* Pestaña "Fallecidas": tarjeta conmemorativa, sin lista de nombres. Tono sobrio y digno. */
-.dir-chip-memoriam{ border-color:#a83e38; color:#d98a84; }
-.directory-page .dir-chip-memoriam.is-active{ background:#a83e38; border-color:#a83e38; color:#fff; }
-.dir-memorial{ position:relative; max-width:720px; margin:.4rem auto 0; padding:2.6rem 1.9rem 2.4rem; text-align:center; border:1px solid var(--border); border-radius:var(--radius-lg); background:linear-gradient(180deg,var(--surface-2),var(--surface)); box-shadow:var(--shadow); overflow:hidden; }
-.dir-memorial::before{ content:""; position:absolute; inset:0 0 auto; height:4px; background:linear-gradient(90deg,#a83e38,#ef6a60,#a83e38); }
-.dir-memorial-mark{ display:grid; place-items:center; width:62px; height:62px; margin:0 auto 1.15rem; border-radius:50%; color:#fff; background:linear-gradient(160deg,#c2554c,#8f322c); box-shadow:0 8px 22px rgba(143,50,44,.32); }
-.dir-memorial-mark svg{ width:30px; height:30px; }
-.dir-memorial-eyebrow{ margin:0; font-size:.72rem; font-weight:850; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
-.dir-memorial-title{ margin:.45rem 0 0; font-family:'Sora',system-ui,sans-serif; font-size:clamp(1.5rem,3.4vw,2.05rem); line-height:1.2; }
-.dir-memorial-lede{ max-width:52ch; margin:1.05rem auto 0; color:var(--text-soft); font-size:1.06rem; line-height:1.72; }
-.dir-memorial-figure{ display:inline-flex; flex-direction:column; gap:.2rem; margin:1.7rem auto 0; padding:.95rem 1.7rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface-3); }
-.dir-memorial-figure strong{ font-size:2.1rem; font-weight:850; line-height:1; color:#ef6a60; font-variant-numeric:tabular-nums; }
-.dir-memorial-figure span{ font-size:.74rem; font-weight:750; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
-.dir-memorial-note{ max-width:58ch; margin:1.7rem auto 0; padding:.95rem 1.2rem; text-align:left; border-left:3px solid #a83e38; border-radius:.55rem; background:var(--surface-3); color:var(--text-soft); font-size:.92rem; line-height:1.62; }
-.dir-memorial-help{ max-width:54ch; margin:1.3rem auto 0; color:var(--muted); font-size:.95rem; line-height:1.6; }
-.dir-memorial-link{ display:inline-flex; align-items:center; gap:.9rem; margin-top:1.5rem; padding:.95rem 1.5rem; text-align:left; text-decoration:none; color:#fff; background:linear-gradient(160deg,#b1473f,#8f322c); border-radius:var(--radius); box-shadow:0 8px 22px rgba(143,50,44,.3); transition:transform .15s ease, box-shadow .15s ease; }
-.dir-memorial-link:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(143,50,44,.4); color:#fff; }
-.dir-memorial-link svg{ width:22px; height:22px; flex:none; }
-.dir-memorial-link span{ display:flex; flex-direction:column; line-height:1.25; font-weight:800; }
-.dir-memorial-link span small{ font-size:.78rem; font-weight:600; opacity:.85; }
+/* Pestaña "Fallecidas": espacio conmemorativo. Sin lista de nombres. Paleta de luz de
+   vela (cálida, no de alerta), tipografía serif y mucho aire — inspirado en memoriales
+   de referencia: memoria, autenticidad, escala y emoción. */
+.dir-chip-memoriam{ border-color:var(--memorial-accent); color:var(--memorial-accent); }
+.directory-page .dir-chip-memoriam.is-active{ background:var(--memorial-accent); border-color:var(--memorial-accent); color:#241803; }
+.dir-memorial{ position:relative; max-width:640px; margin:1rem auto 0; padding:3.4rem 2rem 2.9rem; text-align:center; border:1px solid var(--border); border-radius:var(--radius-lg); background:radial-gradient(125% 70% at 50% -6%, var(--memorial-glow), transparent 60%), linear-gradient(180deg,var(--surface-2),var(--surface)); box-shadow:var(--shadow); overflow:hidden; }
+.dir-memorial-mark{ position:relative; display:grid; place-items:center; width:88px; height:88px; margin:0 auto 1.6rem; border-radius:50%; background:radial-gradient(circle at 50% 34%,#f4d196,#dba055 58%,#bb7f3b); box-shadow:0 14px 32px -10px rgba(190,130,50,.6), inset 0 1px 1px rgba(255,255,255,.5); }
+.dir-memorial-mark::before{ content:""; position:absolute; width:172%; height:172%; border-radius:50%; background:radial-gradient(circle,var(--memorial-halo) 0%,transparent 64%); animation:memorialGlow 4.5s ease-in-out infinite; pointer-events:none; }
+.dir-memorial-mark svg{ position:relative; width:42px; height:42px; color:#fff; filter:drop-shadow(0 1px 2px rgba(120,70,20,.5)); }
+@keyframes memorialGlow{ 0%,100%{opacity:.65; transform:scale(.97)} 50%{opacity:1; transform:scale(1.06)} }
+@media (prefers-reduced-motion:reduce){ .dir-memorial-mark::before{ animation:none } }
+.dir-memorial-eyebrow{ margin:0; font-size:.74rem; font-weight:700; letter-spacing:.34em; text-transform:uppercase; color:var(--memorial-accent); }
+.rv-page .dir-memorial-title{ margin:.55rem 0 0; font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif; font-weight:600; font-size:clamp(2.1rem,4.6vw,2.8rem); letter-spacing:.005em; line-height:1.14; color:var(--text); }
+.dir-memorial-lede{ max-width:45ch; margin:1.2rem auto 0; color:var(--text-soft); font-size:1.08rem; line-height:1.8; }
+.dir-memorial-figure{ display:inline-flex; flex-direction:column; gap:.35rem; margin:2.1rem auto 0; }
+.dir-memorial-figure strong{ font-family:'Cormorant Garamond',Georgia,serif; font-size:2.9rem; font-weight:600; line-height:1; color:var(--memorial-accent); font-variant-numeric:tabular-nums; }
+.dir-memorial-figure span{ font-size:.72rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+.dir-memorial-divider{ width:52px; height:1px; margin:2.1rem auto 0; border:0; background:linear-gradient(90deg,transparent,var(--border-strong),transparent); }
+.dir-memorial-note{ max-width:50ch; margin:1.7rem auto 0; color:var(--text-soft); font-size:.95rem; line-height:1.72; }
+.dir-memorial-help{ max-width:48ch; margin:1rem auto 0; color:var(--muted); font-size:.92rem; line-height:1.65; }
+.dir-memorial-link{ display:inline-flex; align-items:center; gap:.85rem; margin-top:1.8rem; padding:.65rem 1.5rem .65rem .65rem; text-align:left; text-decoration:none; color:var(--text); background:var(--surface-3); border:1px solid var(--border-strong); border-radius:99px; transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.dir-memorial-link:hover{ transform:translateY(-2px); border-color:var(--memorial-accent); box-shadow:var(--shadow-sm); color:var(--text); }
+.dir-memorial-ico{ display:grid; place-items:center; width:42px; height:42px; flex:none; border-radius:50%; color:var(--memorial-accent); background:radial-gradient(circle at 35% 30%,var(--memorial-halo),transparent 70%); }
+.dir-memorial-ico svg{ width:20px; height:20px; }
+.dir-memorial-link>span{ display:flex; flex-direction:column; line-height:1.3; }
+.dir-memorial-link>span strong{ font-weight:750; font-size:.98rem; }
+.dir-memorial-link>span small{ font-size:.8rem; color:var(--muted); }
