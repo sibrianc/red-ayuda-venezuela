@@ -11,6 +11,7 @@ La exposición pública es un paso aparte con su propia puerta de revisión.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 from sqlalchemy import func
 
@@ -22,10 +23,12 @@ from app.ingestion.connectors import (
 )
 from app.ingestion.normalize import match_key
 from app.ingestion.incidents import ParsedIncident
+from app.ingestion.ioda import IODA_SOURCE, ParsedCommsZone
 from app.ingestion.pets import ParsedPet
 from app.ingestion.pfif import ParsedPerson
 from app.ingestion.recognitions import ParsedRecognition
 from app.models import (
+    CommunicationSignal,
     DirectoryEntry,
     Incident,
     IngestedEvent,
@@ -549,3 +552,57 @@ def directory_overview() -> dict:
         )
     }
     return {"total": total, "por_categoria": by_category}
+
+
+def ingest_comms_zones(zones: list[ParsedCommsZone], *, commit: bool = True) -> IngestStats:
+    """Upsert idempotente de "zonas sin comunicación" desde señales técnicas (IODA).
+
+    Deduplica por (source, zone_label). Las regiones IODA que ya no aparecen como activas
+    se marcan 'resolved' para que dejen de mostrarse: auto-limpieza en cada corrida (apta
+    para el cron de 2 h, sin acumular zonas viejas).
+    """
+    stats = IngestStats(received=len(zones))
+
+    deduped: dict[str, ParsedCommsZone] = {}
+    for zone in zones:
+        if not zone.zone_label:
+            stats.invalid += 1
+            continue
+        deduped[zone.zone_label] = zone
+
+    active_labels = set(deduped)
+    for label, zone in deduped.items():
+        existing = (
+            db.session.query(CommunicationSignal)
+            .filter_by(source=IODA_SOURCE, zone_label=label)
+            .one_or_none()
+        )
+        if existing is None:
+            existing = CommunicationSignal(source=IODA_SOURCE, zone_label=label)
+            db.session.add(existing)
+            stats.new += 1
+        else:
+            stats.updated += 1
+        existing.status = "advisory"
+        existing.latitude = zone.latitude
+        existing.longitude = zone.longitude
+        existing.public_note = zone.public_note
+        existing.reported_at = datetime.now(timezone.utc)
+        stats.in_region += 1
+
+    # Auto-limpieza: regiones IODA previas que ya no están activas -> resolved.
+    previous = (
+        db.session.query(CommunicationSignal)
+        .filter(
+            CommunicationSignal.source == IODA_SOURCE,
+            CommunicationSignal.status != "resolved",
+        )
+        .all()
+    )
+    for signal in previous:
+        if signal.zone_label not in active_labels:
+            signal.status = "resolved"
+
+    if commit:
+        db.session.commit()
+    return stats
