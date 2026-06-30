@@ -529,7 +529,11 @@ def directory_category_counts(q: str | None = None) -> dict:
     return {category: count for category, count in rows}
 
 
-def public_directory(q: str | None = None, category: str | None = None, limit: int = 3000, offset: int = 0) -> list[dict]:
+# Epicentro del terremoto (La Guaira); se usa para priorizar por cercanía en el mapa.
+EPICENTER_LAT, EPICENTER_LNG = 10.6017, -66.9331
+
+
+def public_directory(q: str | None = None, category: str | None = None, limit: int = 3000, offset: int = 0, near_epicenter: bool = False) -> list[dict]:
     query = DirectoryEntry.query.filter(
         DirectoryEntry.latitude.isnot(None),
         DirectoryEntry.longitude.isnot(None),
@@ -544,7 +548,15 @@ def public_directory(q: str | None = None, category: str | None = None, limit: i
                 DirectoryEntry.address_public.ilike(term),
             )
         )
-    query = query.order_by(DirectoryEntry.emergency.desc()).offset(offset).limit(limit)
+    if near_epicenter:
+        # Para el mapa: con miles de servicios en todo el país, el tope por categoría debe
+        # quedarse con los MÁS CERCANOS al epicentro (distancia planar al cuadrado basta a
+        # esta escala), si no el radio de La Guaira sale casi vacío.
+        d_lat = DirectoryEntry.latitude - EPICENTER_LAT
+        d_lng = DirectoryEntry.longitude - EPICENTER_LNG
+        query = query.order_by((d_lat * d_lat + d_lng * d_lng).asc()).offset(offset).limit(limit)
+    else:
+        query = query.order_by(DirectoryEntry.emergency.desc()).offset(offset).limit(limit)
     return [
         {
             "public_id": entry.public_id,
@@ -576,7 +588,7 @@ def public_directory_balanced(q: str | None = None, per_category: int = 350) -> 
     """Muestra equilibrada por categoría (round-robin) para que el mapa y la vista 'Todos'
     muestren VARIEDAD de iconos (hospital, refugio, agua, farmacia…), no un solo tipo, con
     el total acotado para el rendimiento del mapa."""
-    buckets = [public_directory(q=q, category=category, limit=per_category) for category in MAP_CATEGORY_ORDER]
+    buckets = [public_directory(q=q, category=category, limit=per_category, near_epicenter=True) for category in MAP_CATEGORY_ORDER]
     rows: list[dict] = []
     for index in range(max((len(bucket) for bucket in buckets), default=0)):
         for bucket in buckets:

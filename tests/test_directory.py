@@ -1,7 +1,35 @@
 from app.extensions import db
-from app.ingestion.connectors import build_overpass_query, parse_overpass
+from app.ingestion import connectors
+from app.ingestion.connectors import build_overpass_query, fetch_overpass, parse_overpass
 from app.ingestion.pipeline import directory_overview, ingest_directory
 from app.models import DirectoryEntry
+
+
+def test_fetch_overpass_falls_back_to_next_mirror(monkeypatch):
+    # Si un mirror de Overpass falla/encola, debe intentar el siguiente y usar el que
+    # responda (evita cuelgues desde IPs de nube como Render).
+    calls = []
+
+    class FakeResp:
+        def read(self):
+            return b'{"elements": []}'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def fake_urlopen(request, timeout=None, context=None):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            raise OSError("primer mirror caído")
+        return FakeResp()
+
+    monkeypatch.setattr(connectors.urllib.request, "urlopen", fake_urlopen)
+    result = fetch_overpass(query="[out:json];")
+    assert result == {"elements": []}
+    assert len(calls) == 2  # falló el primero, usó el segundo
 
 
 def overpass_payload():
@@ -78,6 +106,22 @@ def test_ingest_directory_handles_long_osm_phone(app):
         stats = ingest_directory(parse_overpass(payload))
         assert stats.new == 1
         assert DirectoryEntry.query.one().phone_public == "+58 286-7132200"
+
+
+def test_public_directory_near_epicenter_orders_by_proximity(app):
+    # El feed del mapa debe priorizar servicios cercanos a La Guaira; si no, con miles de
+    # servicios en todo el país el radio del epicentro sale casi vacío.
+    from app.services.operational import public_directory
+    with app.app_context():
+        db.session.add(DirectoryEntry(
+            source_slug="s", external_id="far", content_hash="a", category="hospital",
+            name="Lejos (Maracaibo)", latitude=10.65, longitude=-71.6, in_region=True))
+        db.session.add(DirectoryEntry(
+            source_slug="s", external_id="near", content_hash="b", category="hospital",
+            name="Cerca (La Guaira)", latitude=10.60, longitude=-66.93, in_region=True))
+        db.session.commit()
+        rows = public_directory(category="hospital", near_epicenter=True)
+        assert rows[0]["name"] == "Cerca (La Guaira)"  # el más cercano primero
 
 
 def test_build_overpass_query_targets_venezuela():
