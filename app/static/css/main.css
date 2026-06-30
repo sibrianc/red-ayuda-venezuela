@@ -1191,3 +1191,8 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
   border:1px solid rgba(45,225,214,.75); border-radius:8px; color:#aef6ef; cursor:pointer;
   font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; letter-spacing:.03em; }
 .mapc-btn-reactivate:hover{ background:rgba(45,225,214,.32); color:#dffbf7; }
+
+/* Nota digna sobre personas fallecidas (sin lista de nombres) */
+.dir-memoriam{ margin:1.5rem 0; padding:1.1rem 1.3rem; border:1px solid var(--border); border-left:4px solid var(--muted); border-radius:12px; background:var(--surface); }
+.dir-memoriam h3{ margin:0 0 .4rem; font-size:1rem; }
+.dir-memoriam p{ margin:.3rem 0 0; color:var(--muted); font-size:.92rem; line-height:1.55; }

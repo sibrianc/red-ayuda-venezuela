@@ -49,7 +49,10 @@ def _grouped(rows: list[dict]) -> list[dict]:
 PEOPLE_PAGE = 60
 SERVICES_PAGE = 60
 INCIDENTS_PAGE = 40
-PERSON_STATES = {"missing": "Desaparecidas", "found": "Localizadas", "deceased": "Fallecidas"}
+# El sitio se enfoca en REUNIFICACIÓN (vivos). Por respeto y exactitud no publicamos una
+# lista navegable de fallecidos: solo la cifra oficial (figure_dead) con una nota digna que
+# remite a las autoridades/registro oficial. Estados navegables: desaparecidas y localizadas.
+PERSON_STATES = {"missing": "Desaparecidas", "found": "Localizadas"}
 
 
 def _page_arg() -> int:
@@ -66,8 +69,8 @@ def directory():
     situation = public_situation()
     figures = {metric["key"]: metric for metric in situation}
     sections = [
-        {"label": _("Personas"), "desc": _("Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar."),
-         "count": count_person_records("missing") + count_person_records("found") + count_person_records("deceased"),
+        {"label": _("Personas"), "desc": _("Desaparecidas y localizadas. Busca o reporta a un familiar."),
+         "count": count_person_records("missing") + count_person_records("found"),
          "url": url_for("public.directory_people"), "accent": "#2a6fd6"},
         {"label": _("Edificios e incidentes"), "desc": _("Colapsos y evaluación estructural, con fuente."),
          "count": len(public_incidents()), "url": url_for("public.directory_incidents"), "accent": "#e5443a"},
@@ -103,7 +106,7 @@ def directory_people():
     situation = public_situation()
     figures = {metric["key"]: metric for metric in situation}
     tabs = [{"key": key, "label": _(label), "count": count_person_records(key, q or None)} for key, label in PERSON_STATES.items()]
-    headings = {"missing": "Personas desaparecidas", "found": "Personas localizadas", "deceased": "Personas fallecidas"}
+    headings = {"missing": "Personas desaparecidas", "found": "Personas localizadas"}
     return render_template(
         "public/directory_people.html",
         estado=estado, estado_label=_(PERSON_STATES[estado]), estado_heading=_(headings[estado]), tabs=tabs,
