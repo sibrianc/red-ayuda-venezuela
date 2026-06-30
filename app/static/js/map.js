@@ -266,6 +266,22 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ---------------- panel INTEL (con dirección en texto) ----------------
   const intelList = document.getElementById("cmd-intel-list");
   const intelCount = document.getElementById("cmd-intel-count");
+  const intelSearch = document.getElementById("cmd-intel-search");
+  let intelQuery = "";
+  // normaliza (minúsculas + sin acentos) para que "ca" encuentre "Cáritas", "Catia"...
+  const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const matchesQuery = (it) => {
+    if (!intelQuery) return true;
+    return norm(it.title).includes(intelQuery)
+      || norm(it.address).includes(intelQuery)
+      || norm(catOf(it.cat).label).includes(intelQuery);
+  };
+  if (intelSearch) {
+    intelSearch.addEventListener("input", () => {
+      intelQuery = norm(intelSearch.value.trim());
+      renderIntel();
+    });
+  }
   const focus = (it) => {
     selectedId = it.id;
     map.flyTo([it.lat, it.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
@@ -274,13 +290,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   };
   const renderIntel = () => {
     if (!intelList) return;
-    const list = inRadius();
+    const list = inRadius().filter(matchesQuery);
     const near = list.slice().sort((a, b) => a.dist - b.dist).slice(0, 80);
     if (intelCount) intelCount.textContent = String(list.length);
     intelList.replaceChildren();
     if (!near.length) {
       const p = document.createElement("p"); p.className = "mapc-intel-empty";
-      p.textContent = "Sin elementos dentro del radio. Amplía el radio o arrastra el epicentro.";
+      p.textContent = intelQuery
+        ? "Sin coincidencias para tu búsqueda dentro del radio."
+        : "Sin elementos dentro del radio. Amplía el radio o arrastra el epicentro.";
       intelList.append(p); return;
     }
     near.forEach((it) => {
