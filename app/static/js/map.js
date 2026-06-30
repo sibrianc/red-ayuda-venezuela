@@ -198,21 +198,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
   const userLayer = L.layerGroup().addTo(map);
 
+  // Encuadra SIEMPRE toda la zona afectada (el círculo del radio de búsqueda): ni un punto
+  // diminuto ni el país entero. Se usa al cargar y al pulsar "EPI".
+  const frameAffectedZone = () => {
+    try { map.fitBounds(radiusCircle.getBounds(), { padding: [40, 40] }); }
+    catch (_) { map.setView([epicenter.lat, epicenter.lng], 11); }
+  };
+
   // ---------------- marcadores ----------------
   // Agrupamiento (clustering): con miles de servicios, agrupar y mantener en el DOM solo
   // lo visible hace el mapa fluido SIN perder datos. Si el plugin no cargó, cae a un grupo
   // simple para no romper nada.
-  const clusterIcon = (cluster) => {
-    const n = cluster.getChildCount();
-    const tier = n < 10 ? "s" : n < 100 ? "m" : n < 500 ? "l" : "xl";
-    const size = n < 10 ? 32 : n < 100 ? 38 : n < 500 ? 46 : 54;
-    const label = n < 1000 ? n : (n / 1000).toFixed(1) + "k";
-    return L.divIcon({
-      html: `<div class="rk-cluster rk-cluster-${tier}"><span>${label}</span></div>`,
-      className: "rk-cluster-wrap",
-      iconSize: L.point(size, size),
-    });
-  };
   const markersGroup = (typeof L.markerClusterGroup === "function"
     ? L.markerClusterGroup({
         chunkedLoading: true,            // añade en lotes: no congela la UI
@@ -221,7 +217,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         disableClusteringAtZoom: 17,     // al acercar, iconos individuales
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
-        iconCreateFunction: clusterIcon,
       })
     : L.layerGroup()).addTo(map);
   const makeIcon = (it) => {
@@ -480,7 +475,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const qb = (sel, fn) => { const el = document.querySelector(sel); if (el) el.addEventListener("click", fn); };
   qb("[data-cmd-zoom-in]", () => map.zoomIn());
   qb("[data-cmd-zoom-out]", () => map.zoomOut());
-  qb("[data-cmd-recenter]", () => map.flyTo([epicenter.lat, epicenter.lng], 12, { duration: 0.6 }));
+  qb("[data-cmd-recenter]", () => frameAffectedZone());
   const gpsBtn = document.querySelector("[data-cmd-gps]");
   if (gpsBtn) gpsBtn.addEventListener("click", () => locate(gpsBtn));
 
@@ -503,7 +498,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   populateRings();
   radiusCircle.setLatLng([epicenter.lat, epicenter.lng]);
   epiMarker.setLatLng([epicenter.lat, epicenter.lng]);
-  map.setView([epicenter.lat, epicenter.lng], 12);
+  frameAffectedZone();
   if (elMag) elMag.textContent = magnitude != null ? "M " + magnitude.toFixed(1) : "M —";
   if (elEpi) elEpi.textContent = `EPICENTRO · ${epicenter.lat.toFixed(3)}°N ${Math.abs(epicenter.lng).toFixed(3)}°W`;
   applyStaticLayers();
