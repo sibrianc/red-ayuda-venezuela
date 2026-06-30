@@ -1,0 +1,26 @@
+{# Botones de compartir. Prioriza WhatsApp (canal dominante en Venezuela) para
+   impulsar la difusión persona a persona. `text` = mensaje; `url` por defecto
+   la URL canónica de la página. Importar con `with context` para tener `_`,
+   `canonical_url`, etc. #}
+{% macro share(text, url=None) %}
+{% set _u = url or canonical_url() %}
+<div class="rv-share" role="group" aria-label="{{ _('Compartir') }}">
+  <span class="rv-share-label">{{ _('Ayuda a difundir') }}</span>
+  <a class="rv-share-btn is-wa" href="https://wa.me/?text={{ (text ~ ' ' ~ _u)|urlencode }}" target="_blank" rel="noopener" aria-label="{{ _('Compartir en WhatsApp') }}" title="{{ _('Compartir en WhatsApp') }}">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.5 23.5l1.65-6A11.4 11.4 0 0 1 .6 11.6 11.5 11.5 0 1 1 12.1 23 11.4 11.4 0 0 1 6.6 21.6L.5 23.5zM6.9 19.4l.37.22a9.5 9.5 0 0 0 4.83 1.32 9.55 9.55 0 1 0-8.1-4.49l.24.38-1 3.63 3.66-1.05zM17.6 14.3c-.07-.12-.26-.19-.55-.33s-1.72-.85-1.98-.95-.46-.14-.65.14-.74.95-.91 1.14-.33.21-.62.07a7.9 7.9 0 0 1-2.32-1.43 8.7 8.7 0 0 1-1.6-2c-.17-.29 0-.44.13-.59s.29-.33.43-.5a2 2 0 0 0 .29-.48.53.53 0 0 0 0-.5c-.07-.14-.65-1.57-.9-2.15s-.47-.48-.65-.49h-.56a1.06 1.06 0 0 0-.77.36 3.25 3.25 0 0 0-1 2.42 5.65 5.65 0 0 0 1.18 3 12.9 12.9 0 0 0 4.95 4.37 16.6 16.6 0 0 0 1.65.61 4 4 0 0 0 1.83.11 3 3 0 0 0 1.95-1.37 2.4 2.4 0 0 0 .17-1.37z"/></svg>
+  </a>
+  <a class="rv-share-btn is-tg" href="https://t.me/share/url?url={{ _u|urlencode }}&amp;text={{ text|urlencode }}" target="_blank" rel="noopener" aria-label="{{ _('Compartir en Telegram') }}" title="{{ _('Compartir en Telegram') }}">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3l-3.3 15.6c-.25 1.1-.9 1.37-1.82.85l-5-3.7-2.42 2.33c-.27.27-.5.5-1 .5l.36-5.1 9.3-8.4c.4-.36-.09-.56-.62-.2L4.6 13.2-.34 11.6c-1.07-.34-1.1-1.07.22-1.58l19.3-7.44c.9-.33 1.68.2 1.4 1.72z"/></svg>
+  </a>
+  <a class="rv-share-btn is-x" href="https://twitter.com/intent/tweet?text={{ text|urlencode }}&amp;url={{ _u|urlencode }}" target="_blank" rel="noopener" aria-label="{{ _('Compartir en X') }}" title="{{ _('Compartir en X') }}">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.2 2.25h3.3l-7.2 8.23L23 21.75h-6.63l-5.2-6.8-5.95 6.8H1.9l7.7-8.8L1.3 2.25h6.8l4.7 6.21 5.4-6.21zm-1.16 17.52h1.83L7.04 4.13H5.07L17.04 19.77z"/></svg>
+  </a>
+  <a class="rv-share-btn is-fb" href="https://www.facebook.com/sharer/sharer.php?u={{ _u|urlencode }}" target="_blank" rel="noopener" aria-label="{{ _('Compartir en Facebook') }}" title="{{ _('Compartir en Facebook') }}">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6 4.39 10.97 10.13 11.87v-8.4H7.08v-3.47h3.05V9.42c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.96.93-1.96 1.88v2.26h3.33l-.53 3.47h-2.8v8.4C19.61 23.04 24 18.07 24 12.07z"/></svg>
+  </a>
+  <button class="rv-share-btn is-copy" type="button" data-share-copy="{{ _u }}" aria-label="{{ _('Copiar enlace') }}" title="{{ _('Copiar enlace') }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+    <span class="rv-share-toast" data-share-toast hidden>{{ _('¡Enlace copiado!') }}</span>
+  </button>
+</div>
+{% endmacro %}

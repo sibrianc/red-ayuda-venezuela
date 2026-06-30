@@ -6,6 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 {% from "_ui.html" import icon %}
+{% from "_share.html" import share with context %}
 {% block content %}
 <div class="rv-page">
   <div class="rv-tricolor" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -31,6 +32,7 @@
         <div><dd data-summary-zones>{{ summary.represented_zones }}</dd><dt>{{ _('Zonas representadas') }}</dt></div>
       </dl>
       <p class="rv-hero-note">{{ _('No es un servicio oficial de emergencia. La ausencia de registros no significa ausencia de daño.') }}</p>
+      {{ share(_('Mapa, servicios, personas y coordinación del terremoto de Venezuela, en un solo lugar:')) }}
     </div>
   </section>
 

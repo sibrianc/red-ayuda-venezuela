@@ -19,6 +19,16 @@ services:
         fromDatabase:
           name: red-ayuda-venezuela-db
           property: connectionString
+      # SEO: base canónica para canonical/Open Graph/sitemap.
+      - key: SITE_URL
+        value: https://redayudave.org
+      # Verificación de buscadores e IndexNow (se rellenan en el dashboard de Render).
+      - key: GOOGLE_SITE_VERIFICATION
+        sync: false
+      - key: BING_SITE_VERIFICATION
+        sync: false
+      - key: INDEXNOW_KEY
+        sync: false
 
   # Refresco automático de datos cada 8 horas (USGS, GDACS, OSM, IODA + corroboración).
   # Mantiene mapa y directorio frescos sin intervención manual. Costo ~centavos/mes.
@@ -43,6 +53,11 @@ services:
         fromDatabase:
           name: red-ayuda-venezuela-db
           property: connectionString
+      # Para que la ingesta anuncie el contenido nuevo a buscadores vía IndexNow.
+      - key: SITE_URL
+        value: https://redayudave.org
+      - key: INDEXNOW_KEY
+        sync: false
 
 databases:
   - name: red-ayuda-venezuela-db

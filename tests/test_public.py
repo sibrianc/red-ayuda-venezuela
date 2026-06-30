@@ -72,6 +72,65 @@ def test_security_txt(client):
     assert "Expires:" in body
 
 
+def test_home_has_social_and_seo_meta(client):
+    html = client.get("/").text
+    assert '<link rel="canonical"' in html
+    assert 'property="og:title"' in html
+    assert 'property="og:image"' in html
+    assert 'name="twitter:card" content="summary_large_image"' in html
+    assert 'rel="alternate" hreflang="es"' in html
+    assert 'rel="alternate" hreflang="en"' in html
+    assert 'hreflang="x-default"' in html
+    assert 'application/ld+json' in html
+    assert '"@type": "WebSite"' in html
+    assert "/static/icons/og-image.png" in html
+
+
+def test_pages_have_distinct_descriptions(client):
+    home = client.get("/").text
+    people = client.get("/directorio/personas").text
+    import re
+
+    def desc(h):
+        m = re.search(r'<meta name="description" content="([^"]+)"', h)
+        return m.group(1) if m else ""
+
+    assert "terremoto de Venezuela" in desc(home)
+    assert desc(people) and desc(people) != desc(home)
+
+
+def test_share_buttons_present(client):
+    html = client.get("/").text
+    assert "wa.me" in html  # WhatsApp
+    assert "t.me/share" in html
+    assert "data-share-copy" in html
+
+
+def test_search_verification_meta_only_when_configured(app):
+    app.config["GOOGLE_SITE_VERIFICATION"] = "tok-123"
+    html = app.test_client().get("/").text
+    assert 'name="google-site-verification" content="tok-123"' in html
+
+
+def test_indexnow_key_file(app):
+    # Sin clave → 404.
+    assert app.test_client().get("/.well-known/indexnow/whatever.txt").status_code == 404
+    app.config["INDEXNOW_KEY"] = "abc123"
+    client = app.test_client()
+    ok = client.get("/.well-known/indexnow/abc123.txt")
+    assert ok.status_code == 200
+    assert ok.text.strip() == "abc123"
+    assert client.get("/.well-known/indexnow/wrong.txt").status_code == 404
+
+
+def test_submit_to_indexnow_noop_without_config(app):
+    from app.seo import submit_to_indexnow
+
+    with app.test_request_context("/"):
+        # Sin INDEXNOW_KEY/SITE_URL no debe intentar red ni fallar.
+        assert submit_to_indexnow(["https://redayudave.org/"]) is False
+
+
 def test_home_summary_only_counts_approved_public_reports(app, client):
     with app.app_context():
         approved_need = HelpRequest(
