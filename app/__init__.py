@@ -226,6 +226,21 @@ def register_cli(app: Flask) -> None:
             "no confirman ocupantes ni personas atrapadas."
         )
 
+    @app.cli.command("ingest-ioda")
+    @click.option("--hours", default=24, help="Ventana de alertas IODA a considerar.")
+    def ingest_ioda(hours: int):
+        """Carga 'zonas sin comunicación' desde IODA (cortes de conectividad en Venezuela)."""
+        from app.ingestion.ioda import fetch_ioda_alerts, parse_ioda_alerts
+        from app.ingestion.pipeline import ingest_comms_zones
+
+        click.echo("Consultando IODA (cortes de conectividad, regiones de Venezuela)...")
+        zones = parse_ioda_alerts(fetch_ioda_alerts(hours=hours))
+        stats = ingest_comms_zones(zones)
+        click.echo(
+            f"Zonas sin comunicación: {stats.new} nuevas, {stats.updated} actualizadas "
+            f"({stats.received} señales recibidas)."
+        )
+
     @app.cli.command("seed-sample")
     def seed_sample():
         """Siembra datos de MUESTRA para previsualizar el mapa (no son datos reales)."""
@@ -359,9 +374,10 @@ def register_cli(app: Flask) -> None:
         from app.ingestion.incidents import (
             curated_collapsed_structures, fetch_hdx_damage, parse_hdx_damage_geojson,
         )
+        from app.ingestion.ioda import fetch_ioda_alerts, parse_ioda_alerts
         from app.ingestion.pipeline import (
-            directory_overview, event_overview, ingest_directory, ingest_events,
-            ingest_incidents, ingest_persons,
+            directory_overview, event_overview, ingest_comms_zones, ingest_directory,
+            ingest_events, ingest_incidents, ingest_persons,
         )
         from app.ingestion.venezuelareporta import fetch_reporta, parse_reporta
         from app.ingestion.registry import require_staging_authorization
@@ -389,6 +405,8 @@ def register_cli(app: Flask) -> None:
                                    region_only=True, event_types={"earthquake"}))
         step("OpenStreetMap — directorio de servicios",
              lambda: ingest_directory(parse_overpass(fetch_overpass()), region_only=True))
+        step("IODA — zonas sin comunicación (cortes de conectividad)",
+             lambda: ingest_comms_zones(parse_ioda_alerts(fetch_ioda_alerts())))
 
         def _hdx_damage():
             require_staging_authorization(registered_sources["hot-fair-damage"])
