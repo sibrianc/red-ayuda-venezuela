@@ -13,7 +13,7 @@ migraciones (`flask db upgrade`) y `app/config.py` que valida `SECRET_KEY` y
 
 | Pieza | Dónde | Costo |
 |---|---|---|
-| Código | GitHub (repo privado `sibrianc/red-ayuda-venezuela`) | $0 |
+| Código | GitHub (repo público `sibrianc/red-ayuda-venezuela`, MIT) | $0 |
 | Servidor web (Flask + gunicorn) | Render Web Service | Free $0 (se duerme) · **Starter $7/mes** (recomendado) |
 | Base de datos | Render PostgreSQL | Free $0 (expira ~30–90 días) · **Basic ~$7/mes** (con backups) |
 | Actualización de datos | Render Cron Job | incluido / ~$1/mes |
@@ -85,7 +85,21 @@ En tu máquina, dentro del proyecto:
 ---
 
 ## 5. Cargar los datos reales (una vez, tras el primer deploy)
-En Render ➜ tu Web Service ➜ pestaña **Shell** (o crea un **Job** con el mismo entorno) y corre:
+
+> **¿Dónde corro estos comandos?** Hay dos formas; elige una:
+> - **A) Shell de Render** (recomendado, requiere plan de pago **Starter $7/mes**):
+>   Render ➜ tu Web Service ➜ pestaña **Shell**. Es una terminal dentro del servidor.
+>   En el plan **Free no existe Shell** (por eso conviene Starter; ver §0).
+> - **B) Desde tu Mac, sin pagar Shell** (plan Free): exporta la **External Database URL**
+>   de Render (Render ➜ tu base de datos ➜ *Connections* ➜ *External Database URL*) y corre
+>   los comandos contra ella, en tu `.venv`:
+>   ```bash
+>   export FLASK_APP=wsgi.py SECRET_KEY="loquesea"
+>   export DATABASE_URL="postgresql://...EXTERNAL...?sslmode=require"
+>   flask db upgrade        # crea las tablas si aún no existen
+>   ```
+
+Con cualquiera de las dos, corre:
 ```bash
 flask load-official-figures      # cifras oficiales (ONU/OCHA) citadas
 flask ingest-all                 # USGS + GDACS + OSM + Localizados + Venezuela Reporta + corroboración
@@ -93,7 +107,12 @@ flask ingest-all                 # USGS + GDACS + OSM + Localizados + Venezuela 
 flask import-recognitions-json data/recognitions_venezuela_2026.json \
       --source-slug venezuela-2026 --attribution "Cobertura de prensa verificada"
 ```
-Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (conteos reales), `/reconocimientos` (unidades + perros con bandera), `/reportes/ayuda` (formulario).
+Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (conteos reales) y `/reconocimientos` (unidades + perros con bandera).
+
+> **Si el mapa sale vacío** no es un bug: significa que aún no se ingirieron datos en esa
+> base. Corre el bloque de arriba. **Si ves `relation ... does not exist`**, faltó migrar:
+> asegúrate de que el **Start Command** del Web Service sea
+> `flask db upgrade && gunicorn wsgi:app` (en Free el *Pre-Deploy Command* no se ejecuta).
 
 > No siembres datos de muestra (`seed-sample`) en producción: son de demostración.
 > El reporte de **personas desaparecidas** se delega al registro ciudadano externo
@@ -105,7 +124,7 @@ Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (c
 
 El panel es **hiper-privado** (solo tú + gente de confianza) y exige **doble factor (2FA)**.
 
-1. En Render ➜ Web Service ➜ **Shell**, crea tu cuenta:
+1. Crea tu cuenta (en la **Shell** de Render, o localmente como en §5 opción B):
    ```bash
    flask create-admin            # te pedirá nombre, correo y contraseña (mín. 12)
    ```
@@ -132,12 +151,29 @@ El panel es **hiper-privado** (solo tú + gente de confianza) y exige **doble fa
 
 ---
 
-## 6. Mantener los datos frescos (cron)
+## 6. Mantener los datos frescos automáticamente (cron) — "tiempo casi-real"
+
+El mapa y el directorio se actualizan solos con un **Cron Job** que vuelve a ingerir cada
+pocas horas. **No hace falta abrir la Shell ni hacer nada manual**: lo programas una vez.
+
 1. Render ➜ **New ➜ Cron Job**.
-2. Conecta el mismo repo, **mismas variables de entorno** (`FLASK_APP`, `DATABASE_URL`, `SECRET_KEY`, `FLASK_ENV`).
+2. Conecta el **mismo repo**, **mismas variables de entorno** (`FLASK_APP`, `DATABASE_URL`,
+   `SECRET_KEY`, `FLASK_ENV`). Build Command: `pip install -r requirements.txt`.
 3. **Command:** `flask ingest-all`
-4. **Schedule:** cada 6 horas → `0 */6 * * *` (o cada 12 h: `0 */12 * * *`).
+4. **Schedule:** cada 6 horas → `0 */6 * * *` (o cada 3 h `0 */3 * * *` si lo quieres más fresco).
 5. (Opcional) un segundo cron `flask export-contributions` para regenerar el export a compartir con venezuelareporta.
+
+> **Shell vs Cron — para qué es cada uno:**
+> - La **Shell** es para comandos **manuales y de una vez** (crear admin, primera carga,
+>   depurar). Viene incluida en planes de pago (Starter).
+> - El **Cron Job** es lo que mantiene los datos **frescos en automático** (lo que pediste:
+>   que el mapa/directorio se actualicen solos). Es independiente del Web Service.
+>
+> **Abaratar costos:** las fuentes (USGS/GDACS/OSM) cambian cada minutos-horas, así que un
+> cron cada 3–6 h da datos "casi en vivo" **sin** instancias caras ni websockets. El Cron
+> Job de Render se cobra **por segundos de ejecución** (centavos/mes para un `ingest-all`
+> que tarda segundos). El gasto fijo real es el Web Service Starter ($7) + la base
+> ($0 mientras dure el plan Free de DB; ~$7 si la pasas a Basic para que no expire).
 
 ---
 
