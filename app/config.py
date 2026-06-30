@@ -16,6 +16,14 @@ def normalize_database_url(url: str) -> str:
 class Config:
     APP_NAME = os.getenv("APP_NAME", "Red de Ayuda Venezuela")
     SECRET_KEY = os.getenv("SECRET_KEY", "development-only-change-me")
+    # SEO / compartir: base canónica absoluta para canonical/Open Graph/sitemap e IndexNow.
+    # Vacío → se usa el host de la petición (útil en local/tests).
+    SITE_URL = os.getenv("SITE_URL", "https://redayudave.org").rstrip("/")
+    # Tokens de verificación (Search Console / Bing). Vacío = no se emite la meta.
+    GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "").strip()
+    BING_SITE_VERIFICATION = os.getenv("BING_SITE_VERIFICATION", "").strip()
+    # Clave de IndexNow (Bing/Yandex). Vacío = propagación automática desactivada.
+    INDEXNOW_KEY = os.getenv("INDEXNOW_KEY", "").strip()
     SQLALCHEMY_DATABASE_URI = normalize_database_url(
         os.getenv(
             "DATABASE_URL",
@@ -75,6 +83,8 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = "sqlite+pysqlite:///:memory:"
     SERVER_NAME = "localhost"
+    # En tests las URLs absolutas usan el host local (localhost), no el dominio real.
+    SITE_URL = ""
 
 
 CONFIGS = {

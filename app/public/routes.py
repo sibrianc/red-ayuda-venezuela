@@ -2,7 +2,7 @@ import math
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
-from flask import Response, current_app, render_template, request, send_from_directory, url_for
+from flask import Response, abort, current_app, render_template, request, send_from_directory, url_for
 
 from app.i18n import translate as _
 from app.public import bp
@@ -303,6 +303,15 @@ def sitemap():
     ]
     xml = render_template("sitemap.xml", urls=urls)
     return Response(xml, mimetype="application/xml")
+
+
+@bp.get("/.well-known/indexnow/<key>.txt")
+def indexnow_key(key):
+    """Archivo de verificación de IndexNow: devuelve la clave si coincide (si no, 404)."""
+    configured = (current_app.config.get("INDEXNOW_KEY") or "").strip()
+    if not configured or key != configured:
+        abort(404)
+    return Response(configured, mimetype="text/plain")
 
 
 @bp.get("/.well-known/security.txt")

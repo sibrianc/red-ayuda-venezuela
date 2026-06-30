@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Mascotas desaparecidas · Directorio · {{ config.APP_NAME }}{% endblock %}
+{% block meta_description %}{{ _('Mascotas perdidas tras el terremoto de Venezuela: reportes de la comunidad y fuentes verificadas.') }}{% endblock %}
 {% from "public/_dir_macros.html" import chrome, pager with context %}
 {% block content %}
 {% set args = {} %}{% if q %}{% set _x = args.update({'q': q}) %}{% endif %}

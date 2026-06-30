@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Directorio · {{ config.APP_NAME }}{% endblock %}
+{% block meta_description %}{{ _('Directorio del terremoto de Venezuela: personas, edificios e incidentes, servicios, zonas sin comunicación y mascotas — cada dato con su fuente.') }}{% endblock %}
 {% block head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 {% from "public/_dir_macros.html" import chrome with context %}
+{% from "_share.html" import share with context %}
 {% block content %}
 <div class="rv-page directory-page">
   {{ chrome('hub', _('Directorio · Reunificación familiar'), _('Directorio del terremoto'),
@@ -50,6 +52,8 @@
       </div>
       <p class="dir-note">{{ _('Por protección, los reportes de menores no aparecen públicamente: se gestionan de forma privada y prioritaria.') }}</p>
     </section>
+
+    <div class="dir-share-row">{{ share(_('Directorio del terremoto de Venezuela: personas, servicios, edificios y coordinación.')) }}</div>
   </div>
 </div>
 {% endblock %}

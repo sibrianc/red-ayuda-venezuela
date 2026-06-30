@@ -44,6 +44,9 @@ def create_app(config_name: str | None = None) -> Flask:
     from app import i18n
     i18n.init_app(app)
 
+    from app import seo
+    seo.init_app(app)
+
     register_cli(app)
     register_template_helpers(app)
     register_security_headers(app)
@@ -458,6 +461,13 @@ def register_cli(app: Flask) -> None:
         click.echo(f"  sismos: {events['total']} (en región Venezuela: {events['en_region']})")
         click.echo(f"  servicios: {directory['total']}")
         click.echo("Cifras oficiales citadas: corre 'flask load-official-figures' (ONU/OCHA).")
+
+        # Propagación automática: avisa a buscadores (IndexNow) que el contenido se
+        # actualizó. No-op si faltan SITE_URL/INDEXNOW_KEY; nunca interrumpe la ingesta.
+        from app.seo import public_hub_urls, submit_to_indexnow
+
+        if submit_to_indexnow(public_hub_urls()):
+            click.echo("  ✓ IndexNow: hubs públicos anunciados a buscadores.")
 
     @app.cli.command("export-contributions")
     @click.option("--target", default="venezuela-reporta",

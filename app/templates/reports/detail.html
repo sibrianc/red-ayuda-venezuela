@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ title }} · {{ config.APP_NAME }}{% endblock %}
 {% from "_ui.html" import hero with context %}
+{% from "_share.html" import share with context %}
 {% block content %}
 <div class="rv-page">
 {% call hero(report_type_labels[report_type], title, back_url=url_for('reports.index'), back_label=_('Volver a reportes')) %}
@@ -19,6 +20,7 @@
     {% if report_type.value == 'location_report' %}<div><dt>Nivel aparente de daño</dt><dd>{{ report.damage_level }}</dd></div>{% endif %}
   </dl>
   <div class="privacy-callout">No se muestran teléfonos, direcciones exactas, información médica ni datos del reportante.</div>
+  <div class="dir-share-row">{{ share(title) }}</div>
 </article>
 </div>
 {% endblock %}
