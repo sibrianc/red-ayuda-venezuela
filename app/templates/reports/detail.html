@@ -19,7 +19,6 @@
     {% if report_type.value == 'location_report' %}<div><dt>Nivel aparente de daño</dt><dd>{{ report.damage_level }}</dd></div>{% endif %}
   </dl>
   <div class="privacy-callout">No se muestran teléfonos, direcciones exactas, información médica ni datos del reportante.</div>
-  <a class="btn btn-sm btn-outline-danger" href="{{ url_for('reports.report_abuse', report_type=report_type.value, public_id=report.public_id) }}">Reportar un problema</a>
 </article>
 </div>
 {% endblock %}

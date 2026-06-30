@@ -3,31 +3,6 @@ from app.models import CommunicationSignal
 from app.services.operational import public_comms_zones
 
 
-def test_comms_report_form_renders(client):
-    assert client.get("/reportes/sin-comunicacion").status_code == 200
-
-
-def test_comms_report_creates_advisory_alert(client, app):
-    response = client.post(
-        "/reportes/sin-comunicacion",
-        data={
-            "zone_label": "Sector La Cruz, Petare",
-            "public_note": "Sin señal de teléfono ni internet desde el sismo.",
-            "reporter_contact_private": "+58 000 0000000",
-            "privacy_consent": "y",
-            "website": "",
-        },
-        follow_redirects=False,
-    )
-    assert response.status_code == 302  # redirige al directorio
-    with app.app_context():
-        signal = CommunicationSignal.query.one()
-        assert signal.zone_label == "Sector La Cruz, Petare"
-        assert signal.status == "advisory"
-        assert signal.source == "community"
-        assert signal.reporter_contact_private == "+58 000 0000000"
-
-
 def test_public_comms_zones_hide_private_and_filter(app):
     with app.app_context():
         db.session.add(CommunicationSignal(
@@ -49,6 +24,6 @@ def test_public_comms_zones_hide_private_and_filter(app):
 
 
 def test_directory_shows_comms_section(client):
+    # Ya no hay formulario; la sección sigue mostrando las zonas (ingeridas/existentes).
     html = client.get("/directorio/zonas").text
     assert "Zonas sin comunicación" in html
-    assert "Reportar zona sin comunicación" in html

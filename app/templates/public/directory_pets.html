@@ -16,7 +16,6 @@
           <h2>{{ _('Mascotas desaparecidas') }}{% if grand_total %} <span class="dir-count">{{ "{:,}".format(grand_total).replace(",", ".") }}</span>{% endif %}</h2>
           <p class="dir-section-intro">{{ _('Reportes de la comunidad y registros publicados por fuentes verificadas de rescate animal. Los datos del dueño se mantienen privados.') }}</p>
         </div>
-        <a class="btn btn-primary" href="{{ url_for('reports.lost_pet') }}">{{ _('Reportar mascota') }}</a>
       </div>
       {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}»: {{ "{:,}".format(grand_total).replace(",", ".") }} mascotas.</p>{% endif %}
       {% if community or records %}

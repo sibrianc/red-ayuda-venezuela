@@ -79,23 +79,6 @@ def test_map_supports_text_only_low_bandwidth_fallback(client):
     assert "El modo ligero evita descargar teselas" in script
 
 
-@pytest.mark.parametrize(
-    "endpoint",
-    ["/reportes/ayuda", "/reportes/recurso", "/reportes/zona", "/reportes/mascota"],
-)
-def test_public_forms_use_guided_flow_and_hide_manual_coordinates(client, endpoint):
-    response = client.get(endpoint)
-    assert response.status_code == 200
-    html = response.text
-    assert "data-report-wizard" in html
-    assert html.count("data-wizard-panel=") == 3
-    assert "data-use-location" in html
-    assert 'name="latitude"' in html and 'type="hidden"' in html
-    assert 'name="longitude"' in html
-    assert "Latitud aproximada (opcional)" not in html
-    assert "Longitud aproximada (opcional)" not in html
-
-
 def test_map_page_is_command_center(client):
     html = client.get("/mapa").text
     # Centro de Operaciones: mapa, panel de capas, radio, GPS y panel de inteligencia.
@@ -106,51 +89,6 @@ def test_map_page_is_command_center(client):
     assert "CENTRO DE OPERACIONES" in html
     assert "RADIO DE BÚSQUEDA" in html
     assert "INTEL · EN RADIO" in html
-
-
-@pytest.mark.parametrize(
-    ("endpoint", "extra", "model"),
-    [
-        (
-            "/reportes/ayuda",
-            {
-                "title": "Agua para comunidad",
-                "request_type": "water",
-                "people_affected": "12",
-                "water_need": "y",
-            },
-            HelpRequest,
-        ),
-        (
-            "/reportes/recurso",
-            {
-                "title": "Agua disponible",
-                "resource_type": "water",
-                "capacity": "100 litros",
-                "availability": "Hoy",
-            },
-            ResourceOffer,
-        ),
-        (
-            "/reportes/zona",
-            {
-                "title": "Daños en la zona",
-                "damage_level": "high",
-                "needs_water": "y",
-            },
-            LocationReport,
-        ),
-    ],
-)
-def test_valid_reports_auto_publish_after_cleaning(app, client, base_report_data, endpoint, extra, model):
-    # Operación autónoma: un reporte limpio y completo se publica solo, sin revisión.
-    response = client.post(endpoint, data={**base_report_data, **extra})
-    assert response.status_code == 302
-    with app.app_context():
-        report = model.query.one()
-        assert report.status is ReportStatus.APPROVED
-        assert report.is_public is True
-        assert report.public_id
 
 
 def test_minor_report_is_held_and_never_public(app):
@@ -168,33 +106,6 @@ def test_minor_report_is_held_and_never_public(app):
         decision = evaluate_intake(ReportType.MISSING_PERSON, report)
         assert decision.is_public is False
         assert decision.status is ReportStatus.NEEDS_VERIFICATION
-
-
-def test_manual_review_mode_queues_without_publishing(app, client, base_report_data):
-    app.config["AUTO_PUBLISH"] = False
-    client.post(
-        "/reportes/ayuda",
-        data={**base_report_data, "title": "Agua potable", "request_type": "water", "people_affected": "2"},
-    )
-    with app.app_context():
-        report = HelpRequest.query.one()
-        assert report.status is ReportStatus.PENDING
-        assert report.is_public is False
-
-
-def test_auto_published_report_still_hides_private_fields(app, client, base_report_data):
-    client.post(
-        "/reportes/ayuda",
-        data={**base_report_data, "title": "Agua potable urgente", "request_type": "water", "people_affected": "5"},
-    )
-    with app.app_context():
-        report = HelpRequest.query.one()
-        assert report.is_public is True
-        public_id = report.public_id
-    html = client.get(f"/reportes/help_request/{public_id}").text
-    assert "+58 000 0000000" not in html
-    assert "Calle privada 123" not in html
-    assert "Detalle interno reservado." not in html
 
 
 def test_approved_report_exposes_only_public_projection(app, client):

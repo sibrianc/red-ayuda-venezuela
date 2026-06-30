@@ -34,7 +34,6 @@
         <h2>Recursos</h2>
         <p>¿Tienes excavadora, agua, transporte o equipo médico? Ofrécelo y lo enlazamos con quien lo necesita.</p>
         <div class="coord-actions">
-          <a class="btn btn-primary" href="{{ url_for('reports.resource_offer') }}">Ofrecer un recurso</a>
           <a class="btn btn-outline-secondary" href="#necesidades">Ver necesidades</a>
         </div>
       </article>
@@ -100,7 +99,7 @@
           {% for n in needs %}
           <article class="coord-item need"><span class="coord-tag">Necesidad</span><h4>{{ n.title }}</h4><p>{{ n.location.label }}</p></article>
           {% else %}
-          <p class="coord-empty">Aún no hay solicitudes registradas. <a href="{{ url_for('reports.help_request') }}">Crear una</a>.</p>
+          <p class="coord-empty">Aún no hay solicitudes registradas.</p>
           {% endfor %}
         </div>
         <div>
@@ -108,7 +107,7 @@
           {% for r in resources %}
           <article class="coord-item resource"><span class="coord-tag good">Recurso</span><h4>{{ r.title }}</h4><p>{{ r.location.label }}</p></article>
           {% else %}
-          <p class="coord-empty">Aún no hay recursos ofrecidos. <a href="{{ url_for('reports.resource_offer') }}">Ofrecer uno</a>.</p>
+          <p class="coord-empty">Aún no hay recursos ofrecidos.</p>
           {% endfor %}
         </div>
       </div>

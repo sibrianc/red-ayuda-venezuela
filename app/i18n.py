@@ -68,6 +68,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         # --- home: acciones ---
         "Reportar": "Report",
         "¿Qué quieres reportar?": "What do you want to report?",
+        "Explora": "Explore",
+        "¿Qué información buscas?": "What information are you looking for?",
+        "Abrir →": "Open →",
+        "Unidades de rescate y perros que ayudaron.": "Rescue units and dogs that helped.",
         "Persona sin contacto": "Person out of contact",
         "Reporta a alguien con quien tu familia perdió comunicación.": "Report someone your family lost contact with.",
         "Buscar o reportar un familiar": "Search or report a relative",

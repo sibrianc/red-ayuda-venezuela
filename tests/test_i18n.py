@@ -13,7 +13,7 @@ def test_english_toggle_translates_nav_and_home(client):
     assert ">Directory<" in html
     # home traducida
     assert "earthquake, all in one place" in html
-    assert "What do you want to report?" in html
+    assert "What information are you looking for?" in html
     # el botón de idioma está presente
     assert "lang-toggle" in html
 
