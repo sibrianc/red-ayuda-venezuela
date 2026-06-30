@@ -12,7 +12,54 @@ def test_directory_hub_and_pet_page_expose_pets(client):
     hub = client.get("/directorio").text
     assert "Mascotas desaparecidas" in hub
     assert "/directorio/mascotas" in hub
-    assert client.get("/directorio/mascotas").status_code == 200
+    page = client.get("/directorio/mascotas").text
+    assert "/reportes/mascota" in page  # botón para reportar mascota perdida
+
+
+def test_lost_pet_form_renders(client):
+    # Mascotas es la ÚNICA excepción al sitio agregador: sí se reportan aquí.
+    response = client.get("/reportes/mascota")
+    assert response.status_code == 200
+    assert 'name="species"' in response.text
+    assert 'name="photo_url"' in response.text
+
+
+def test_valid_lost_pet_auto_publishes_and_hides_owner_contact(client, app, base_report_data):
+    data = {
+        **base_report_data,
+        "title": "Max",
+        "species": "dog",
+        "breed": "Mestizo",
+        "color": "Marrón con collar rojo",
+        "photo_url": "https://example.com/max.jpg",
+        "description_public": "Perro mediano muy asustadizo, responde a su nombre.",
+    }
+    response = client.post("/reportes/mascota", data=data, follow_redirects=False)
+    assert response.status_code == 302  # publicado → confirmación
+
+    with app.app_context():
+        pet = LostPetReport.query.one()
+        assert pet.status is ReportStatus.APPROVED
+        assert pet.is_public is True
+
+    page = client.get("/directorio/mascotas").text
+    assert "Max" in page
+    assert "+58 000 0000000" not in page   # el contacto del dueño nunca es público
+    assert "Calle privada 123" not in page
+
+
+def test_lost_pet_photo_url_must_be_https_image(client, app, base_report_data):
+    data = {
+        **base_report_data,
+        "title": "Firulais",
+        "species": "dog",
+        "photo_url": "http://example.com/no-segura.exe",
+        "description_public": "Perro pequeño con collar azul, muy nervioso.",
+    }
+    response = client.post("/reportes/mascota", data=data, follow_redirects=False)
+    assert response.status_code == 200  # re-renderiza el formulario con error de validación
+    with app.app_context():
+        assert LostPetReport.query.count() == 0
 
 
 def test_public_lost_pets_excludes_non_public(app):
