@@ -70,7 +70,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   let heatPoints = [];
   let epicenter = { lat: 10.6017, lng: -66.9331 };
   let magnitude = null;
-  let radiusKm = 15;
+  let radiusKm = 25;
   let selectedId = null;
   const layers = { heat: true, rings: true };
 
@@ -173,7 +173,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const ringsGroup = L.layerGroup();
   const populateRings = () => {
     ringsGroup.clearLayers();
-    [5, 10, 15, 20, 30].forEach((km) => {
+    [5, 10, 25, 50, 100].forEach((km) => {
       L.circle([epicenter.lat, epicenter.lng], { radius: km * 1000, color: ACCENT, weight: 1, opacity: 0.18, fill: false, dashArray: "2 7", interactive: false }).addTo(ringsGroup);
       L.marker(destination(epicenter, 0, km), {
         icon: L.divIcon({ className: "", html: `<div style="color:${ACCENT};font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.55;white-space:nowrap;transform:translateY(-50%);background:rgba(5,8,11,.6);padding:0 3px;letter-spacing:.06em;">${km} KM</div>`, iconSize: [0, 0] }),
