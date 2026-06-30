@@ -13,8 +13,9 @@ def test_offline_drafts_exclude_sensitive_fields():
     assert "24 * 60 * 60 * 1000" in script
 
 
-def test_forms_work_without_loading_map(client):
-    response = client.get("/reportes/ayuda")
+def test_public_pages_work_without_loading_map(client):
+    # Las páginas públicas (agregador) no dependen del JS del mapa (Leaflet).
+    response = client.get("/directorio")
     assert response.status_code == 200
     assert "leaflet" not in response.text.lower()
 

@@ -35,67 +35,46 @@
   </section>
 
   <section class="container rv-section" aria-labelledby="rv-actions-title">
-    <p class="rv-kicker">{{ _('Reportar') }}</p>
-    <h2 class="rv-h2" id="rv-actions-title">{{ _('¿Qué quieres reportar?') }}</h2>
+    <p class="rv-kicker">{{ _('Explora') }}</p>
+    <h2 class="rv-h2" id="rv-actions-title">{{ _('¿Qué información buscas?') }}</h2>
     <div class="rv-action-grid">
-      <a class="rv-card rv-c-persona" href="{{ person_registry_url }}" target="_blank" rel="noopener">
+      <a class="rv-card rv-c-persona" href="{{ url_for('public.directory_people') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('user-search') }}</span>
-        <h3>{{ _('Buscar o reportar un familiar') }}</h3>
-        <p>{{ _('Se gestiona en el registro ciudadano de personas desaparecidas.') }} ↗</p>
-        <span class="rv-go">{{ _('Ir al registro →') }}</span>
+        <h3>{{ _('Personas') }}</h3>
+        <p>{{ _('Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar.') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
       </a>
-      <a class="rv-card rv-c-ayuda" href="{{ url_for('reports.help_request') }}">
-        <span class="rv-ic" aria-hidden="true">{{ icon('life-buoy') }}</span>
-        <h3>{{ _('Solicitar ayuda') }}</h3>
-        <p>{{ _('Pide agua, atención médica, alimentos, refugio o transporte.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
-      </a>
-      <a class="rv-card rv-c-recurso" href="{{ url_for('reports.resource_offer') }}">
-        <span class="rv-ic" aria-hidden="true">{{ icon('package') }}</span>
-        <h3>{{ _('Ofrecer recurso') }}</h3>
-        <p>{{ _('Comparte albergue, transporte, víveres, equipos o tu tiempo.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
-      </a>
-      <a class="rv-card rv-c-zona" href="{{ url_for('reports.location_report') }}">
+      <a class="rv-card rv-c-recurso" href="{{ url_for('public.directory_incidents') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('map-pin') }}</span>
-        <h3>{{ _('Reportar una zona') }}</h3>
-        <p>{{ _('Informa daños, edificios colapsados o zonas de peligro.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
+        <h3>{{ _('Edificios e incidentes') }}</h3>
+        <p>{{ _('Colapsos y evaluación estructural, con fuente.') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
       </a>
-      <a class="rv-card rv-c-comm" href="{{ url_for('reports.communication_signal') }}">
-        <span class="rv-ic" aria-hidden="true">{{ icon('wifi-off') }}</span>
-        <h3>{{ _('Zona sin comunicación') }}</h3>
-        <p>{{ _('Alerta de posibles víctimas incomunicadas en un sector.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
+      <a class="rv-card rv-c-ayuda" href="{{ url_for('public.directory_services') }}">
+        <span class="rv-ic" aria-hidden="true">{{ icon('package') }}</span>
+        <h3>{{ _('Servicios') }}</h3>
+        <p>{{ _('Hospitales, refugios, agua, farmacias, combustible y víveres.') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
       </a>
-      <a class="rv-card rv-c-pet" href="{{ url_for('reports.lost_pet') }}">
+      <a class="rv-card rv-c-pet" href="{{ url_for('public.directory_pets') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('paw') }}</span>
-        <h3>{{ _('Mascota desaparecida') }}</h3>
-        <p>{{ _('Reporta una mascota perdida tras el sismo.') }}</p>
-        <span class="rv-go">{{ _('Comenzar →') }}</span>
+        <h3>{{ _('Mascotas') }}</h3>
+        <p>{{ _('Mascotas perdidas (comunidad + fuentes verificadas).') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
+      </a>
+      <a class="rv-card rv-c-comm" href="{{ url_for('public.directory_zones') }}">
+        <span class="rv-ic" aria-hidden="true">{{ icon('wifi-off') }}</span>
+        <h3>{{ _('Zonas sin comunicación') }}</h3>
+        <p>{{ _('Alertas de posibles víctimas incomunicadas.') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
+      </a>
+      <a class="rv-card rv-c-zona" href="{{ url_for('public.recognitions') }}">
+        <span class="rv-ic" aria-hidden="true">{{ icon('shield-check') }}</span>
+        <h3>{{ _('Reconocimientos') }}</h3>
+        <p>{{ _('Unidades de rescate y perros que ayudaron.') }}</p>
+        <span class="rv-go">{{ _('Abrir →') }}</span>
       </a>
     </div>
-  </section>
-
-  <section class="container rv-section rv-two">
-    <div>
-      <p class="rv-kicker">{{ _('Cómo funciona') }}</p>
-      <h2 class="rv-h2">{{ _('Tres pasos, con verificación automática') }}</h2>
-      <div class="rv-steps">
-        <div class="rv-step"><span>1</span><div><h3>{{ _('Envías tu reporte') }}</h3><p>{{ _('Completas un formulario simple. Tus datos de contacto quedan privados desde el inicio.') }}</p></div></div>
-        <div class="rv-step"><span>2</span><div><h3>{{ _('Limpieza y verificación automática') }}</h3><p>{{ _('El sistema limpia y valida cada reporte al instante, sin esperar a nadie. Lo que no pasa los controles se resguarda en cola, no se pierde.') }}</p></div></div>
-        <div class="rv-step"><span>3</span><div><h3>{{ _('Publicación segura') }}</h3><p>{{ _('Solo aparece lo apto, sin direcciones exactas ni contactos visibles. Los menores nunca se publican.') }}</p></div></div>
-      </div>
-    </div>
-    <aside class="rv-trust" aria-labelledby="rv-trust-title">
-      <h3 id="rv-trust-title">{{ _('Tu privacidad, protegida') }}</h3>
-      <ul>
-        <li>{{ _('Los contactos, direcciones exactas y notas médicas nunca son públicos.') }}</li>
-        <li>{{ _('Los reportes que involucran a un menor nunca se publican de forma automática.') }}</li>
-        <li>{{ _('Lo que no pasa la verificación automática se resguarda para revisión; nada se descarta.') }}</li>
-      </ul>
-      <p class="rv-note">{{ _('No es un servicio oficial de emergencia. Ante peligro inmediato, marca el 9-1-1.') }}</p>
-    </aside>
   </section>
 
   <section class="container rv-section" id="situacion" aria-labelledby="rv-recent-title">
