@@ -154,14 +154,23 @@ El panel es **hiper-privado** (solo tú + gente de confianza) y exige **doble fa
 ## 6. Mantener los datos frescos automáticamente (cron) — "tiempo casi-real"
 
 El mapa y el directorio se actualizan solos con un **Cron Job** que vuelve a ingerir cada
-pocas horas. **No hace falta abrir la Shell ni hacer nada manual**: lo programas una vez.
+**8 horas**. **No hace falta abrir la Shell ni hacer nada manual**: se programa una vez.
 
+### Opción A (recomendada): ya está en `render.yaml`
+El repo incluye el cron `red-ayuda-ingest` en `render.yaml` (`schedule: "0 */8 * * *"`,
+`command: flask db upgrade && flask ingest-all`, con las mismas env vars y la base interna).
+Si despliegas con **Blueprint** (Render ➜ *New ➜ Blueprint* ➜ este repo), se crea solo.
+Si ya tienes el Web Service creado a mano, usa la Opción B.
+
+### Opción B (a mano, sin Blueprint)
 1. Render ➜ **New ➜ Cron Job**.
-2. Conecta el **mismo repo**, **mismas variables de entorno** (`FLASK_APP`, `DATABASE_URL`,
-   `SECRET_KEY`, `FLASK_ENV`). Build Command: `pip install -r requirements.txt`.
-3. **Command:** `flask ingest-all`
-4. **Schedule:** cada 6 horas → `0 */6 * * *` (o cada 3 h `0 */3 * * *` si lo quieres más fresco).
-5. (Opcional) un segundo cron `flask export-contributions` para regenerar el export a compartir con venezuelareporta.
+2. Conecta el **mismo repo**. Build Command: `pip install -r requirements.txt`.
+3. **Command:** `flask db upgrade && flask ingest-all`
+4. **Schedule:** cada 8 horas → `0 */8 * * *` (corre 00:00, 08:00, 16:00 UTC).
+5. **Environment Variables** (las mismas del Web Service): `FLASK_APP=wsgi.py`,
+   `FLASK_ENV=production`, `SECRET_KEY` (el **mismo** valor), y `DATABASE_URL` = la
+   **Internal Database URL** de tu Postgres (más rápida y sin gastar ancho de banda).
+6. (Opcional) Tócalo con **Trigger Run** para probar ya y revisa los logs (`✓ USGS`, `✓ IODA`…).
 
 > **Shell vs Cron — para qué es cada uno:**
 > - La **Shell** es para comandos **manuales y de una vez** (crear admin, primera carga,
