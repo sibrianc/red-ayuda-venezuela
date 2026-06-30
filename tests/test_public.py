@@ -25,6 +25,53 @@ def test_home_loads_with_security_headers(client):
     assert "unsafe-inline" not in script_src
 
 
+def test_favicon_served_at_root(client):
+    response = client.get("/favicon.ico")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"].startswith("image/")
+    assert "max-age" in response.headers.get("Cache-Control", "")
+
+
+def test_home_links_favicon_and_manifest(client):
+    html = client.get("/").text
+    assert 'rel="icon"' in html
+    assert "icons/favicon.svg" in html
+    assert "site.webmanifest" in html
+
+
+def test_robots_txt(client):
+    response = client.get("/robots.txt")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"].startswith("text/plain")
+    body = response.text
+    assert "User-agent: *" in body
+    assert "Disallow: /admin/" in body
+    assert "Disallow: /cuenta/" in body
+    assert "Sitemap: http" in body
+
+
+def test_sitemap_xml(client):
+    response = client.get("/sitemap.xml")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"].startswith("application/xml")
+    body = response.text
+    assert "<urlset" in body and "</urlset>" in body
+    assert "/directorio" in body
+    # No expone superficies privadas ni de detalle sensible.
+    assert "/admin" not in body
+    assert "/cuenta" not in body
+    assert "/reportes/confirmacion" not in body
+
+
+def test_security_txt(client):
+    response = client.get("/.well-known/security.txt")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"].startswith("text/plain")
+    body = response.text
+    assert "Contact:" in body
+    assert "Expires:" in body
+
+
 def test_home_summary_only_counts_approved_public_reports(app, client):
     with app.app_context():
         approved_need = HelpRequest(

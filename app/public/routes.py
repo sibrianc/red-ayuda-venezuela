@@ -1,7 +1,8 @@
 import math
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 
-from flask import render_template, request, url_for
+from flask import Response, current_app, render_template, request, send_from_directory, url_for
 
 from app.i18n import translate as _
 from app.public import bp
@@ -240,3 +241,78 @@ def recognitions():
 @bp.get("/privacidad")
 def privacy():
     return render_template("public/privacy.html")
+
+
+# --- Archivos de raíz: identidad del sitio e indexación ---------------------
+# Endpoints estándar que esperan navegadores, buscadores y herramientas. Sin
+# ellos el servidor responde 404 a /favicon.ico, /robots.txt y /sitemap.xml.
+
+@bp.get("/favicon.ico")
+def favicon():
+    """Sirve el favicon en la raíz (algunos clientes lo piden directo, sin leer el <link>)."""
+    response = send_from_directory(
+        current_app.static_folder, "favicon.ico", mimetype="image/vnd.microsoft.icon"
+    )
+    response.headers["Cache-Control"] = "public, max-age=604800"  # 7 días
+    return response
+
+
+@bp.get("/robots.txt")
+def robots_txt():
+    """Permite indexar las páginas públicas; protege admin/cuenta/confirmaciones."""
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /cuenta/",
+        "Disallow: /reportes/confirmacion/",
+        "",
+        f"Sitemap: {url_for('public.sitemap', _external=True)}",
+    ]
+    return Response("\n".join(lines) + "\n", mimetype="text/plain")
+
+
+# Páginas públicas estables para el sitemap. NO se listan páginas de detalle de
+# personas/reportes (datos sensibles): el sitemap solo expone los hubs públicos.
+_SITEMAP_ENDPOINTS = [
+    ("public.home", 1.0, "daily"),
+    ("map.index", 0.9, "hourly"),
+    ("public.directory", 0.9, "daily"),
+    ("public.directory_people", 0.8, "daily"),
+    ("public.directory_incidents", 0.8, "daily"),
+    ("public.directory_services", 0.8, "daily"),
+    ("public.directory_zones", 0.7, "daily"),
+    ("public.directory_pets", 0.7, "daily"),
+    ("public.coordination", 0.7, "daily"),
+    ("public.contacts", 0.6, "weekly"),
+    ("public.recognitions", 0.5, "weekly"),
+    ("public.privacy", 0.3, "monthly"),
+]
+
+
+@bp.get("/sitemap.xml")
+def sitemap():
+    """Mapa del sitio con las páginas públicas principales (sin páginas de detalle)."""
+    urls = [
+        {
+            "loc": url_for(endpoint, _external=True),
+            "priority": f"{priority:.1f}",
+            "changefreq": changefreq,
+        }
+        for endpoint, priority, changefreq in _SITEMAP_ENDPOINTS
+    ]
+    xml = render_template("sitemap.xml", urls=urls)
+    return Response(xml, mimetype="application/xml")
+
+
+@bp.get("/.well-known/security.txt")
+def security_txt():
+    """RFC 9116: cómo reportar vulnerabilidades de forma responsable."""
+    expires = (datetime.now(timezone.utc) + timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    lines = [
+        "Contact: mailto:carlosssibrian@gmail.com",
+        "Policy: https://github.com/sibrianc/red-ayuda-venezuela/blob/main/SECURITY.md",
+        "Preferred-Languages: es, en",
+        f"Expires: {expires}",
+    ]
+    return Response("\n".join(lines) + "\n", mimetype="text/plain")
