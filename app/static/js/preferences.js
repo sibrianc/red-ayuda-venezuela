@@ -31,7 +31,8 @@
     document.querySelectorAll("[data-bandwidth-toggle]").forEach((button) => {
       const low = mode === "low";
       button.setAttribute("aria-pressed", low ? "true" : "false");
-      button.textContent = low ? "Salir del modo ligero" : "Modo ligero";
+      const label = button.querySelector("[data-bandwidth-label]");
+      if (label) label.textContent = low ? "Salir del modo ligero" : "Modo ligero";
     });
   };
   applyBandwidth(read(bandwidthKey) === "low" ? "low" : "standard");

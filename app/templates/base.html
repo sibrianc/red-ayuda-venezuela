@@ -31,40 +31,32 @@
       </button>
       <div class="collapse navbar-collapse" id="navPrincipal">
         <ul class="navbar-nav ms-auto align-items-lg-center site-nav-list">
-          {# Grupo 1 · Destinos principales #}
+          {# Destinos principales #}
           <li class="nav-group-label" aria-hidden="true">{{ _('Explorar') }}</li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('map.index') }}">{{ icon('map-pin', 16) }}<span>{{ _('Mapa') }}</span></a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('public.directory') }}">{{ icon('user-search', 16) }}<span>{{ _('Directorio') }}</span></a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('public.coordination') }}">{{ icon('life-buoy', 16) }}<span>{{ _('Coordinación') }}</span></a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('reports.index') }}">{{ icon('list', 16) }}<span>{{ _('Información') }}</span></a></li>
-          <li class="nav-item"><a class="nav-link nav-registry" href="{{ person_registry_url }}" target="_blank" rel="noopener" title="{{ _('Registro ciudadano de personas desaparecidas') }}">{{ icon('user-search', 16) }}<span>{{ _('Reportar desaparecido') }} ↗</span></a></li>
+          <li class="nav-item"><a class="nav-link nav-registry" href="{{ person_registry_url }}" target="_blank" rel="noopener" title="{{ _('Registro ciudadano de personas desaparecidas') }}">{{ _('Reportar desaparecido') }} ↗</a></li>
 
-          {# Grupo 2 · Acciones destacadas #}
-          <li class="nav-item nav-divider"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">{{ icon('phone', 15) }}<span>{{ _('Emergencia') }}</span></a></li>
+          {# Acción destacada #}
+          <li class="nav-item nav-cta"><a class="nav-link nav-emergency" href="{{ url_for('public.contacts') }}">{{ icon('phone', 15) }}<span>{{ _('Emergencia') }}</span></a></li>
 
-          {# Grupo 3 · Preferencias (idioma / tema / datos) #}
+          {# Preferencias compactas (idioma / tema / datos) #}
           <li class="nav-item nav-utilities" role="group" aria-label="{{ _('Preferencias') }}">
             {% set _other = 'en' if current_locale == 'es' else 'es' %}
-            <a class="btn btn-sm lang-toggle" href="{{ set_lang_link(_other) }}" hreflang="{{ _other }}" rel="nofollow" aria-label="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}" title="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}">
-              {{ icon('globe', 16) }}<span>{{ LANGUAGES[_other] }}</span>
-            </a>
-            <button class="btn btn-sm theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="{{ _('Cambiar entre modo oscuro y modo para luz solar') }}">
-              <span class="theme-toggle-dot" aria-hidden="true"></span><span data-theme-label>{{ _('Modo sol') }}</span>
-            </button>
-            <button class="btn btn-sm bandwidth-toggle" type="button" data-bandwidth-toggle aria-pressed="false">{{ _('Modo ligero') }}</button>
+            <a class="nav-util lang-toggle" href="{{ set_lang_link(_other) }}" hreflang="{{ _other }}" rel="nofollow" aria-label="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}" title="{{ _('Idioma') }}: {{ LANGUAGES[_other] }}">{{ icon('globe', 16) }}<span>{{ _other|upper }}</span></a>
+            <button class="nav-util theme-toggle" type="button" data-theme-toggle aria-pressed="false" title="{{ _('Cambiar entre modo oscuro y modo para luz solar') }}"><span class="theme-toggle-dot" aria-hidden="true"></span><span class="visually-hidden" data-theme-label>{{ _('Modo sol') }}</span></button>
+            <button class="nav-util bandwidth-toggle" type="button" data-bandwidth-toggle aria-pressed="false" title="{{ _('Modo ligero') }}">{{ icon('wifi-off', 16) }}<span class="visually-hidden" data-bandwidth-label>{{ _('Modo ligero') }}</span></button>
           </li>
 
-          {# Grupo 4 · Acceso interno #}
           {% if current_user.is_authenticated %}
-            <li class="nav-item nav-internal"><a class="nav-link nav-link-muted" href="{{ url_for('admin.dashboard') }}">{{ _('Administración') }}</a></li>
+            <li class="nav-item nav-internal"><a class="nav-link nav-link-muted" href="{{ url_for('admin.dashboard') }}">{{ _('Panel') }}</a></li>
             <li class="nav-item">
               <form method="post" action="{{ url_for('auth.logout') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn btn-sm btn-outline-secondary" type="submit">{{ _('Salir') }}</button>
               </form>
             </li>
-          {% else %}
-            <li class="nav-item nav-internal"><a class="nav-link nav-link-muted" href="{{ url_for('auth.login') }}">{{ _('Acceso interno') }}</a></li>
           {% endif %}
         </ul>
       </div>
@@ -82,16 +74,35 @@
 
   <footer class="site-footer">
     <div class="container site-footer-grid">
-      <div>
-        <strong>Red de Ayuda Venezuela</strong>
-        <p>{{ _('Información humanitaria revisada por personas. Ausencia de reportes no significa ausencia de daño.') }}</p>
+      <div class="footer-about">
+        <strong class="footer-brand">Red de Ayuda <span>Venezuela</span></strong>
+        <p>{{ _('Concentramos y presentamos información dispersa del terremoto de Venezuela. No es un servicio oficial de emergencia: ante peligro inmediato marca el 9-1-1.') }}</p>
+        <p class="footer-credit">{{ _('Código abierto (MIT)') }} · <a href="https://github.com/sibrianc/red-ayuda-venezuela" target="_blank" rel="noopener">GitHub</a><br>{{ _('Desarrollado por') }} <a href="https://github.com/sibrianc" target="_blank" rel="noopener">Carlos Sibrian</a></p>
       </div>
-      <div class="footer-links">
-        <a href="{{ url_for('reports.index') }}">{{ _('Reportes revisados') }}</a>
-        <a href="{{ url_for('map.index') }}">{{ _('Mapa operativo') }}</a>
+      <nav class="footer-col" aria-label="{{ _('Secciones') }}">
+        <h4>{{ _('Secciones') }}</h4>
+        <a href="{{ url_for('map.index') }}">{{ _('Mapa') }}</a>
+        <a href="{{ url_for('public.directory') }}">{{ _('Directorio') }}</a>
+        <a href="{{ url_for('public.coordination') }}">{{ _('Coordinación') }}</a>
         <a href="{{ url_for('public.recognitions') }}">{{ _('Reconocimientos') }}</a>
+        <a href="{{ url_for('public.contacts') }}">{{ _('Emergencia') }}</a>
+      </nav>
+      <nav class="footer-col" aria-label="{{ _('Reportar y buscar') }}">
+        <h4>{{ _('Reportar y buscar') }}</h4>
+        <a href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar desaparecido') }} ↗</a>
+        <a href="mailto:carlosssibrian@gmail.com?subject=Problema%20en%20el%20sitio">{{ _('Reportar un problema') }}</a>
+        <a href="https://github.com/sibrianc/red-ayuda-venezuela/issues" target="_blank" rel="noopener">{{ _('Sugerencias y contribuir') }}</a>
         <a href="{{ url_for('public.privacy') }}">{{ _('Privacidad y uso responsable') }}</a>
+      </nav>
+      <div class="footer-col">
+        <h4>{{ _('Fuentes') }}</h4>
+        <p class="footer-note">{{ _('Datos de fuentes públicas y verificadas (USGS, GDACS, OpenStreetMap, ONU/OCHA y prensa), con atribución. La ausencia de registros no significa ausencia de daño.') }}</p>
+        <a class="footer-internal" href="{{ url_for('auth.login') }}">{{ _('Acceso interno') }}</a>
       </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© 2026 Red de Ayuda Venezuela</span>
+      <span>{{ _('No es un servicio oficial de emergencia') }} · 9-1-1</span>
     </div>
   </footer>
   <script src="{{ url_for('static', filename='js/preferences.js') }}" defer></script>
