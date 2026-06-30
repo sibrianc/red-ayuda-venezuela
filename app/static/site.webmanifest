@@ -1,0 +1,17 @@
+{
+  "name": "Red de Ayuda Venezuela",
+  "short_name": "Ayuda VE",
+  "description": "Panorama humanitario público del terremoto de Venezuela: mapa, servicios, personas y coordinación.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1620",
+  "theme_color": "#0b1620",
+  "icons": [
+    { "src": "/static/icons/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" },
+    { "src": "/static/icons/favicon-32.png", "type": "image/png", "sizes": "32x32" },
+    { "src": "/static/icons/apple-touch-icon.png", "type": "image/png", "sizes": "180x180", "purpose": "maskable" }
+  ]
+}
