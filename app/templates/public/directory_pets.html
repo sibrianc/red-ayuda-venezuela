@@ -8,7 +8,7 @@
             _('Mascotas perdidas reportadas por la comunidad tras el sismo. Los datos del dueño se mantienen privados.'),
             q, url_for('public.directory_pets')) }}
 
-  <div class="container">
+  <div class="container" id="dir-results">
     <section class="dir-section" id="mascotas">
       {% set grand_total = total + (community_total or 0) %}
       <div class="dir-section-head">

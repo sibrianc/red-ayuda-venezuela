@@ -13,7 +13,7 @@
             _('Colapsos corroborados y evaluaciones satelitales pendientes. Un edificio dañado nunca implica automáticamente que haya personas atrapadas.'),
             q, url_for('public.directory_incidents')) }}
 
-  <div class="container">
+  <div class="container" id="dir-results">
     <section class="dir-section" id="incidentes">
       <div class="dir-chips" role="group" aria-label="{{ _('Edificios e incidentes') }}">
         <a class="dir-chip {{ 'is-active' if not category }}" href="{{ url_for('public.directory_incidents', q=q or none) }}">{{ _('Todos') }} ({{ total if not category else '' }})</a>
