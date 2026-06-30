@@ -7,7 +7,7 @@ from flask import Response, abort, flash, redirect, render_template, request, ur
 from flask_login import current_user
 
 from app.admin import bp
-from app.admin.forms import AbuseReviewForm, InviteUserForm, ReviewForm
+from app.admin.forms import AbuseReviewForm, InviteUserForm, RecognitionForm, ReviewForm
 from app.constants import (
     AbuseStatus,
     Priority,
@@ -23,6 +23,7 @@ from app.models import (
     AuditLog,
     DuplicateCandidate,
     REPORT_MODELS,
+    Recognition,
     ReportStatusHistory,
     User,
     utcnow,
@@ -33,7 +34,7 @@ from app.services.automation import (
     suggest_priority,
     suggest_resource_matches,
 )
-from app.services.operational import coordination_overview
+from app.services.operational import coordination_overview, source_inventory
 from app.services.reporting import (
     all_items,
     data_freshness,
@@ -324,3 +325,69 @@ def audit():
     entries = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(200).all()
     actors = {u.id: u.email for u in User.query.all()}
     return render_template("admin/audit.html", entries=entries, actors=actors)
+
+
+def _apply_recognition(rec, form):
+    rec.kind = form.kind.data
+    rec.name = form.name.data.strip()
+    rec.org = (form.org.data or "").strip() or None
+    rec.country = (form.country.data or "").strip() or None
+    rec.role = (form.role.data or "").strip() or None
+    rec.description = (form.description.data or "").strip() or None
+    rec.photo_url = (form.photo_url.data or "").strip() or None
+    rec.source_name = (form.source_name.data or "").strip() or None
+    rec.source_url = (form.source_url.data or "").strip() or None
+    rec.attribution = rec.source_name or "Panel"
+
+
+@bp.route("/reconocimientos", methods=["GET", "POST"])
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+def recognitions():
+    form = RecognitionForm()
+    if form.validate_on_submit():
+        rec = Recognition(source_slug="panel", external_id=secrets.token_hex(8), content_hash=secrets.token_hex(16))
+        _apply_recognition(rec, form)
+        db.session.add(rec)
+        db.session.commit()
+        record_audit("recognition_created", detail=f"{rec.kind}:{rec.name}")
+        flash("Reconocimiento creado.", "success")
+        return redirect(url_for("admin.recognitions"))
+    items = Recognition.query.order_by(Recognition.kind.asc(), Recognition.name.asc()).all()
+    return render_template("admin/recognitions.html", form=form, items=items, editing=None)
+
+
+@bp.route("/reconocimientos/<int:rec_id>", methods=["GET", "POST"])
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+def edit_recognition(rec_id: int):
+    rec = db.get_or_404(Recognition, rec_id)
+    form = RecognitionForm(obj=rec)
+    if form.validate_on_submit():
+        _apply_recognition(rec, form)
+        db.session.commit()
+        record_audit("recognition_updated", detail=f"{rec.kind}:{rec.name}")
+        flash("Reconocimiento actualizado.", "success")
+        return redirect(url_for("admin.recognitions"))
+    items = Recognition.query.order_by(Recognition.kind.asc(), Recognition.name.asc()).all()
+    return render_template("admin/recognitions.html", form=form, items=items, editing=rec)
+
+
+@bp.post("/reconocimientos/<int:rec_id>/eliminar")
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+def delete_recognition(rec_id: int):
+    rec = db.get_or_404(Recognition, rec_id)
+    name = rec.name
+    db.session.delete(rec)
+    db.session.commit()
+    record_audit("recognition_deleted", detail=name)
+    flash("Reconocimiento eliminado.", "success")
+    return redirect(url_for("admin.recognitions"))
+
+
+@bp.get("/fuentes")
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+def sources():
+    from app.services.contacts import emergency_groups
+
+    return render_template(
+        "admin/sources.html", inventory=source_inventory(), groups=emergency_groups()
+    )

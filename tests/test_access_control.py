@@ -106,3 +106,37 @@ def test_operations_4w_lists_needs_and_gaps(client, app, admin):
     assert "Resumen operativo" in page.text
     assert "Agua para 20 familias" in page.text  # necesidad
     assert "Brechas" in page.text  # análisis de brecha (sin recurso → gap)
+
+
+def test_recognitions_management_requires_login(client):
+    assert client.get("/admin/reconocimientos").status_code == 302
+
+
+def test_admin_creates_recognition_from_panel(client, app, admin):
+    login(client)
+    resp = client.post(
+        "/admin/reconocimientos",
+        data={
+            "kind": "rescue_dog", "name": "Capitán", "org": "Bomberos de Caracas",
+            "country": "ve", "role": "Perro de búsqueda",
+            "description": "Perro rescatista de prueba.", "photo_url": "",
+            "source_name": "Prensa", "source_url": "https://example.org/cap",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert "Capitán" in resp.text  # aparece en el listado del panel
+    assert "Capitán" in client.get("/reconocimientos").text  # y en público
+    with app.app_context():
+        from app.models import AuditLog, Recognition
+
+        assert Recognition.query.filter_by(name="Capitán").count() == 1
+        assert "recognition_created" in {a.action for a in AuditLog.query.all()}
+
+
+def test_sources_overview_renders(client, admin):
+    login(client)
+    page = client.get("/admin/fuentes")
+    assert page.status_code == 200
+    assert "Inventario" in page.text
+    assert "Reconocimientos" in page.text

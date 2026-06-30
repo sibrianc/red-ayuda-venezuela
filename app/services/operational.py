@@ -713,3 +713,23 @@ def count_recognitions(kind: str | None = None) -> int:
     if kind:
         query = query.filter(Recognition.kind == kind)
     return query.count()
+
+
+def source_inventory() -> list[dict]:
+    """Inventario de datos por categoría: conteo y última actualización (para el panel)."""
+    from app.models import REPORT_MODELS
+
+    def last(model):
+        return model.query.with_entities(func.max(model.updated_at)).scalar()
+
+    report_times = [t for t in (last(m) for m in REPORT_MODELS.values()) if t]
+    return [
+        {"label": "Reportes ciudadanos", "count": sum(m.query.count() for m in REPORT_MODELS.values()),
+         "updated_at": max(report_times) if report_times else None},
+        {"label": "Personas (registros)", "count": PersonRecord.query.count(), "updated_at": last(PersonRecord)},
+        {"label": "Incidentes", "count": Incident.query.count(), "updated_at": last(Incident)},
+        {"label": "Servicios (OpenStreetMap)", "count": DirectoryEntry.query.count(), "updated_at": last(DirectoryEntry)},
+        {"label": "Mascotas (ingesta verificada)", "count": PetRecord.query.count(), "updated_at": last(PetRecord)},
+        {"label": "Mascotas (reportes ciudadanos)", "count": LostPetReport.query.count(), "updated_at": last(LostPetReport)},
+        {"label": "Reconocimientos", "count": Recognition.query.count(), "updated_at": last(Recognition)},
+    ]

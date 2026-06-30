@@ -1,6 +1,18 @@
+import re
+
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length, Optional
+from wtforms.validators import DataRequired, Email, Length, Optional, Regexp
+
+# Países con bandera SVG disponible en app/static/flags (ver descarga en Fase 4).
+RECOGNITION_COUNTRIES = [
+    ("", "— sin país —"),
+    ("ve", "Venezuela"), ("us", "Estados Unidos"), ("es", "España"), ("ch", "Suiza"),
+    ("fr", "Francia"), ("tr", "Türkiye"), ("mx", "México"), ("co", "Colombia"),
+    ("br", "Brasil"), ("sv", "El Salvador"), ("in", "India"), ("cl", "Chile"),
+    ("cr", "Costa Rica"), ("sk", "Eslovaquia"), ("jp", "Japón"),
+    ("do", "Rep. Dominicana"), ("qa", "Qatar"),
+]
 
 from app.constants import (
     PRIORITY_LABELS,
@@ -47,6 +59,33 @@ class ReviewForm(FlaskForm):
     reason = TextAreaField("Razón del cambio", validators=[Optional(), Length(max=500)])
     note = TextAreaField("Nueva nota interna", validators=[Optional(), Length(max=2000)])
     submit = SubmitField("Guardar revisión")
+
+
+class RecognitionForm(FlaskForm):
+    kind = SelectField(
+        "Tipo",
+        choices=[("responder_unit", "Unidad / organización de rescate"), ("rescue_dog", "Perro rescatista")],
+    )
+    name = StringField("Nombre", validators=[DataRequired(), Length(max=200)])
+    org = StringField("Organización / país (texto)", validators=[Optional(), Length(max=200)])
+    country = SelectField("Bandera (país)", choices=RECOGNITION_COUNTRIES, validators=[Optional()])
+    role = StringField("Rol / función", validators=[Optional(), Length(max=160)])
+    description = TextAreaField("Descripción", validators=[Optional(), Length(max=2000)])
+    photo_url = StringField(
+        "Foto (enlace https a imagen, opcional)",
+        validators=[
+            Optional(),
+            Length(max=500),
+            Regexp(
+                r"^https://\S+\.(?:jpe?g|png|webp|gif)(?:\?\S*)?$",
+                flags=re.IGNORECASE,
+                message="Pega un enlace https directo a una imagen (.jpg, .png, .webp o .gif).",
+            ),
+        ],
+    )
+    source_name = StringField("Fuente (nombre)", validators=[Optional(), Length(max=200)])
+    source_url = StringField("Fuente (enlace)", validators=[Optional(), Length(max=500)])
+    submit = SubmitField("Guardar")
 
 
 class AbuseReviewForm(FlaskForm):

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Reconocimientos · Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space admin-page">
+  <div class="admin-heading">
+    <div><p class="eyebrow">Gestión</p><h1>Reconocimientos</h1></div>
+    <div class="admin-heading-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">← Panel</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('public.recognitions') }}" target="_blank" rel="noopener">Ver público ↗</a>
+    </div>
+  </div>
+
+  <h2>{{ 'Editar reconocimiento' if editing else 'Nuevo reconocimiento' }}</h2>
+  <form method="post" action="{{ url_for('admin.edit_recognition', rec_id=editing.id) if editing else url_for('admin.recognitions') }}" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="form-grid two-columns">
+      <div class="mb-3">{{ form.kind.label(class="form-label") }}{{ form.kind(class="form-select") }}</div>
+      <div class="mb-3">{{ form.country.label(class="form-label") }}{{ form.country(class="form-select") }}</div>
+    </div>
+    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}
+      {% for e in form.name.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    <div class="form-grid two-columns">
+      <div class="mb-3">{{ form.org.label(class="form-label") }}{{ form.org(class="form-control") }}</div>
+      <div class="mb-3">{{ form.role.label(class="form-label") }}{{ form.role(class="form-control") }}</div>
+    </div>
+    <div class="mb-3">{{ form.description.label(class="form-label") }}{{ form.description(class="form-control", rows="3") }}</div>
+    <div class="mb-3">{{ form.photo_url.label(class="form-label") }}{{ form.photo_url(class="form-control") }}
+      {% for e in form.photo_url.errors %}<p class="field-error">{{ e }}</p>{% endfor %}</div>
+    <div class="form-grid two-columns">
+      <div class="mb-3">{{ form.source_name.label(class="form-label") }}{{ form.source_name(class="form-control") }}</div>
+      <div class="mb-3">{{ form.source_url.label(class="form-label") }}{{ form.source_url(class="form-control") }}</div>
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+    {% if editing %}<a class="btn btn-outline-secondary" href="{{ url_for('admin.recognitions') }}">Cancelar</a>{% endif %}
+  </form>
+
+  <h2>Listado ({{ items|length }})</h2>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Tipo</th><th>Nombre</th><th>País / organización</th><th>Fuente</th><th></th></tr></thead>
+      <tbody>
+        {% for r in items %}
+        <tr>
+          <td>{{ 'Perro' if r.kind == 'rescue_dog' else 'Unidad' }}</td>
+          <td>{{ r.name }}</td>
+          <td>{% if r.country %}<img class="rv-flag" src="{{ url_for('static', filename='flags/' ~ r.country ~ '.svg') }}" alt="" width="20" height="14" loading="lazy"> {% endif %}{{ r.org or '' }}</td>
+          <td>{% if r.source_url %}<a href="{{ r.source_url }}" target="_blank" rel="noopener">{{ r.source_name or 'fuente' }}</a>{% else %}{{ r.source_name or '' }}{% endif %}</td>
+          <td class="rec-actions">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.edit_recognition', rec_id=r.id) }}">Editar</a>
+            <form method="post" action="{{ url_for('admin.delete_recognition', rec_id=r.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Sin reconocimientos. Crea uno arriba o usa <code>flask import-recognitions-json</code>.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

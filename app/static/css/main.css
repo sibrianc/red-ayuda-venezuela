@@ -1094,3 +1094,8 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 .ops-nogap{color:var(--red,#cf142b);font-weight:700;}
 .ops-two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
 @media (max-width:760px){.ops-two{grid-template-columns:1fr;}}
+
+/* ===== Panel: acciones y gestión ===== */
+.admin-heading-actions{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;}
+.rec-actions{display:flex;gap:.4rem;align-items:center;}
+.rec-actions form{display:inline;margin:0;}

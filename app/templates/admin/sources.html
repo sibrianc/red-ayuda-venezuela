@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Fuentes e ingesta · Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space admin-page">
+  <div class="admin-heading">
+    <div><p class="eyebrow">Gestión</p><h1>Fuentes de datos e ingesta</h1></div>
+    <div class="admin-heading-actions"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">← Panel</a></div>
+  </div>
+
+  <h2>Inventario</h2>
+  <table class="table">
+    <thead><tr><th>Categoría</th><th>Registros</th><th>Última actualización</th></tr></thead>
+    <tbody>
+      {% for r in inventory %}
+      <tr><td>{{ r.label }}</td><td>{{ "{:,}".format(r.count).replace(",", ".") }}</td><td>{{ r.updated_at|venezuela_time if r.updated_at else '—' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Importar (línea de comandos)</h2>
+  <p class="text-secondary">La ingesta se ejecuta por CLI (segura y auditable). Apunta siempre a fuentes verificadas con atribución.</p>
+  <ul class="ops-list">
+    <li><code>flask import-localizados</code> · <code>flask import-reporta</code> · <code>flask import-pfif &lt;url|archivo&gt;</code> — personas</li>
+    <li><code>flask ingest-usgs</code> · <code>flask ingest-gdacs</code> — sismos · <code>flask ingest-building-damage</code> — incidentes</li>
+    <li><code>flask ingest-directory</code> — servicios (OpenStreetMap)</li>
+    <li><code>flask import-pets-json &lt;archivo&gt; --source-slug … --attribution …</code> — mascotas</li>
+    <li><code>flask import-recognitions-json &lt;archivo&gt; --source-slug … --attribution …</code> — reconocimientos</li>
+  </ul>
+
+  <h2>Contactos verificados (públicos)</h2>
+  <p class="text-secondary">Visibles en <a href="{{ url_for('public.contacts') }}" target="_blank" rel="noopener">/contactos</a>.</p>
+  {% for g in groups %}
+  <h3>{{ g.title }}</h3>
+  <ul class="ops-list">{% for it in g['items'] %}<li>{{ it.name }} — {{ it.role }}{% if it.phone %} · {{ it.phone }}{% endif %}</li>{% endfor %}</ul>
+  {% endfor %}
+</section>
+{% endblock %}
