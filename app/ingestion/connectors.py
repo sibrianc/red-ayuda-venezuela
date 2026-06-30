@@ -450,6 +450,13 @@ def parse_overpass(payload: dict) -> list[ParsedDirectoryEntry]:
         tags = element.get("tags") or {}
         category = _osm_category(tags)
         name = tags.get("name") or CATEGORY_DEFAULT_LABEL.get(category, "Servicio")
+        # OSM trae texto libre: teléfonos pueden venir como lista separada por ';' y
+        # direcciones/operadores largos. Saneamos y acotamos a los límites de columna
+        # (phone 120, address 300, operator 200) para no romper el INSERT en Postgres.
+        raw_phone = tags.get("phone") or tags.get("contact:phone")
+        phone_public = raw_phone.split(";")[0].strip()[:120] if raw_phone else None
+        address = _osm_address(tags)
+        operator = tags.get("operator")
         entries.append(
             ParsedDirectoryEntry(
                 source_slug=OSM_SOURCE_SLUG,
@@ -460,9 +467,9 @@ def parse_overpass(payload: dict) -> list[ParsedDirectoryEntry]:
                 name=name[:240],
                 latitude=latitude,
                 longitude=longitude,
-                address_public=_osm_address(tags),
-                phone_public=(tags.get("phone") or tags.get("contact:phone")),
-                operator=tags.get("operator"),
+                address_public=address[:300] if address else None,
+                phone_public=phone_public,
+                operator=operator[:200] if operator else None,
                 emergency=(tags.get("emergency") == "yes" or category in EMERGENCY_CATEGORIES),
                 source_url=f"https://www.openstreetmap.org/{osm_type}/{osm_id}",
                 attribution=OSM_ATTRIBUTION,

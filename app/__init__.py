@@ -375,6 +375,9 @@ def register_cli(app: Flask) -> None:
                 action()
                 click.echo(f"  ✓ {name}")
             except Exception as exc:  # noqa: BLE001 — seguir con las demás fuentes
+                # Limpia la sesión para que un origen con error no contamine los siguientes
+                # (si no, todo lo posterior falla con PendingRollbackError).
+                db.session.rollback()
                 click.echo(f"  ✗ {name}: {type(exc).__name__}: {exc}")
 
         click.echo("Recopilando datos reales (solo Venezuela, solo terremotos)...")
