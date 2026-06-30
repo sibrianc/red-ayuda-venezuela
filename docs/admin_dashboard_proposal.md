@@ -85,7 +85,11 @@ CSV (público/interno) **solo ADMIN**, a prueba de inyección CSV.
   `/admin/reconocimientos` (CRUD con país/bandera, auditado) y `/admin/fuentes`
   (inventario: conteo + frescura por categoría + referencia de comandos de ingesta +
   contactos verificados de solo lectura).
-- **F4 — Roles VOLUNTEER/VIEWER** con permisos acotados y vistas sin PII.
+- **F4 — Roles VOLUNTEER/VIEWER: ENTREGADO.** VOLUNTEER hace triage por notas (sin PII,
+  sin moderar); VIEWER es solo lectura (tablero + 4W). Helpers `can_see_pii`/`can_moderate`
+  ocultan PII y controles de moderación según rol.
+
+**Plan del panel completado (F1–F4).**
 
 ## Fuentes (marco)
 
