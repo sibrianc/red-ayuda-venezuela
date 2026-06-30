@@ -19,6 +19,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   // (listado + directorio) en lugar del mapa visual.
   if (lowBandwidth || typeof L === "undefined") {
     if (fallback) fallback.hidden = false;
+    // Vía de escape: reactivar el mapa desde el propio fallback (salir del modo ligero),
+    // sin depender de encontrar el toggle en el menú del móvil.
+    const reactivate = document.getElementById("cmd-reactivate-map");
+    if (reactivate && lowBandwidth) {
+      reactivate.hidden = false;
+      reactivate.addEventListener("click", () => {
+        try { localStorage.setItem("rav-bandwidth-mode", "standard"); } catch (_) { /* sin storage */ }
+        document.documentElement.dataset.bandwidth = "standard";
+        window.location.reload();
+      });
+    }
     return;
   }
 
