@@ -788,6 +788,11 @@ a.situation-source:hover,a.situation-source:focus { color:var(--brand); text-dec
 @media (max-width:620px){
   .mapc-left{width:150px;}
   .mapc-right{display:none;}
+  /* En el móvil la barra superior no cabe en una fila: ocultamos el bloque del sismo y el
+     reloj/zoom para que "RED DE AYUDA · VENEZUELA" no se superponga; queda título + Salir. */
+  .mapc-top-event{display:none;}
+  .mapc-top-tel span{display:none;}
+  .mapc-title{font-size:13px;}
 }
 
 /* ----- iconos alineados (mapa = capas), GPS y dirección en tarjetas ----- */
