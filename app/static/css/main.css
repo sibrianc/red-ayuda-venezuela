@@ -1148,13 +1148,20 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 .mapc-panel-layers.is-collapsed .mapc-panel-chev{ transform:rotate(-45deg); }
 .mapc-panel-layers.is-collapsed #cmd-layers{ display:none; }
 
-/* Clusters: se mantiene la burbuja REDONDA del plugin y solo se reviste con el tema oscuro
-   (vidrio + borde y halo cian). Sin rojo/ámbar para no confundirse con la severidad. */
+/* Clusters: burbuja REDONDA del plugin revestida con el tema oscuro. Sin halo cian (estorba
+   al hacer zoom) y sin rojo/ámbar (no confundir con la severidad): solo un círculo limpio. */
 .marker-cluster{ background:transparent !important; font-family:'IBM Plex Mono',monospace; }
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{ background:transparent !important; }
 .marker-cluster div{ width:34px; height:34px; margin-left:3px; margin-top:3px;
   display:flex; align-items:center; justify-content:center; border-radius:50%;
-  background:rgba(8,14,20,.88) !important; color:#aef6ef !important; font-weight:700;
-  border:1px solid rgba(45,225,214,.6);
-  box-shadow:0 0 0 5px rgba(45,225,214,.14), 0 4px 12px rgba(0,0,0,.4); }
+  background:rgba(8,14,20,.9) !important; color:#aef6ef !important; font-weight:700;
+  border:1px solid rgba(45,225,214,.55); box-shadow:0 2px 6px rgba(0,0,0,.45); }
 .marker-cluster span{ line-height:34px; font-size:12px; letter-spacing:.02em; }
+
+/* Buscador en vivo del panel INTEL (sugerencias por categoría/nombre/dirección) */
+.mapc-intel-search{ width:100%; box-sizing:border-box; margin:0 0 7px; height:32px; padding:0 10px;
+  background:rgba(8,13,17,.82); -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px);
+  border:1px solid rgba(45,225,214,.22); border-radius:4px; color:#cfe6e8;
+  font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.02em; }
+.mapc-intel-search::placeholder{ color:#6f8a8e; }
+.mapc-intel-search:focus{ outline:none; border-color:rgba(45,225,214,.6); background:rgba(8,13,17,.92); }
