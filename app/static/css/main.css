@@ -1082,3 +1082,15 @@ html[data-theme="light"] .navbar-toggler-icon{ background-image:url("data:image/
 .twofa-qr svg{width:200px;height:200px;display:block;}
 .twofa-secret{margin-top:.8rem;color:var(--muted);font-size:.9rem;}
 .twofa-secret code{background:var(--glass);padding:.2rem .45rem;border-radius:6px;}
+
+/* ===== Panel: resumen operativo 4W ===== */
+.ops-figures{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.8rem;margin:1.2rem 0 1.6rem;}
+.ops-fig{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;}
+.ops-fig b{font-family:'Sora','Inter',sans-serif;font-size:1.6rem;display:block;color:var(--text);}
+.ops-fig span{color:var(--muted);font-size:.8rem;}
+.ops-list{margin:.4rem 0 1.4rem;padding-left:1.1rem;display:grid;gap:.3rem;}
+.ops-gaps li a{font-weight:700;}
+.ops-row-gap{background:color-mix(in srgb,var(--red,#cf142b) 8%,transparent);}
+.ops-nogap{color:var(--red,#cf142b);font-weight:700;}
+.ops-two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+@media (max-width:760px){.ops-two{grid-template-columns:1fr;}}

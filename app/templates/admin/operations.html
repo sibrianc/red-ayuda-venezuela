@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Operación (4W) · Administración · {{ config.APP_NAME }}{% endblock %}
+{% block content %}
+<section class="container section-space admin-page">
+  <div class="admin-heading">
+    <div><p class="eyebrow">Coordinación · 4W</p><h1>Resumen operativo</h1></div>
+    <div class="admin-heading-actions"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">← Panel</a></div>
+  </div>
+  <p class="text-secondary">Quién necesita Qué, Dónde y Cuándo. Vista interna para coordinar la respuesta y detectar brechas (necesidad sin recurso).</p>
+
+  <div class="ops-figures">
+    <div class="ops-fig"><b>{{ "{:,}".format(missing_total).replace(",", ".") }}</b><span>Desaparecidos</span></div>
+    <div class="ops-fig"><b>{{ "{:,}".format(localized_total).replace(",", ".") }}</b><span>Localizados</span></div>
+    <div class="ops-fig"><b>{{ "{:,}".format(deceased_total).replace(",", ".") }}</b><span>Fallecidos</span></div>
+    <div class="ops-fig"><b>{{ "{:,}".format(incident_total).replace(",", ".") }}</b><span>Incidentes</span></div>
+    <div class="ops-fig"><b>{{ needs|length }}</b><span>Necesidades</span></div>
+    <div class="ops-fig"><b>{{ resource_total }}</b><span>Recursos</span></div>
+  </div>
+
+  <h2>Brechas: necesidades sin recurso <span class="dir-count dir-count-deceased">{{ gaps|length }}</span></h2>
+  <p class="text-secondary">Necesidades publicadas que aún no tienen un recurso candidato (por tipo y zona). Prioriza conseguirlas.</p>
+  {% if gaps %}
+  <ul class="ops-list ops-gaps">
+    {% for n in gaps %}
+    <li><a href="{{ url_for('admin.review_report', report_type='help_request', report_id=n.report.id) }}">{{ n.report.title }}</a> — {{ n.report.request_type }} · {{ n.report.location_text }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Sin brechas: cada necesidad tiene al menos un recurso candidato.</p>
+  {% endif %}
+
+  <h2>Necesidades ↔ recursos</h2>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead><tr><th>Necesidad</th><th>Tipo</th><th>Zona</th><th>Recurso candidato</th></tr></thead>
+      <tbody>
+        {% for n in needs %}
+        <tr class="{{ 'ops-row-gap' if not n.has_match }}">
+          <td><a href="{{ url_for('admin.review_report', report_type='help_request', report_id=n.report.id) }}">{{ n.report.title }}</a></td>
+          <td>{{ n.report.request_type }}</td>
+          <td>{{ n.report.location_text }}</td>
+          <td>{% if n.matches %}{{ n.matches[0].resource.title }} <small class="text-secondary">({{ (n.matches[0].score * 100)|round|int }}%)</small>{% else %}<span class="ops-nogap">Sin recurso</span>{% endif %}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No hay necesidades publicadas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ops-two">
+    <div>
+      <h2>Prioridades de rescate <span class="dir-count">{{ priorities|length }}</span></h2>
+      {% if priorities %}
+      <ul class="ops-list">{% for i in priorities %}<li><strong>{{ i.category_label }}</strong> · {{ i.severity|capitalize }} — {{ i.label }}{% if i.address %} <span class="text-secondary">({{ i.address }})</span>{% endif %}</li>{% endfor %}</ul>
+      {% else %}<p>Sin prioridades críticas activas.</p>{% endif %}
+    </div>
+    <div>
+      <h2>Zonas con más desaparecidos</h2>
+      {% if hotspots %}
+      <ul class="ops-list">{% for h in hotspots %}<li>{{ h.label }} — <strong>{{ h.count }}</strong></li>{% endfor %}</ul>
+      {% else %}<p>Sin desaparecidos geolocalizados por zona.</p>{% endif %}
+      <h2>Zonas sin comunicación <span class="dir-count">{{ comms_zones|length }}</span></h2>
+      {% if comms_zones %}
+      <ul class="ops-list">{% for z in comms_zones %}<li>{{ z.zone_label }}</li>{% endfor %}</ul>
+      {% else %}<p>Sin zonas reportadas.</p>{% endif %}
+    </div>
+  </div>
+
+  <h2>Frescura de datos</h2>
+  <table class="table">
+    <thead><tr><th>Categoría</th><th>Última actualización</th></tr></thead>
+    <tbody>
+      {% for f in freshness %}<tr><td>{{ f.label }}</td><td>{{ f.updated_at|venezuela_time if f.updated_at else '—' }}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,11 +1,38 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from app.constants import Priority, ReportStatus, ReportType
 from app.extensions import db
 from app.models import REPORT_MODELS
+
+
+def data_freshness() -> list[dict]:
+    """Última actualización por categoría de datos (frescura) para el panel operativo."""
+    from app.models import (
+        CommunicationSignal,
+        DirectoryEntry,
+        Incident,
+        PersonRecord,
+        PetRecord,
+        Recognition,
+    )
+
+    def mx(col):
+        return db.session.query(func.max(col)).scalar()
+
+    report_times = [t for t in (mx(model.updated_at) for model in REPORT_MODELS.values()) if t]
+    items = [
+        ("Reportes ciudadanos", max(report_times) if report_times else None),
+        ("Personas (registros)", mx(PersonRecord.updated_at)),
+        ("Incidentes", mx(Incident.updated_at)),
+        ("Servicios", mx(DirectoryEntry.updated_at)),
+        ("Mascotas", mx(PetRecord.updated_at)),
+        ("Reconocimientos", mx(Recognition.updated_at)),
+        ("Zonas sin comunicación", mx(CommunicationSignal.updated_at)),
+    ]
+    return [{"label": label, "updated_at": when} for label, when in items]
 
 
 @dataclass(frozen=True)

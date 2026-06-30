@@ -82,3 +82,27 @@ def test_audit_log_records_sensitive_actions(client, app, admin):
         assert "login_password" in actions
         assert "2fa_verified" in actions
         assert "export_csv" in actions
+
+
+def test_operations_requires_login(client):
+    assert client.get("/admin/operacion").status_code == 302
+
+
+def test_operations_4w_lists_needs_and_gaps(client, app, admin):
+    with app.app_context():
+        from app.constants import ReportStatus
+        from app.models import HelpRequest
+
+        db.session.add(HelpRequest(
+            title="Agua para 20 familias", request_type="water", people_affected=20,
+            location_text="Caraballeda", description_public="Se necesita agua potable urgente.",
+            reporter_name_private="X", reporter_contact_private="y",
+            status=ReportStatus.APPROVED, is_public=True,
+        ))
+        db.session.commit()
+    login(client)
+    page = client.get("/admin/operacion")
+    assert page.status_code == 200
+    assert "Resumen operativo" in page.text
+    assert "Agua para 20 familias" in page.text  # necesidad
+    assert "Brechas" in page.text  # análisis de brecha (sin recurso → gap)

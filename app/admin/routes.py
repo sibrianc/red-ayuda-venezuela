@@ -33,7 +33,15 @@ from app.services.automation import (
     suggest_priority,
     suggest_resource_matches,
 )
-from app.services.reporting import all_items, get_report, parse_report_type, report_title
+from app.services.operational import coordination_overview
+from app.services.reporting import (
+    all_items,
+    data_freshness,
+    get_report,
+    parse_report_type,
+    public_items,
+    report_title,
+)
 
 
 @bp.get("")
@@ -54,6 +62,27 @@ def dashboard():
     abuse_count = AbuseReport.query.filter_by(status=AbuseStatus.PENDING).count()
     return render_template(
         "admin/dashboard.html", items=items, status=status, counts=counts, abuse_count=abuse_count
+    )
+
+
+@bp.get("/operacion")
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+def operations():
+    """Resumen operativo 4W: necesidades ↔ recursos, brechas, prioridades, frescura."""
+    overview = coordination_overview()
+    needs = []
+    for item in public_items({"type": ReportType.HELP_REQUEST.value}):
+        matches = suggest_resource_matches(item.report)
+        needs.append({"report": item.report, "matches": matches[:3], "has_match": bool(matches)})
+    gaps = [n for n in needs if not n["has_match"]]
+    resources = public_items({"type": ReportType.RESOURCE_OFFER.value})
+    return render_template(
+        "admin/operations.html",
+        needs=needs,
+        gaps=gaps,
+        resource_total=len(resources),
+        freshness=data_freshness(),
+        **overview,
     )
 
 
