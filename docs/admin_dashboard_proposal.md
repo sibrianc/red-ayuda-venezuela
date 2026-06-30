@@ -78,7 +78,9 @@ CSV (público/interno) **solo ADMIN**, a prueba de inyección CSV.
   verificación, gate en `roles_required`), invitación de colaboradores (token de un solo
   uso, sin registro público, página `/admin/usuarios`) y bitácora de auditoría
   (`/admin/auditoria`: login, revisión, export, invitación, 2FA). Login con rate limit.
-- **F2 — Resumen operativo (4W)** dentro del panel (necesidades/recursos/brechas/prioridades).
+- **F2 — Resumen operativo (4W): ENTREGADO.** `/admin/operacion` con cifras, análisis de
+  brechas (necesidad sin recurso), tabla necesidades↔recursos, prioridades, hotspots,
+  zonas sin comunicación y frescura de datos.
 - **F3 — Gestión de fuentes/ingesta + reconocimientos/contactos** desde el panel.
 - **F4 — Roles VOLUNTEER/VIEWER** con permisos acotados y vistas sin PII.
 
