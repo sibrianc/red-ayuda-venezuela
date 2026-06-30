@@ -2,6 +2,8 @@
 {% block title %}Centro de operaciones · {{ config.APP_NAME }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -41,8 +43,10 @@
   </header>
 
   <aside class="mapc-left">
-    <div class="mapc-panel">
-      <div class="mapc-panel-h">CAPAS</div>
+    <div class="mapc-panel mapc-panel-layers" id="cmd-layers-panel">
+      <button type="button" class="mapc-panel-h mapc-panel-toggle" id="cmd-layers-toggle" aria-expanded="true" aria-controls="cmd-layers">
+        <span>CAPAS</span><span class="mapc-panel-chev" aria-hidden="true"></span>
+      </button>
       <div class="mapc-layers rk-scroll" id="cmd-layers" role="group" aria-label="Mostrar u ocultar capas"></div>
     </div>
     <button type="button" class="mapc-btn mapc-btn-gps" data-cmd-gps aria-pressed="false">Mi ubicación (GPS)</button>
@@ -97,5 +101,6 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
 <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
 {% endblock %}
