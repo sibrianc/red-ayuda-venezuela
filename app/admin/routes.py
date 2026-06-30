@@ -28,7 +28,7 @@ from app.models import (
     User,
     utcnow,
 )
-from app.services.auth import record_audit, roles_required
+from app.services.auth import can_moderate, record_audit, roles_required
 from app.services.automation import (
     missing_required_information,
     suggest_priority,
@@ -46,7 +46,7 @@ from app.services.reporting import (
 
 
 @bp.get("")
-@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER, UserRole.VOLUNTEER, UserRole.VIEWER)
 def dashboard():
     status = request.args.get("status", "pending")
     if status == "all":
@@ -67,7 +67,7 @@ def dashboard():
 
 
 @bp.get("/operacion")
-@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER, UserRole.VOLUNTEER, UserRole.VIEWER)
 def operations():
     """Resumen operativo 4W: necesidades ↔ recursos, brechas, prioridades, frescura."""
     overview = coordination_overview()
@@ -88,13 +88,28 @@ def operations():
 
 
 @bp.route("/reportes/<report_type>/<int:report_id>", methods=["GET", "POST"])
-@roles_required(UserRole.ADMIN, UserRole.REVIEWER)
+@roles_required(UserRole.ADMIN, UserRole.REVIEWER, UserRole.VOLUNTEER)
 def review_report(report_type: str, report_id: int):
     try:
         parsed_type = parse_report_type(report_type)
         report = get_report(parsed_type, report_id)
     except LookupError:
         abort(404)
+
+    # Colaboradores (VOLUNTEER): solo triage por notas; no moderan ni ven PII.
+    if not can_moderate():
+        if request.method == "POST":
+            note = (request.form.get("note") or "").strip()
+            if note:
+                db.session.add(
+                    AdminNote(report_type=parsed_type, report_id=report.id, user_id=current_user.id, note=note)
+                )
+                db.session.commit()
+                record_audit("note_added", detail=f"{parsed_type.value}:{report.public_id}")
+                flash("Nota añadida.", "success")
+            return redirect(
+                url_for("admin.review_report", report_type=parsed_type.value, report_id=report.id)
+            )
 
     form = ReviewForm()
     if request.method == "GET":
@@ -104,7 +119,7 @@ def review_report(report_type: str, report_id: int):
         form.is_public.data = report.is_public
         form.description_public.data = report.description_public
 
-    if form.validate_on_submit():
+    if can_moderate() and form.validate_on_submit():
         old_status = report.status
         new_status = ReportStatus(form.status.data)
         report.status = new_status

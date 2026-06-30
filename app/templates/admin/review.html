@@ -6,12 +6,17 @@
   <div class="admin-heading"><div><p class="eyebrow">Revisión interna · {{ report_type_labels[report_type] }}</p><h1>{{ title }}</h1></div><span class="priority priority-{{ report.priority.value }}">{{ priority_labels[report.priority] }}</span></div>
   <div class="admin-grid">
     <div>
+      {% if can_see_pii %}
       <section class="admin-card"><h2>Información recibida</h2><dl class="detail-grid"><div><dt>Zona general</dt><dd>{{ report.location_text }}</dd></div><div><dt>Dirección exacta privada</dt><dd>{{ report.exact_address_private or 'No indicada' }}</dd></div><div><dt>Contacto privado</dt><dd>{{ report.reporter_contact_private }}</dd></div><div><dt>Reportante</dt><dd>{{ report.reporter_name_private }}</dd></div></dl><h3>Descripción privada</h3><p>{{ report.description_private or 'Sin detalles privados.' }}</p>{% if report.medical_information_private is defined %}<h3>Información médica privada</h3><p>{{ report.medical_information_private or 'No indicada.' }}</p>{% endif %}</section>
+      {% else %}
+      <section class="admin-card"><h2>Información (sin datos personales)</h2><dl class="detail-grid"><div><dt>Zona general</dt><dd>{{ report.location_text }}</dd></div></dl><p>{{ report.description_public }}</p><p class="text-secondary">El contacto, la dirección exacta y las notas médicas están restringidos a revisores.</p></section>
+      {% endif %}
       <section class="admin-card"><h2>Señales automáticas</h2><p><strong>Prioridad sugerida:</strong> {{ priority_labels[suggested_priority] }}</p><ul>{% for reason in priority_reasons %}<li>{{ reason }}</li>{% endfor %}</ul>{% if missing_information %}<p><strong>Información faltante:</strong> {{ missing_information|join(', ') }}</p>{% endif %}<p class="text-secondary">Estas señales no cambian la decisión final del revisor.</p></section>
       {% if duplicates.count() %}<section class="admin-card"><h2>Posibles duplicados</h2>{% for candidate in duplicates %}<p>Reporte interno #{{ candidate.possible_duplicate_id }} · {{ (candidate.score * 100)|round }}% · {{ candidate.reason }}</p>{% endfor %}</section>{% endif %}
       {% if resource_matches %}<section class="admin-card"><h2>Recursos posiblemente compatibles</h2>{% for match in resource_matches %}<p><strong>{{ match.resource.title }}</strong> · {{ (match.score * 100)|round }}% · {{ match.reason }}</p>{% endfor %}</section>{% endif %}
     </div>
     <aside>
+      {% if can_moderate %}
       <form method="post" class="admin-card review-form" novalidate>{{ form.hidden_tag() }}<h2>Decisión humana</h2>
         <div class="mb-3">{{ form.status.label(class="form-label") }}{{ form.status(class="form-select") }}</div>
         <div class="mb-3">{{ form.verification_status.label(class="form-label") }}{{ form.verification_status(class="form-select") }}</div>
@@ -22,6 +27,15 @@
         <div class="mb-3">{{ form.note.label(class="form-label") }}{{ form.note(class="form-control") }}</div>
         {{ form.submit(class="btn btn-primary w-100") }}
       </form>
+      {% else %}
+      <form method="post" class="admin-card review-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h2>Triage</h2>
+        <p class="text-secondary">Como colaborador puedes añadir notas internas para el equipo. La publicación la decide un revisor.</p>
+        <div class="mb-3"><label class="form-label" for="note">Nueva nota interna</label><textarea class="form-control" id="note" name="note" rows="4"></textarea></div>
+        <button class="btn btn-primary w-100" type="submit">Añadir nota</button>
+      </form>
+      {% endif %}
       <section class="admin-card"><h2>Notas internas</h2>{% for note in notes %}<article class="internal-note"><p>{{ note.note }}</p><small>{{ note.author.name }} · {{ note.created_at|venezuela_time }}</small></article>{% else %}<p>No hay notas.</p>{% endfor %}</section>
       <section class="admin-card"><h2>Historial</h2>{% for event in history %}<p>{{ status_labels[event.old_status] }} → {{ status_labels[event.new_status] }}<br><small>{{ event.created_at|venezuela_time }}{% if event.reason %} · {{ event.reason }}{% endif %}</small></p>{% else %}<p>Sin cambios registrados.</p>{% endfor %}</section>
     </aside>

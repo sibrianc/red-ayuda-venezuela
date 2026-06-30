@@ -52,6 +52,32 @@ def reviewer(app):
         return user.id
 
 
+@pytest.fixture()
+def volunteer(app):
+    with app.app_context():
+        user = User(
+            name="Colab", email="vol@example.org", role=UserRole.VOLUNTEER,
+            totp_secret=TEST_TOTP_SECRET, totp_enabled=True,
+        )
+        user.set_password("correct-horse-battery-staple")
+        db.session.add(user)
+        db.session.commit()
+        return user.id
+
+
+@pytest.fixture()
+def viewer(app):
+    with app.app_context():
+        user = User(
+            name="Observador", email="viewer@example.org", role=UserRole.VIEWER,
+            totp_secret=TEST_TOTP_SECRET, totp_enabled=True,
+        )
+        user.set_password("correct-horse-battery-staple")
+        db.session.add(user)
+        db.session.commit()
+        return user.id
+
+
 def login(client, email="admin@example.org"):
     """Inicia sesión completa: contraseña + segundo factor (2FA)."""
     client.post(

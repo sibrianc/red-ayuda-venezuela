@@ -701,6 +701,12 @@ def register_template_helpers(app: Flask) -> None:
             "verification_labels": VERIFICATION_LABELS,
         }
 
+    @app.context_processor
+    def permissions():
+        from app.services.auth import can_moderate, can_see_pii
+
+        return {"can_see_pii": can_see_pii(), "can_moderate": can_moderate()}
+
 
 def register_security_headers(app: Flask) -> None:
     @app.after_request

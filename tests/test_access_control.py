@@ -140,3 +140,65 @@ def test_sources_overview_renders(client, admin):
     assert page.status_code == 200
     assert "Inventario" in page.text
     assert "Reconocimientos" in page.text
+
+
+def _pending_help_with_pii():
+    from app.constants import ReportStatus
+    from app.models import HelpRequest
+
+    r = HelpRequest(
+        title="Necesita agua", request_type="water", people_affected=3,
+        location_text="Macuto", description_public="Texto público del caso.",
+        reporter_name_private="Juan Privado", reporter_contact_private="+58 secreto",
+        exact_address_private="Calle secreta 1", description_private="detalle privado",
+        status=ReportStatus.PENDING,
+    )
+    db.session.add(r)
+    db.session.commit()
+    return r.id
+
+
+def test_volunteer_reviews_without_pii_and_can_note(client, app, volunteer):
+    with app.app_context():
+        rid = _pending_help_with_pii()
+    login(client, "vol@example.org")
+    page = client.get(f"/admin/reportes/help_request/{rid}")
+    assert page.status_code == 200
+    assert "+58 secreto" not in page.text
+    assert "Calle secreta 1" not in page.text
+    assert "Juan Privado" not in page.text
+    client.post(f"/admin/reportes/help_request/{rid}", data={"note": "Revisé el caso."})
+    with app.app_context():
+        from app.models import AdminNote
+
+        assert AdminNote.query.count() == 1
+    # No puede moderar ni acceder a gestión/export
+    assert client.get("/admin/reconocimientos").status_code == 403
+    assert client.get("/admin/exportar/help_request.csv").status_code == 403
+
+
+def test_volunteer_cannot_change_status(client, app, volunteer):
+    with app.app_context():
+        rid = _pending_help_with_pii()
+    login(client, "vol@example.org")
+    client.post(
+        f"/admin/reportes/help_request/{rid}",
+        data={"status": "approved", "verification_status": "unverified",
+              "priority": "high", "description_public": "x" * 20, "is_public": "y"},
+    )
+    with app.app_context():
+        from app.constants import ReportStatus
+        from app.models import HelpRequest
+
+        report = db.session.get(HelpRequest, rid)
+        assert report.status is ReportStatus.PENDING
+        assert report.is_public is False
+
+
+def test_viewer_sees_operations_but_not_review_or_admin(client, viewer):
+    login(client, "viewer@example.org")
+    assert client.get("/admin/operacion").status_code == 200
+    assert client.get("/admin").status_code == 200  # tablero de solo lectura
+    assert client.get("/admin/reportes/help_request/1").status_code == 403  # no revisa
+    assert client.get("/admin/exportar/help_request.csv").status_code == 403
+    assert client.get("/admin/usuarios").status_code == 403

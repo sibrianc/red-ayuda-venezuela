@@ -3,7 +3,22 @@ from functools import wraps
 from flask import redirect, request, session, url_for
 from flask_login import current_user, login_required
 
+from app.constants import UserRole
 from app.extensions import db
+
+# Roles que pueden ver datos personales (PII) y moderar (cambiar estado/publicar).
+_TRUSTED_ROLES = {UserRole.ADMIN, UserRole.REVIEWER}
+
+
+def can_see_pii(user=None) -> bool:
+    user = user or current_user
+    return bool(user.is_authenticated) and user.role in _TRUSTED_ROLES
+
+
+def can_moderate(user=None) -> bool:
+    """Puede cambiar estado/verificación/prioridad y publicar reportes."""
+    user = user or current_user
+    return bool(user.is_authenticated) and user.role in _TRUSTED_ROLES
 
 
 def mfa_passed() -> bool:
