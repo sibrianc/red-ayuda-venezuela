@@ -274,9 +274,17 @@ def public_missing_persons(q: str | None = None, limit: int = 300) -> list[dict]
     ]
 
 
-def maps_url(latitude=None, longitude=None, text: str | None = None) -> str | None:
-    """Enlace a Google Maps: por coordenadas si las hay; si no, por texto de ubicación."""
+def maps_url(latitude=None, longitude=None, text: str | None = None, label: str | None = None) -> str | None:
+    """Enlace a Google Maps.
+
+    Con coordenadas, apunta al PUNTO EXACTO mapeado (de la fuente, p. ej. OSM) y, si hay
+    nombre, lo usa como ETIQUETA del pin (`q=lat,lng(nombre)`). Así no se muestra un código
+    Plus suelto ni se afirma una dirección que podría ser incorrecta: se navega al punto
+    real, rotulado con el nombre del lugar. Sin coordenadas, busca por el texto de ubicación.
+    """
     if latitude is not None and longitude is not None:
+        if label and label.strip():
+            return f"https://www.google.com/maps?q={latitude},{longitude}(" + urllib.parse.quote(label.strip()) + ")"
         return f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
     if text and text.strip():
         return "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(f"{text.strip()}, Venezuela")
@@ -467,7 +475,7 @@ def public_incidents(
             "latitude": incident.latitude,
             "longitude": incident.longitude,
             "address": incident.address_public,
-            "maps_url": maps_url(incident.latitude, incident.longitude, incident.address_public),
+            "maps_url": maps_url(incident.latitude, incident.longitude, label=incident.label),
             "status": incident.status,
             "verification_status": incident.verification_status,
             "verification_label": INCIDENT_VERIFICATION_LABELS.get(
@@ -570,7 +578,7 @@ def public_directory(q: str | None = None, category: str | None = None, limit: i
             "latitude": entry.latitude,
             "longitude": entry.longitude,
             "address": entry.address_public,
-            "maps_url": maps_url(entry.latitude, entry.longitude, entry.address_public),
+            "maps_url": maps_url(entry.latitude, entry.longitude, label=entry.name),
             "phone": entry.phone_public,
             "operator": entry.operator,
             "emergency": entry.emergency,
