@@ -192,7 +192,8 @@ def test_emergency_contacts_page_lists_verified_channels(client):
 
 def test_home_links_to_family_search_and_emergency(client):
     html = client.get("/").text
-    assert "Buscar personas" in html
-    assert "/directorio/personas" in html
+    # El sitio se centra en mapa/servicios/coordinación; personas → registro oficial (externo).
+    assert "Ir al registro oficial" in html          # CTA al registro ciudadano
+    assert "/directorio/personas" in html             # vista agregada de personas
     assert "Directorio de incidentes y servicios" in html
     assert "/contactos" in html
