@@ -173,12 +173,16 @@ def coordination_overview() -> dict:
     """Datos del Centro de Coordinación que conecta familias ↔ rescatistas ↔ recursos:
     prioridades de rescate, zonas con más desaparecidos, zonas sin comunicación y conteos."""
     incidents = public_incidents()
+    # Prioridades de rescate = LISTA operativa (no pines del mapa): incluye colapsos reales
+    # aunque aún no tengan coordenada exacta (no se inventan). Orden: críticas primero y, a
+    # igual severidad, las que SÍ tienen coordenada (más accionables) arriba.
     priorities = [
         i for i in incidents
         if i["category"] in DANGER_CATEGORIES_PUBLIC
         and i["severity"] in {"critical", "high"}
-        and i.get("latitude") is not None
-    ][:30]
+    ]
+    priorities.sort(key=lambda i: (i["severity"] != "critical", i.get("latitude") is None))
+    priorities = priorities[:30]
     return {
         "missing_total": count_person_records("missing"),
         "localized_total": count_person_records("found"),
