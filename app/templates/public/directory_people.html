@@ -10,7 +10,7 @@
 {% set args = dict(estado=estado) %}{% if q %}{% set _x = args.update({'q': q}) %}{% endif %}
 <div class="rv-page directory-page">
   {{ chrome('personas', _('Personas · Reunificación familiar'), _('Buscar personas'),
-            _('Desaparecidas, localizadas y fallecidas — publicadas por fuentes identificadas. Menores excluidos por protección.'),
+            _('Desaparecidas y localizadas — publicadas por fuentes identificadas. Menores excluidos por protección.'),
             q, url_for('public.directory_people')) }}
 
   <div class="container" id="dir-results">
@@ -19,7 +19,6 @@
         <p class="eyebrow">{{ _('Prioridad: las personas') }}</p>
         <h2>{{ estado_heading }}{% if total %} <span class="dir-count">{{ "{:,}".format(total).replace(",", ".") }}</span>{% endif %}</h2>
         {% if estado == 'missing' and figure_missing %}<p class="dir-figure-context">{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_missing.value).replace(",", ".") }}</strong> ({{ figure_missing.source_name }}).</p>{% endif %}
-        {% if estado == 'deceased' and figure_dead %}<p class="dir-figure-context">{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}). {{ _('Solo se listan nombres ya publicados por fuentes identificadas.') }}</p>{% endif %}
       </div>
       <a class="btn btn-primary" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
     </div>
@@ -45,7 +44,7 @@
       </article>
       {% endfor %}
       {% for p in records %}
-      <article class="dir-person-card dir-person-{{ 'found' if estado == 'found' else ('deceased' if estado == 'deceased' else 'published') }}">
+      <article class="dir-person-card dir-person-{{ 'found' if estado == 'found' else 'published' }}">
         <div class="dir-person-source">{% if estado == 'found' %}{{ _('Localizada') }}{% else %}{{ _('Registro publicado') }}{% endif %}{% if p.source_name %} · {{ p.source_name }}{% endif %}</div>
         <h3>{{ p.full_name }}</h3>{{ corrob(p) }}
         <p class="dir-person-meta">{% if p.age is not none %}{{ p.age }} {{ _('años') }}{% endif %}{% if p.sex %} · {{ p.sex }}{% endif %}</p>
@@ -64,6 +63,13 @@
       <p>{{ _('No hay personas en esta categoría.') }}{% if q %} («{{ q }}»){% endif %} {{ _('Prueba otra pestaña, consulta los registros oficiales o repórtalo con el botón de arriba.') }}</p>
     </div>
     {% endif %}
+
+    <aside class="dir-memoriam" aria-label="{{ _('Personas fallecidas') }}">
+      <h3>{{ _('Personas fallecidas') }}</h3>
+      <p>{{ _('Por respeto a las familias y para no arriesgar errores, no publicamos una lista de nombres de personas fallecidas. La identificación corresponde a las autoridades y a los registros oficiales.') }}
+      {% if figure_dead %}{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}).{% endif %}</p>
+      <p class="dir-note">{{ _('Para datos de personas fallecidas, consulta a las autoridades y los registros oficiales de abajo.') }}</p>
+    </aside>
 
     <section class="rv-section dir-registries-section" id="registros">
       <div class="dir-registries">

@@ -42,7 +42,8 @@ def test_directory_subpages_render(client):
     assert people.status_code == 200
     assert "Reportar un familiar" in people.text
     assert "Registros oficiales" in people.text
-    assert "Personas fallecidas" in client.get("/directorio/personas?estado=deceased").text
+    # Fallecidas: no hay lista navegable, sí una nota digna en la página de personas.
+    assert "Personas fallecidas" in people.text
     assert "Incidentes y evaluación estructural" in client.get("/directorio/incidentes").text
     assert client.get("/directorio/servicios").status_code == 200
     assert client.get("/directorio/zonas").status_code == 200
@@ -167,15 +168,13 @@ def test_directory_combines_reviewed_and_pfif_people_and_excludes_minors(app, cl
     assert "Ana Pérez" in missing
     assert "Elena Salazar" in missing
     assert "Persona Menor Protegida" not in missing
-    # Fallecidas: PFIF "believed_dead" (Rafael), con enlace a la fuente
-    deceased = client.get("/directorio/personas?estado=deceased").text
-    assert "Rafael Mendoza" in deceased
-    assert "Consultar fuente" in deceased
-    assert "Persona Menor Protegida" not in deceased
-
-    search = client.get("/directorio/personas?estado=deceased&q=Caraballeda").text
-    assert "Rafael Mendoza" in search
-    assert "Elena Salazar" not in search
+    # Fallecidas: NO se publica una lista de nombres (decisión de dignidad). 'deceased'
+    # ya no es un estado navegable: redirige a desaparecidas y Rafael no aparece listado.
+    redirected = client.get("/directorio/personas?estado=deceased").text
+    assert "Rafael Mendoza" not in redirected
+    # En su lugar, una nota digna que remite a fuentes oficiales.
+    assert "Personas fallecidas" in redirected
+    assert "no publicamos una lista de nombres" in redirected
 
 
 def test_directory_has_live_search_hooks(client):
