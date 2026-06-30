@@ -14,6 +14,7 @@
             q, url_for('public.directory_people')) }}
 
   <div class="container" id="dir-results">
+    {% if estado != 'deceased' %}
     <div class="dir-section-head">
       <div>
         <p class="eyebrow">{{ _('Prioridad: las personas') }}</p>
@@ -22,12 +23,33 @@
       </div>
       <a class="btn btn-primary" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
     </div>
+    {% endif %}
 
     <div class="dir-chips" role="group" aria-label="{{ _('Personas') }}">
       {% for t in tabs %}
-      <a class="dir-chip {{ 'is-active' if estado == t.key }}" href="{{ url_for('public.directory_people', estado=t.key, q=q or none) }}">{{ t.label }} ({{ "{:,}".format(t.count).replace(",", ".") }})</a>
+      <a class="dir-chip {{ 'is-active' if estado == t.key }}{{ ' dir-chip-memoriam' if t.key == 'deceased' }}" href="{{ url_for('public.directory_people', estado=t.key, q=q or none) }}">{{ t.label }}{% if t.count is not none %} ({{ "{:,}".format(t.count).replace(",", ".") }}){% endif %}</a>
       {% endfor %}
     </div>
+
+    {% if estado == 'deceased' %}
+    <section class="dir-memorial" aria-label="{{ _('Personas fallecidas') }}">
+      <span class="dir-memorial-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21C12 21 4 13.8 4 8.6 4 5.5 6.4 3 9.4 3c1.7 0 3.2.9 4.1 2.2.9-1.3 2.4-2.2 4.1-2.2 3 0 5.4 2.5 5.4 5.6 0 5.2-8 12.4-8 12.4z"/></svg>
+      </span>
+      <p class="dir-memorial-eyebrow">{{ _('En memoria') }}</p>
+      <h2 class="dir-memorial-title">{{ _('Honramos la memoria de las víctimas') }}</h2>
+      <p class="dir-memorial-lede">{{ _('Acompañamos en el dolor a cada familia que ha perdido a un ser querido. Ninguna cifra alcanza a nombrar lo que vale una vida: sostenemos su memoria con respeto, y a ustedes, con fuerza. No están solos.') }}</p>
+      {% if figure_dead %}
+      <p class="dir-memorial-figure"><strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong><span>{{ _('personas fallecidas reportadas oficialmente') }} · {{ figure_dead.source_name }}</span></p>
+      {% endif %}
+      <p class="dir-memorial-note">{{ _('Por respeto a las familias y para no arriesgar errores, no publicamos una lista de nombres de personas fallecidas. La identificación corresponde a las autoridades y a los registros oficiales.') }}</p>
+      <p class="dir-memorial-help">{{ _('Si buscas a una persona fallecida o necesitas confirmar una identificación, el registro oficial reúne y actualiza esa información con el debido cuidado.') }}</p>
+      <a class="dir-memorial-link" href="{{ person_registry_url }}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
+        <span>{{ _('Consultar el registro oficial') }}<small>{{ _('Búsqueda y confirmación de identificaciones') }}</small></span>
+      </a>
+    </section>
+    {% else %}
 
     {% if q %}<p class="dir-searchnote">Resultados para «{{ q }}» en {{ estado_label|lower }}: {{ "{:,}".format(total).replace(",", ".") }}.</p>{% endif %}
 
@@ -63,15 +85,7 @@
       <p>{{ _('No hay personas en esta categoría.') }}{% if q %} («{{ q }}»){% endif %} {{ _('Prueba otra pestaña, consulta los registros oficiales o repórtalo con el botón de arriba.') }}</p>
     </div>
     {% endif %}
-
-    <aside class="dir-memoriam" aria-label="{{ _('Personas fallecidas') }}">
-      <h3>{{ _('En memoria de las personas fallecidas') }}</h3>
-      <p class="dir-memoriam-lede">{{ _('Acompañamos en el dolor a cada familia que ha perdido a un ser querido. Ninguna cifra alcanza a nombrar lo que vale una vida: sostenemos su memoria con respeto, y a ustedes, con fuerza. No están solos.') }}</p>
-      <p>{{ _('Por respeto a las familias y para no arriesgar errores, no publicamos una lista de nombres de personas fallecidas. La identificación corresponde a las autoridades y a los registros oficiales.') }}
-      {% if figure_dead %}{{ _('Cifra oficial reportada:') }} <strong>{{ "{:,}".format(figure_dead.value).replace(",", ".") }}</strong> ({{ figure_dead.source_name }}).{% endif %}</p>
-      <p class="dir-note">{{ _('Si buscas a una persona fallecida o necesitas confirmar una identificación, el registro oficial reúne y actualiza esa información con el debido cuidado.') }}</p>
-      <a class="btn btn-primary dir-memoriam-link" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Consultar el registro oficial') }} ↗</a>
-    </aside>
+    {% endif %}
 
     <section class="rv-section dir-registries-section" id="registros">
       <div class="dir-registries">
