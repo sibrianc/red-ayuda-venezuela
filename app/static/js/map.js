@@ -199,7 +199,19 @@ window.addEventListener("DOMContentLoaded", async () => {
   const userLayer = L.layerGroup().addTo(map);
 
   // ---------------- marcadores ----------------
-  const markersGroup = L.layerGroup().addTo(map);
+  // Agrupamiento (clustering): con miles de servicios, agrupar y mantener en el DOM solo
+  // lo visible hace el mapa fluido SIN perder datos. Si el plugin no cargó, cae a un grupo
+  // simple para no romper nada.
+  const markersGroup = (typeof L.markerClusterGroup === "function"
+    ? L.markerClusterGroup({
+        chunkedLoading: true,            // añade en lotes: no congela la UI
+        removeOutsideVisibleBounds: true, // solo gestiona lo visible
+        maxClusterRadius: 55,
+        disableClusteringAtZoom: 17,     // al acercar, iconos individuales
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+      })
+    : L.layerGroup()).addTo(map);
   const makeIcon = (it) => {
     const cat = catOf(it.cat);
     return L.divIcon({ className: "mapc-mk", html: `<span style="--c:${cat.c};color:${cat.c}">${iconSvg(it.cat)}</span>`, iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -13] });
@@ -232,12 +244,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   const inRadius = () => items.filter((it) => it.dist <= radiusKm && layers[it.cat] !== false);
   const renderMarkers = () => {
     markersGroup.clearLayers();
-    inRadius().forEach((it) => {
+    const built = inRadius().map((it) => {
       const m = L.marker([it.lat, it.lng], { icon: makeIcon(it), keyboard: false });
-      m.bindPopup(popupFor(it), { minWidth: 220 });
+      // Popup PEREZOSO: se construye su DOM solo al abrirlo, no para los miles de marcadores
+      // de golpe. Esto es lo que más aligera la carga inicial del mapa.
+      m.bindPopup((layer) => popupFor(it), { minWidth: 220 });
       m.on("click", () => { selectedId = it.id; renderIntel(); });
-      markersGroup.addLayer(m);
+      return m;
     });
+    if (typeof markersGroup.addLayers === "function") markersGroup.addLayers(built); // alta por lotes
+    else built.forEach((m) => markersGroup.addLayer(m));
   };
 
   // ---------------- panel INTEL (con dirección en texto) ----------------
@@ -449,6 +465,19 @@ window.addEventListener("DOMContentLoaded", async () => {
   qb("[data-cmd-recenter]", () => map.flyTo([epicenter.lat, epicenter.lng], 12, { duration: 0.6 }));
   const gpsBtn = document.querySelector("[data-cmd-gps]");
   if (gpsBtn) gpsBtn.addEventListener("click", () => locate(gpsBtn));
+
+  // CAPAS colapsable (en móvil arranca cerrado para no estorbar).
+  const layersPanel = document.getElementById("cmd-layers-panel");
+  const layersToggle = document.getElementById("cmd-layers-toggle");
+  if (layersPanel && layersToggle) {
+    const setCollapsed = (collapsed) => {
+      layersPanel.classList.toggle("is-collapsed", collapsed);
+      layersToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    };
+    setCollapsed(window.matchMedia("(max-width: 760px)").matches);
+    layersToggle.addEventListener("click", () =>
+      setCollapsed(!layersPanel.classList.contains("is-collapsed")));
+  }
 
   // ---------------- arranque ----------------
   await loadData();
