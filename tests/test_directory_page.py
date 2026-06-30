@@ -176,3 +176,12 @@ def test_directory_combines_reviewed_and_pfif_people_and_excludes_minors(app, cl
     search = client.get("/directorio/personas?estado=deceased&q=Caraballeda").text
     assert "Rafael Mendoza" in search
     assert "Elena Salazar" not in search
+
+
+def test_directory_has_live_search_hooks(client):
+    # Búsqueda en vivo: contenedor de resultados con id estable + script cargado.
+    html = client.get("/directorio/personas").text
+    assert 'id="dir-results"' in html
+    assert "directory_search.js" in html
+    # El filtro por servidor (que usa el JS) responde con el contenedor de resultados.
+    assert 'id="dir-results"' in client.get("/directorio/servicios?q=hospital").text
