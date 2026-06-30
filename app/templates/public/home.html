@@ -14,15 +14,15 @@
     <div class="container rv-hero-inner">
       <span class="rv-badge"><i aria-hidden="true"></i> {{ _('Panorama humanitario público') }}</span>
       <h1>{{ _('El terremoto de Venezuela, en un solo lugar') }}</h1>
-      <p class="rv-lead">{{ _('Concentramos y presentamos la información dispersa: personas, edificios e incidentes, servicios, zonas sin comunicación y mascotas — cada dato con su fuente, frescura y límites de privacidad. Para reportar a un familiar te llevamos al registro ciudadano.') }}</p>
+      <p class="rv-lead">{{ _('Concentramos y presentamos el panorama del terremoto: mapa de servicios (hospitales, refugios, agua, combustible), edificios y daños, zonas sin comunicación y coordinación de rescate — cada dato con su fuente. ¿Buscás o reportás a un familiar desaparecido? Te llevamos al registro ciudadano oficial.') }}</p>
       <div class="rv-hero-actions">
-        <a class="rv-btn rv-btn-light rv-btn-lg" href="{{ url_for('public.directory_people') }}">{{ _('Buscar personas →') }}</a>
+        <a class="rv-btn rv-btn-light rv-btn-lg" href="{{ url_for('map.index') }}">{{ _('Ver el mapa vivo →') }}</a>
         <a class="rv-btn rv-btn-emergency" href="{{ url_for('public.contacts') }}">{{ _('Emergencia · 911') }}</a>
       </div>
-      <nav class="rv-hero-sub" aria-label="{{ _('Directorio de incidentes y servicios') }}">
+      <nav class="rv-hero-sub" aria-label="{{ _('Accesos rápidos') }}">
         <a href="{{ url_for('public.directory') }}">{{ _('Directorio de incidentes y servicios') }}</a>
-        <a href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Reportar un familiar') }} ↗</a>
-        <a href="{{ url_for('map.index') }}">{{ _('Ver el mapa vivo') }}</a>
+        <a href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Buscar o reportar un familiar') }} ↗</a>
+        <a href="{{ url_for('public.coordination') }}">{{ _('Centro de coordinación') }}</a>
       </nav>
       <dl class="rv-stats">
         <div><dd data-summary-total>{{ summary.total }}</dd><dt>{{ _('Registros visibles') }}</dt></div>
@@ -34,6 +34,17 @@
     </div>
   </section>
 
+  <section class="container">
+    <aside class="rv-registry-banner" aria-label="{{ _('Registro de personas desaparecidas') }}">
+      <span class="rv-rb-ic" aria-hidden="true">{{ icon('user-search') }}</span>
+      <div class="rv-rb-text">
+        <strong>{{ _('¿Buscás o reportás a un familiar desaparecido?') }}</strong>
+        <p>{{ _('El registro de personas lo gestiona el registro ciudadano oficial. Nosotros concentramos el mapa de servicios, los daños y la coordinación: no duplicamos su trabajo, lo complementamos.') }}</p>
+      </div>
+      <a class="rv-btn rv-btn-light" href="{{ person_registry_url }}" target="_blank" rel="noopener">{{ _('Ir al registro oficial') }} ↗</a>
+    </aside>
+  </section>
+
   <section class="container rv-section" aria-labelledby="rv-actions-title">
     <p class="rv-kicker">{{ _('Explora') }}</p>
     <h2 class="rv-h2" id="rv-actions-title">{{ _('¿Qué información buscas?') }}</h2>
@@ -41,7 +52,7 @@
       <a class="rv-card rv-c-persona" href="{{ url_for('public.directory_people') }}">
         <span class="rv-ic" aria-hidden="true">{{ icon('user-search') }}</span>
         <h3>{{ _('Personas') }}</h3>
-        <p>{{ _('Desaparecidas, localizadas y fallecidas. Busca o reporta a un familiar.') }}</p>
+        <p>{{ _('Localizadas y desaparecidas, de fuentes públicas. Para reportar, usá el registro oficial.') }}</p>
         <span class="rv-go">{{ _('Abrir →') }}</span>
       </a>
       <a class="rv-card rv-c-recurso" href="{{ url_for('public.directory_incidents') }}">
