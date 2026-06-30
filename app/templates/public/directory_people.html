@@ -34,7 +34,7 @@
     {% if estado == 'deceased' %}
     <section class="dir-memorial" aria-label="{{ _('Personas fallecidas') }}">
       <span class="dir-memorial-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5l-1.32-1.2C6.1 15.16 3 12.36 3 8.9 3 6.1 5.2 3.9 8 3.9c1.58 0 3.1.74 4 1.9.9-1.16 2.42-1.9 4-1.9 2.8 0 5 2.2 5 5 0 3.46-3.1 6.26-7.68 10.4L12 20.5z"/></svg>
       </span>
       <p class="dir-memorial-eyebrow">{{ _('En memoria') }}</p>
       <h2 class="dir-memorial-title">{{ _('Honramos la memoria de las víctimas') }}</h2>
@@ -46,8 +46,8 @@
       <p class="dir-memorial-note">{{ _('Por respeto a las familias y para no arriesgar errores, no publicamos una lista de nombres de personas fallecidas. La identificación corresponde a las autoridades y a los registros oficiales.') }}</p>
       <p class="dir-memorial-help">{{ _('Si buscas a una persona fallecida o necesitas confirmar una identificación, el registro oficial reúne y actualiza esa información con el debido cuidado.') }}</p>
       <a class="dir-memorial-link" href="{{ person_registry_url }}" target="_blank" rel="noopener">
-        <span class="dir-memorial-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg></span>
-        <span><strong>{{ _('Consultar el registro oficial') }}</strong><small>{{ _('Búsqueda y confirmación de identificaciones') }}</small></span>
+        {{ _('Consultar el registro oficial') }}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
       </a>
     </section>
     {% else %}
