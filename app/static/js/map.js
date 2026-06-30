@@ -369,12 +369,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   const computeEpicenter = (live) => {
     const pts = live.intensity || [];
     if (pts.length) {
+      // Centroide ponderado del IMPACTO real (incidentes + densidad de desaparecidos):
+      // los anillos se centran en las zonas más afectadas.
       let sLat = 0, sLng = 0, sW = 0;
       pts.forEach((p) => { const w = (p[2] || 0.5); sLat += p[0] * w; sLng += p[1] * w; sW += w; });
       if (sW > 0) return { lat: sLat / sW, lng: sLng / sW };
     }
-    const evs = (live.events || []).filter((e) => e.latitude != null && e.magnitude != null);
-    if (evs.length) { const top = evs.reduce((a, b) => (b.magnitude > a.magnitude ? b : a)); return { lat: top.latitude, lng: top.longitude }; }
+    // Sin datos de impacto todavía: usa el epicentro conocido (La Guaira). No saltamos al
+    // sismo de mayor magnitud del catálogo: suele estar mar adentro y descentra los anillos.
     return epicenter;
   };
   const loadData = async () => {
