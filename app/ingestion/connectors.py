@@ -327,6 +327,13 @@ def parse_gdacs_geojson(payload: dict) -> list[ParsedEvent]:
 OSM_SOURCE_SLUG = "osm-overpass"
 OSM_ATTRIBUTION = "© OpenStreetMap contributors"
 OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter"
+# Mirrors en orden de preferencia: kumi.systems suele responder en segundos; el endpoint
+# principal y el de Francia quedan como respaldo. Se usa el primero que responda.
+OVERPASS_ENDPOINTS = (
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
+)
 
 # Etiquetas OSM que nos interesan, mapeadas a categorías propias.
 OSM_AMENITY_TO_CATEGORY = {
@@ -395,15 +402,29 @@ def build_overpass_query(bbox: dict | None = None) -> str:
     return "[out:json][timeout:90];(" + "".join(selectors) + ");out center tags;"
 
 
-def fetch_overpass(query: str | None = None, *, timeout: int = 120) -> dict:
-    """Descarga datos de Overpass (POST). Requiere red; no se llama en pruebas."""
+def fetch_overpass(query: str | None = None, *, timeout: int = 90) -> dict:
+    """Descarga datos de Overpass (POST), probando varios mirrors en orden.
+
+    El endpoint público (`overpass-api.de`) suele **encolar o ralentizar** peticiones
+    desde IPs de nube (p. ej. Render), dejando la conexión "viva" sin responder. Para
+    evitar cuelgues largos probamos mirrors más rápidos primero y usamos el primero que
+    responda; cada intento está acotado por `timeout`, así que nunca espera de forma
+    indefinida. Requiere red; no se llama en pruebas.
+    """
     body = urllib.parse.urlencode({"data": query or build_overpass_query()}).encode("utf-8")
-    request = urllib.request.Request(
-        OVERPASS_ENDPOINT, data=body, headers={"User-Agent": USER_AGENT}
-    )
     context = _ssl_context()
-    with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-        return json.load(response)
+    last_error: Exception | None = None
+    for endpoint in OVERPASS_ENDPOINTS:
+        request = urllib.request.Request(
+            endpoint, data=body, headers={"User-Agent": USER_AGENT}
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
+                return json.load(response)
+        except Exception as exc:  # noqa: BLE001 — intentar el siguiente mirror
+            last_error = exc
+            continue
+    raise RuntimeError(f"Overpass no respondió en ningún mirror: {last_error}")
 
 
 def _osm_category(tags: dict) -> str:
