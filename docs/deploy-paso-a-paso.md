@@ -89,10 +89,46 @@ En Render ➜ tu Web Service ➜ pestaña **Shell** (o crea un **Job** con el mi
 ```bash
 flask load-official-figures      # cifras oficiales (ONU/OCHA) citadas
 flask ingest-all                 # USGS + GDACS + OSM + Localizados + Venezuela Reporta + corroboración
+# Reconocimientos REALES (unidades + perros, con fuentes) que vienen en el repo:
+flask import-recognitions-json data/recognitions_venezuela_2026.json \
+      --source-slug venezuela-2026 --attribution "Cobertura de prensa verificada"
 ```
-Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (conteos reales), `/reportes` (formulario).
+Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (conteos reales), `/reconocimientos` (unidades + perros con bandera), `/reportes/ayuda` (formulario).
 
 > No siembres datos de muestra (`seed-sample`) en producción: son de demostración.
+> El reporte de **personas desaparecidas** se delega al registro ciudadano externo
+> (`desaparecidosterremotovenezuela.com`); nosotros solo agregamos y presentamos.
+
+---
+
+## 5.1. Crear TU cuenta de administrador y activar 2FA
+
+El panel es **hiper-privado** (solo tú + gente de confianza) y exige **doble factor (2FA)**.
+
+1. En Render ➜ Web Service ➜ **Shell**, crea tu cuenta:
+   ```bash
+   flask create-admin            # te pedirá nombre, correo y contraseña (mín. 12)
+   ```
+2. Abre `https://tudominio.org/cuenta/login` e inicia sesión con ese correo/contraseña.
+3. Te pedirá **configurar 2FA**: escanea el **código QR** con una app autenticadora
+   (Google Authenticator, Microsoft Authenticator, etc.) y escribe el código de 6 dígitos.
+   - Desde ahí, cada inicio de sesión pedirá la contraseña **y** el código de la app.
+4. Ya dentro verás el **Panel** (`/admin`): cola de revisión, **Operación 4W**,
+   **Reconocimientos**, **Fuentes**, **Usuarios** y **Auditoría**.
+
+> Guarda la cuenta de la app autenticadora; sin ella no podrás entrar. Si la pierdes,
+> entra por **Shell** y crea otra cuenta admin con `flask create-admin`.
+
+## 5.2. Invitar colaboradores (sin registro público)
+
+1. En el panel ➜ **Usuarios** ➜ rellena nombre, correo y **rol**:
+   - **Revisor**: revisa y publica reportes (ve datos privados).
+   - **Colaborador**: triage por notas; **no** ve datos personales ni publica.
+   - **Observador**: solo lectura del tablero y de la Operación 4W.
+   - **Administrador**: control total.
+2. Se genera un **enlace de invitación de un solo uso** (expira en 72 h). **Cópialo y
+   compártelo por un canal seguro** (no hay registro abierto ni correos automáticos).
+3. La persona abre el enlace, fija su contraseña y configura su propio 2FA.
 
 ---
 
@@ -126,8 +162,9 @@ Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (c
 
 ## 9. Checklist final (verifica todo)
 - [ ] `https://tudominio.org` carga con candado (HTTPS) verde.
-- [ ] `/` muestra el inicio; `/mapa` muestra **⚠ zonas de peligro** + servicios con iconos; `/directorio` muestra conteos **reales**.
-- [ ] El formulario `/reportes` envía y queda *pendiente* (privado).
+- [ ] `/` muestra el inicio; `/mapa` muestra **⚠ zonas de peligro** + servicios; `/directorio` muestra conteos **reales**; `/reconocimientos` muestra unidades + perros.
+- [ ] Un formulario (`/reportes/ayuda`) envía correctamente.
+- [ ] Iniciaste sesión en `/cuenta/login` y **activaste 2FA** (QR); ves `/admin`.
 - [ ] Migraciones aplicadas: en Shell, `flask db current` muestra la última revisión.
 - [ ] El **cron** corrió al menos una vez (revisa *Logs* del cron).
 - [ ] `robots.txt` accesible en `/robots.txt`.
@@ -140,6 +177,10 @@ Verifica abriendo: `/` (inicio), `/mapa` (peligro + servicios), `/directorio` (c
 - **Backups**: el plan Basic de Postgres los incluye; en Free haz `pg_dump` manual de vez en cuando.
 - **Logs**: Render ➜ tu servicio ➜ *Logs* para errores.
 - **Escalar**: si crece el tráfico, sube el plan del Web Service; la app es *stateless* (todo el estado vive en Postgres).
+- **Rate limiting**: hay límites por IP (login 10/min, formularios 30/h). El almacén por
+  defecto es en memoria — funciona con **un** worker de gunicorn (lo normal en Starter). Si
+  aumentas a varios workers/instancias, crea un **Redis** y pon `RATELIMIT_STORAGE_URI=redis://…`.
+- **2FA**: obligatorio para el panel; ver §5.1. Guarda tu app autenticadora.
 
 ---
 

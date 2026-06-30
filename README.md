@@ -70,7 +70,7 @@ Cubren privacidad pública, permisos, moderación, mapa, automatización, mascot
 - Contacto, direcciones exactas, notas médicas y notas internas no aparecen en HTML ni JSON público.
 - Solo un reporte `approved` y marcado como público es visible. Los menores nunca se publican automáticamente.
 
-Consulta [docs/operations.md](docs/operations.md) para operación y seguridad.
+Consulta [docs/operations.md](docs/operations.md) para operación y seguridad, y la **guía de despliegue paso a paso** en [docs/deploy-paso-a-paso.md](docs/deploy-paso-a-paso.md) (GitHub → Render → dominio → datos → admin/2FA).
 
 ### Open source y contribución
 
@@ -144,7 +144,7 @@ They cover public privacy, permissions, moderation, the map, automation, pets, i
 - Contact, exact addresses, medical notes and internal notes never appear in public HTML or JSON.
 - Only an `approved`, explicitly public report is visible. Minors are never auto-published.
 
-See [docs/operations.md](docs/operations.md) for operations and security.
+See [docs/operations.md](docs/operations.md) for operations and security, and the **step-by-step deployment guide** in [docs/deploy-paso-a-paso.md](docs/deploy-paso-a-paso.md) (GitHub → Render → domain → data → admin/2FA).
 
 ### Open source and contributing
 

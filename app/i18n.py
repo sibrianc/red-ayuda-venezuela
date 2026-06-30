@@ -45,6 +45,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         # --- home: hero ---
         "Panorama humanitario público": "Public humanitarian overview",
         "Ayuda coordinada para Venezuela": "Coordinated help for Venezuela",
+        "El terremoto de Venezuela, en un solo lugar": "Venezuela's earthquake, all in one place",
+        "Concentramos y presentamos la información dispersa: personas, edificios e incidentes, servicios, zonas sin comunicación y mascotas — cada dato con su fuente, frescura y límites de privacidad. Para reportar a un familiar te llevamos al registro ciudadano.":
+            "We gather and present scattered information: people, buildings and incidents, services, areas without communication and pets — each record with its source, freshness and privacy limits. To report a relative we take you to the citizen registry.",
+        "Concentramos la información dispersa del terremoto y la presentamos por secciones, cada una con su propia página y buscador.":
+            "We gather the scattered earthquake information and present it by section, each with its own page and search.",
+        "Reportar desaparecido": "Report a missing person",
+        "Registro ciudadano de personas desaparecidas": "Citizen registry for missing persons",
         "Consulta y reporta personas sin contacto, solicitudes de ayuda, recursos y zonas afectadas. Cada dato público conserva fuente, frescura y límites de privacidad claros.":
             "Search and report people out of contact, help requests, resources and affected areas. Every public record keeps its source, freshness and clear privacy limits.",
         "Buscar personas →": "Search people →",
